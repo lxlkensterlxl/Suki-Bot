@@ -22,7 +22,7 @@
       ]
     },
     {
-      "source": "/assets/(.*)",
+      "source": "/(.*\\.(?:js|css|png|jpg|jpeg|gif|svg|ico|woff2?|vrm|json))",
       "headers": [
         {
           "key": "Cache-Control",
@@ -33,7 +33,7 @@
   ],
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/((?!.*\\.[\\w]+$).*)",
       "destination": "/index.html"
     }
   ]
