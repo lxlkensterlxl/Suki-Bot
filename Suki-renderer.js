@@ -8,7 +8,7 @@ class SukiRenderer {
       accent2: '#7cf6ff',
       accent3: '#9b7bff',
       botColor: '#f6d8ff',
-      trailColor: 'rgba(124, 246, 255, 0.8)',
+      trailColorBase: [124, 246, 255], // RGB array for safe alpha manipulation
       floorGlow: 'rgba(255, 95, 210, 0.3)',
       ...options,
     };
@@ -34,11 +34,14 @@ class SukiRenderer {
     this.lastTime = 0;
     this.mouse = { x: null, y: null, active: false };
 
+    // Bind loop method once
+    this.loop = this.loop.bind(this);
+
     this.resize();
-    this.bindPointer();
+    this.bindEvents();
   }
 
-  bindPointer() {
+  bindEvents() {
     const canvas = this.canvas;
     
     const updateCoord = (clientX, clientY) => {
@@ -55,6 +58,10 @@ class SukiRenderer {
     canvas.addEventListener('pointerdown', (event) => {
       updateCoord(event.clientX, event.clientY);
     });
+
+    // Automatically handle window/container resizing
+    this.resizeObserver = new ResizeObserver(() => this.resize());
+    this.resizeObserver.observe(canvas);
   }
 
   resize() {
@@ -74,8 +81,7 @@ class SukiRenderer {
   launch() {
     if (this.running) return;
     this.running = true;
-    this.lastTime = 0;
-    this.loop = this.loop.bind(this);
+    this.lastTime = performance.now();
     this.raf = requestAnimationFrame(this.loop);
   }
 
@@ -83,6 +89,13 @@ class SukiRenderer {
     this.running = false;
     if (this.raf) cancelAnimationFrame(this.raf);
     this.raf = null;
+  }
+
+  destroy() {
+    this.stop();
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+    }
   }
 
   loop(timestamp) {
@@ -100,41 +113,43 @@ class SukiRenderer {
     const logicalW = this.canvas.width / (window.devicePixelRatio || 1);
     const logicalH = this.canvas.height / (window.devicePixelRatio || 1);
 
-    // Default to center if pointer hasn't touched canvas yet
     const targetX = this.mouse.active ? this.mouse.x : logicalW / 2;
     const targetY = this.mouse.active ? this.mouse.y : logicalH * 0.62;
 
-    s.x += (targetX - s.x) * 0.03;
-    s.y += (targetY - s.y) * 0.03;
-
+    // Mood-based physics and energy updates
     if (s.mood === 'move') {
       s.movement += dt * 8;
       s.energy = Math.max(0, s.energy - 12 * dt);
       s.vx = Math.sin(s.movement * 2.5) * 24;
       s.vy = Math.cos(s.movement * 3.1) * 16;
-    } else if (s.mood === 'idle') {
-      s.movement += dt * 3;
-      s.energy = Math.min(100, s.energy + 3 * dt);
+      
+      // In move mode, blend target position with velocity drift
+      s.x += ((targetX + s.vx) - s.x) * 0.04;
+      s.y += ((targetY + s.vy) - s.y) * 0.04;
+    } else {
+      if (s.mood === 'idle') {
+        s.movement += dt * 3;
+        s.energy = Math.min(100, s.energy + 3 * dt);
+      } else if (s.mood === 'alert') {
+        s.movement += dt * 12;
+        s.alert = Math.min(1, s.alert + dt * 1.8);
+        s.energy = Math.max(0, s.energy - 6 * dt);
+      } else if (s.mood === 'speak') {
+        s.speech = Math.min(1, s.speech + dt * 3.2);
+        s.energy = Math.max(0, s.energy - 2 * dt);
+      }
+
       s.vx *= 0.92;
       s.vy *= 0.92;
-    } else if (s.mood === 'alert') {
-      s.movement += dt * 12;
-      s.alert = Math.min(1, s.alert + dt * 1.8);
-      s.energy = Math.max(0, s.energy - 6 * dt);
-    } else if (s.mood === 'speak') {
-      s.speech = Math.min(1, s.speech + dt * 3.2);
-      s.energy = Math.max(0, s.energy - 2 * dt);
+      s.x += (targetX - s.x) * 0.03;
+      s.y += (targetY - s.y) * 0.03;
     }
 
     s.pulse += dt * (s.mood === 'alert' ? 9 : 5);
     s.blink += dt * 1.2;
     s.direction = s.x > logicalW / 2 ? 1 : -1;
 
-    if (s.mood === 'move') {
-      s.x += s.vx * dt;
-      s.y += s.vy * dt;
-    }
-
+    // Boundary constraints
     s.x = Math.max(50, Math.min(logicalW - 50, s.x));
     s.y = Math.max(70, Math.min(logicalH - 70, s.y));
   }
@@ -289,12 +304,14 @@ class SukiRenderer {
   }
 
   drawTrail() {
-    const { ctx, state, options } = this;
+    const { ctx, options, state } = this;
     const tailCount = 12;
+    const [r, g, b] = options.trailColorBase;
+
     for (let i = tailCount; i > 0; i--) {
-      const alpha = i / tailCount * 0.25;
+      const alpha = (i / tailCount) * 0.25;
       const offset = i * 6;
-      ctx.fillStyle = options.trailColor.replace('0.8', String(alpha));
+      ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
       ctx.beginPath();
       ctx.ellipse(
         state.x - state.direction * offset,
