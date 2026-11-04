@@ -4,6 +4,9 @@ class CyberAudio {
   }
 
   async playBeep() {
+    // Prevent errors during Server-Side Rendering (SSR)
+    if (typeof window === 'undefined') return;
+
     try {
       const AudioContext = window.AudioContext || window.webkitAudioContext;
       if (!AudioContext) return;
@@ -12,7 +15,7 @@ class CyberAudio {
         this.ctx = new AudioContext();
       }
 
-      // Call playBeep from a tap/click handler to satisfy iOS's audio gesture requirement.
+      // Ensure AudioContext is running (crucial for iOS Safari)
       if (this.ctx.state !== 'running') {
         await this.ctx.resume();
       }
@@ -27,6 +30,7 @@ class CyberAudio {
       osc.frequency.setValueAtTime(1400, now);
       osc.frequency.exponentialRampToValueAtTime(400, now + 0.08);
 
+      // Note: 0.01 is correctly used instead of 0 (exponential ramps cannot target 0)
       gain.gain.setValueAtTime(0.2, now);
       gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
 
@@ -41,4 +45,5 @@ class CyberAudio {
   }
 }
 
-const sound = new CyberAudio();
+// Safely instantiate for client-side execution
+export const sound = typeof window !== 'undefined' ? new CyberAudio() : null;
