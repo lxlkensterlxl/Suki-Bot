@@ -1,0 +1,129 @@
+:root {
+  /* Color Palette */
+  --neon-purple: #b026ff;
+  --cyber-cyan: #00ffcc;
+  --deep-violet: #120a2a;
+  --cyber-dark: #0a0514;
+  --text-primary: #e0d4ff;
+  --text-muted: #bda6f0;
+
+  /* Surfaces & Translucency */
+  --bg-hud-header: rgba(18, 10, 42, 0.85);
+  --bg-hud-card: rgba(20, 12, 45, 0.75);
+  --bg-meta-box: rgba(10, 5, 20, 0.85);
+  --bg-badge: rgba(25, 15, 55, 0.9);
+
+  /* Glows & Effects */
+  --matrix-glow: 0 0 12px rgba(176, 38, 255, 0.4);
+  --cyan-glow: 0 0 8px rgba(0, 255, 204, 0.6);
+  --border-glow: 1px solid rgba(176, 38, 255, 0.6);
+  --border-subtle: 1px solid rgba(176, 38, 255, 0.4);
+
+  /* Animations */
+  --transition-fast: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Base Reset & Crisp Monospace Rendering */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--cyber-dark);
+  color: var(--text-primary);
+  font-family: 'Courier New', Courier, monospace;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Header / Status Bar */
+.hud-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-hud-header);
+  border-bottom: var(--border-glow);
+  padding: 10px 15px;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+}
+
+.hud-status-online {
+  color: var(--cyber-cyan);
+  text-shadow: var(--cyan-glow);
+}
+
+/* Main HUD Display Card */
+.hud-card {
+  background: var(--bg-hud-card);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border: var(--border-glow);
+  border-radius: 14px;
+  box-shadow: var(--matrix-glow);
+  padding: 14px;
+  margin: 12px;
+}
+
+/* Meta Data & System Readouts */
+.meta-data-box {
+  background: var(--bg-meta-box);
+  border: var(--border-subtle);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+/* Bottom Action / Status Badges (Responsive Fluid Grid) */
+.hud-badge-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+  gap: 8px;
+  padding: 0 12px;
+  margin-bottom: 12px;
+}
+
+.hud-badge {
+  background: var(--bg-badge);
+  border: var(--border-subtle);
+  border-radius: 8px;
+  padding: 8px 4px;
+  text-align: center;
+  font-size: 0.7rem;
+  color: var(--text-primary);
+  transition: var(--transition-fast);
+  user-select: none;
+  cursor: pointer;
+}
+
+.hud-badge:hover,
+.hud-badge:focus-visible {
+  border-color: var(--neon-purple);
+  box-shadow: var(--matrix-glow);
+  transform: translateY(-1px);
+}
+
+.hud-badge:active {
+  transform: translateY(0);
+}
+
+/* Dialogue / Transmission Box */
+.transmission-box {
+  background: var(--bg-hud-header);
+  border: var(--border-glow);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin: 0 12px 12px 12px;
+}
+
+.transmission-title {
+  font-size: 0.85rem;
+  color: var(--neon-purple);
+  font-weight: bold;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
