@@ -36,6 +36,7 @@ body {
   padding: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
 /* Header / Status Bar */
@@ -97,6 +98,7 @@ body {
   transition: var(--transition-fast);
   user-select: none;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .hud-badge:hover,
@@ -104,6 +106,7 @@ body {
   border-color: var(--neon-purple);
   box-shadow: var(--matrix-glow);
   transform: translateY(-1px);
+  outline: none;
 }
 
 .hud-badge:active {
@@ -126,4 +129,12 @@ body {
   margin-bottom: 6px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+/* Theme Override Hooks for Dynamic Styling */
+body.theme-cyan {
+  --neon-purple: var(--cyber-cyan);
+  --matrix-glow: 0 0 12px rgba(0, 255, 204, 0.4);
+  --border-glow: 1px solid rgba(0, 255, 204, 0.6);
+  --border-subtle: 1px solid rgba(0, 255, 204, 0.4);
 }
