@@ -3,6 +3,17 @@
 
   <!-- 2. Main Application & UI Script -->
   <script>
+    // Safe Audio Wrapper Helper
+    function playSafeBeep() {
+      try {
+        if (typeof sound !== 'undefined' && sound && typeof sound.playBeep === 'function') {
+          sound.playBeep();
+        }
+      } catch (e) {
+        console.warn('Audio context suppressed or uninitialized:', e);
+      }
+    }
+
     // Dialogue Matrix
     const dialogues = [
       "SUKI NEON VIOLET // Nya! Systems online, Senpai! Gemini initialized for direct kitsune-tactical uplink.",
@@ -13,14 +24,14 @@
     let diagIdx = 0;
 
     function cycleDialogue() {
-      sound.playBeep();
+      playSafeBeep();
       diagIdx = (diagIdx + 1) % dialogues.length;
       const speechBox = document.getElementById('speech-box');
       if (speechBox) speechBox.textContent = dialogues[diagIdx];
     }
 
     function triggerGlitch() {
-      sound.playBeep();
+      playSafeBeep();
       const avatar = document.getElementById('suki-avatar');
       if (avatar) {
         avatar.classList.add('glitch-active');
@@ -29,20 +40,27 @@
     }
 
     function setMode(modeName) {
-      sound.playBeep();
+      playSafeBeep();
       const modeDisplay = document.getElementById('mode-display');
       if (modeDisplay) modeDisplay.textContent = `${modeName}-Tactical v2.6`;
-      try { localStorage.setItem('suki_mode', modeName); } catch(e) {}
+      
+      try { 
+        localStorage.setItem('suki_mode', modeName); 
+      } catch(e) {}
       
       document.querySelectorAll('.control-btn').forEach(btn => {
-        if(btn.dataset.mode) btn.classList.remove('active');
+        if (btn.dataset.mode) {
+          if (btn.dataset.mode.toLowerCase() === modeName.toLowerCase()) {
+            btn.classList.add('active');
+          } else {
+            btn.classList.remove('active');
+          }
+        }
       });
-      const targetBtn = document.querySelector(`[data-mode="${modeName}"]`);
-      if(targetBtn) targetBtn.classList.add('active');
     }
 
     function speakSpeech() {
-      sound.playBeep();
+      playSafeBeep();
       if ('speechSynthesis' in window) {
         try {
           window.speechSynthesis.cancel();
@@ -63,7 +81,7 @@
     }
 
     function updateAvatarSource(url, save = true) {
-      if(!url) return;
+      if (!url) return;
       const img = document.getElementById('suki-img');
       if (img) img.src = url;
       if (save) {
@@ -109,12 +127,17 @@
           if (rateVal) rateVal.innerText = savedRate;
         }
 
-        const savedPersona = localStorage.getItem('suki_persona');
-        if (savedPersona) {
-          const personaSelect = document.getElementById('persona-select');
-          const modeDisplay = document.getElementById('mode-display');
-          if (personaSelect) personaSelect.value = savedPersona;
-          if (modeDisplay) modeDisplay.textContent = savedPersona;
+        const savedMode = localStorage.getItem('suki_mode');
+        if (savedMode) {
+          setMode(savedMode);
+        } else {
+          const savedPersona = localStorage.getItem('suki_persona');
+          if (savedPersona) {
+            const personaSelect = document.getElementById('persona-select');
+            const modeDisplay = document.getElementById('mode-display');
+            if (personaSelect) personaSelect.value = savedPersona;
+            if (modeDisplay) modeDisplay.textContent = savedPersona;
+          }
         }
 
         const savedMatrix = localStorage.getItem('suki_matrix');
@@ -141,12 +164,12 @@
 
         // Modal Triggers
         bindClick('btn-open-settings', () => {
-          sound.playBeep();
+          playSafeBeep();
           document.getElementById('settings-modal')?.classList.add('active');
         });
 
         bindClick('btn-close-settings', () => {
-          sound.playBeep();
+          playSafeBeep();
           document.getElementById('settings-modal')?.classList.remove('active');
         });
 
@@ -159,7 +182,7 @@
 
         document.getElementById('custom-avatar-url')?.addEventListener('input', (e) => {
           const val = e.target.value.trim();
-          if(val.length > 5) updateAvatarSource(val);
+          if (val.length > 5) updateAvatarSource(val);
         });
 
         document.getElementById('local-avatar-file')?.addEventListener('change', (e) => {
@@ -194,7 +217,7 @@
 
         document.querySelectorAll('.theme-btn').forEach(btn => {
           btn.addEventListener('click', (e) => {
-            sound.playBeep();
+            playSafeBeep();
             applyTheme(e.target.dataset.theme);
           });
         });
@@ -207,7 +230,7 @@
         });
 
         bindClick('btn-save-settings', () => {
-          sound.playBeep();
+          playSafeBeep();
           document.getElementById('settings-modal')?.classList.remove('active');
           speakSpeech();
         });
@@ -222,7 +245,7 @@
         bindClick('btn-transmit', cycleDialogue);
 
         bindClick('energy-orb', () => {
-          sound.playBeep();
+          playSafeBeep();
           triggerGlitch();
           const energyDisplay = document.getElementById('energy-display');
           if (energyDisplay) energyDisplay.textContent = '[100% OVERDRIVE]';
@@ -278,7 +301,7 @@
         const minutes = String(now.getUTCMinutes()).padStart(2, '0');
         const seconds = String(now.getUTCSeconds()).padStart(2, '0');
         const clockEl = document.getElementById('synapse-clock');
-        if(clockEl) clockEl.textContent = `${hours}:${minutes}:${seconds} UTC`;
+        if (clockEl) clockEl.textContent = `${hours}:${minutes}:${seconds} UTC`;
       } catch(e) {}
     }
     setInterval(updateClock, 1000);
