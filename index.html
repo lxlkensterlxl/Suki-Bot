@@ -1,0 +1,286 @@
+  <!-- 1. Load the Audio Engine First -->
+  <script src="./suki-audio.js"></script>
+
+  <!-- 2. Main Application & UI Script -->
+  <script>
+    // Dialogue Matrix
+    const dialogues = [
+      "SUKI NEON VIOLET // Nya! Systems online, Senpai! Gemini initialized for direct kitsune-tactical uplink.",
+      "TACTICAL ADVICE // Scanners detect optimal network throughput. Neural latency is holding steady at 12ms.",
+      "ENCRYPTION ALERT // Quantum mesh firewall updated. Unauthorized intrusion attempts automatically redirected to void.",
+      "KITTY MATRIX // Energy core fully charged. Ready to assist with code synthesis, analysis, or strategic operations!"
+    ];
+    let diagIdx = 0;
+
+    function cycleDialogue() {
+      sound.playBeep();
+      diagIdx = (diagIdx + 1) % dialogues.length;
+      const speechBox = document.getElementById('speech-box');
+      if (speechBox) speechBox.textContent = dialogues[diagIdx];
+    }
+
+    function triggerGlitch() {
+      sound.playBeep();
+      const avatar = document.getElementById('suki-avatar');
+      if (avatar) {
+        avatar.classList.add('glitch-active');
+        setTimeout(() => avatar.classList.remove('glitch-active'), 500);
+      }
+    }
+
+    function setMode(modeName) {
+      sound.playBeep();
+      const modeDisplay = document.getElementById('mode-display');
+      if (modeDisplay) modeDisplay.textContent = `${modeName}-Tactical v2.6`;
+      try { localStorage.setItem('suki_mode', modeName); } catch(e) {}
+      
+      document.querySelectorAll('.control-btn').forEach(btn => {
+        if(btn.dataset.mode) btn.classList.remove('active');
+      });
+      const targetBtn = document.querySelector(`[data-mode="${modeName}"]`);
+      if(targetBtn) targetBtn.classList.add('active');
+    }
+
+    function speakSpeech() {
+      sound.playBeep();
+      if ('speechSynthesis' in window) {
+        try {
+          window.speechSynthesis.cancel();
+          const speechBox = document.getElementById('speech-box');
+          const pitchInput = document.getElementById('voice-pitch');
+          const rateInput = document.getElementById('voice-rate');
+          
+          if (speechBox && speechBox.textContent) {
+            const utterance = new SpeechSynthesisUtterance(speechBox.textContent);
+            if (pitchInput) utterance.pitch = parseFloat(pitchInput.value) || 1.0;
+            if (rateInput) utterance.rate = parseFloat(rateInput.value) || 1.0;
+            window.speechSynthesis.speak(utterance);
+          }
+        } catch(e) {
+          console.warn('Speech synthesis error:', e);
+        }
+      }
+    }
+
+    function updateAvatarSource(url, save = true) {
+      if(!url) return;
+      const img = document.getElementById('suki-img');
+      if (img) img.src = url;
+      if (save) {
+        try { localStorage.setItem('suki_avatar', url); } catch(e) {}
+        triggerGlitch();
+      }
+    }
+
+    function applyTheme(themeName) {
+      document.body.className = '';
+      if (themeName && themeName !== 'default') {
+        document.body.classList.add(`theme-${themeName}`);
+      }
+      document.querySelectorAll('.theme-btn').forEach(b => {
+        if (b.dataset.theme === themeName) b.classList.add('active');
+        else b.classList.remove('active');
+      });
+      try { localStorage.setItem('suki_theme', themeName); } catch(e) {}
+    }
+
+    // Load saved settings safely
+    function loadSavedSettings() {
+      try {
+        const savedAvatar = localStorage.getItem('suki_avatar');
+        if (savedAvatar) updateAvatarSource(savedAvatar, false);
+
+        const savedTheme = localStorage.getItem('suki_theme');
+        if (savedTheme) applyTheme(savedTheme);
+
+        const savedPitch = localStorage.getItem('suki_pitch');
+        if (savedPitch) {
+          const pitchEl = document.getElementById('voice-pitch');
+          const pitchVal = document.getElementById('pitch-val');
+          if (pitchEl) pitchEl.value = savedPitch;
+          if (pitchVal) pitchVal.innerText = savedPitch;
+        }
+
+        const savedRate = localStorage.getItem('suki_rate');
+        if (savedRate) {
+          const rateEl = document.getElementById('voice-rate');
+          const rateVal = document.getElementById('rate-val');
+          if (rateEl) rateEl.value = savedRate;
+          if (rateVal) rateVal.innerText = savedRate;
+        }
+
+        const savedPersona = localStorage.getItem('suki_persona');
+        if (savedPersona) {
+          const personaSelect = document.getElementById('persona-select');
+          const modeDisplay = document.getElementById('mode-display');
+          if (personaSelect) personaSelect.value = savedPersona;
+          if (modeDisplay) modeDisplay.textContent = savedPersona;
+        }
+
+        const savedMatrix = localStorage.getItem('suki_matrix');
+        if (savedMatrix) {
+          const matrixToggle = document.getElementById('matrix-toggle');
+          const matrixCanvas = document.getElementById('matrix-canvas');
+          if (matrixToggle) matrixToggle.value = savedMatrix;
+          if (matrixCanvas) matrixCanvas.style.opacity = savedMatrix === 'on' ? '0.25' : '0';
+        }
+      } catch (e) {
+        console.warn('LocalStorage access restricted:', e);
+      }
+    }
+
+    // DOM Event Listeners & Initializations
+    document.addEventListener('DOMContentLoaded', () => {
+      try {
+        loadSavedSettings();
+
+        const bindClick = (id, handler) => {
+          const el = document.getElementById(id);
+          if (el) el.addEventListener('click', handler);
+        };
+
+        // Modal Triggers
+        bindClick('btn-open-settings', () => {
+          sound.playBeep();
+          document.getElementById('settings-modal')?.classList.add('active');
+        });
+
+        bindClick('btn-close-settings', () => {
+          sound.playBeep();
+          document.getElementById('settings-modal')?.classList.remove('active');
+        });
+
+        // Settings Inputs safely bound
+        document.getElementById('avatar-preset-select')?.addEventListener('change', (e) => {
+          updateAvatarSource(e.target.value);
+          const customUrl = document.getElementById('custom-avatar-url');
+          if (customUrl) customUrl.value = '';
+        });
+
+        document.getElementById('custom-avatar-url')?.addEventListener('input', (e) => {
+          const val = e.target.value.trim();
+          if(val.length > 5) updateAvatarSource(val);
+        });
+
+        document.getElementById('local-avatar-file')?.addEventListener('change', (e) => {
+          const file = e.target.files?.[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => updateAvatarSource(event.target.result);
+            reader.readAsDataURL(file);
+          }
+        });
+
+        document.getElementById('persona-select')?.addEventListener('change', (e) => {
+          const val = e.target.value;
+          const modeDisplay = document.getElementById('mode-display');
+          if (modeDisplay) modeDisplay.textContent = val;
+          try { localStorage.setItem('suki_persona', val); } catch(err){}
+        });
+
+        document.getElementById('voice-pitch')?.addEventListener('input', (e) => {
+          const val = e.target.value;
+          const pitchVal = document.getElementById('pitch-val');
+          if (pitchVal) pitchVal.innerText = val;
+          try { localStorage.setItem('suki_pitch', val); } catch(err){}
+        });
+
+        document.getElementById('voice-rate')?.addEventListener('input', (e) => {
+          const val = e.target.value;
+          const rateVal = document.getElementById('rate-val');
+          if (rateVal) rateVal.innerText = val;
+          try { localStorage.setItem('suki_rate', val); } catch(err){}
+        });
+
+        document.querySelectorAll('.theme-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            sound.playBeep();
+            applyTheme(e.target.dataset.theme);
+          });
+        });
+
+        document.getElementById('matrix-toggle')?.addEventListener('change', (e) => {
+          const val = e.target.value;
+          const canvasEl = document.getElementById('matrix-canvas');
+          if (canvasEl) canvasEl.style.opacity = val === 'on' ? '0.25' : '0';
+          try { localStorage.setItem('suki_matrix', val); } catch(err){}
+        });
+
+        bindClick('btn-save-settings', () => {
+          sound.playBeep();
+          document.getElementById('settings-modal')?.classList.remove('active');
+          speakSpeech();
+        });
+
+        // Control Action Bindings
+        bindClick('btn-asr', () => setMode('ASR'));
+        bindClick('btn-orb', () => setMode('Orb'));
+        bindClick('btn-core', () => setMode('Core'));
+        bindClick('btn-tactics', () => setMode('Tactics'));
+        bindClick('btn-matrix', triggerGlitch);
+        bindClick('btn-voice', speakSpeech);
+        bindClick('btn-transmit', cycleDialogue);
+
+        bindClick('energy-orb', () => {
+          sound.playBeep();
+          triggerGlitch();
+          const energyDisplay = document.getElementById('energy-display');
+          if (energyDisplay) energyDisplay.textContent = '[100% OVERDRIVE]';
+        });
+
+        // Matrix Background Animation Engine
+        const canvas = document.getElementById('matrix-canvas');
+        if (canvas) {
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            let drops = [];
+            const chars = '0123456789ABCDEFSUKIBOT';
+            const fontSize = 12;
+
+            function resizeMatrixCanvas() {
+              canvas.width = window.innerWidth;
+              canvas.height = window.innerHeight;
+              const cols = Math.floor(canvas.width / fontSize);
+              drops = Array(cols).fill(1);
+            }
+            window.addEventListener('resize', resizeMatrixCanvas);
+            resizeMatrixCanvas();
+
+            function drawMatrix() {
+              ctx.fillStyle = 'rgba(3, 1, 8, 0.1)';
+              ctx.fillRect(0, 0, canvas.width, canvas.height);
+              ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--neon-purple').trim() || '#c038ff';
+              ctx.font = `${fontSize}px monospace`;
+
+              for (let i = 0; i < drops.length; i++) {
+                const text = chars.charAt(Math.floor(Math.random() * chars.length));
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                  drops[i] = 0;
+                }
+                drops[i]++;
+              }
+              requestAnimationFrame(drawMatrix);
+            }
+            drawMatrix();
+          }
+        }
+      } catch (err) {
+        console.error('Critical initialization error caught:', err);
+      }
+    });
+
+    // Realtime UTC Clock Display Safeguard
+    function updateClock() {
+      try {
+        const now = new Date();
+        const hours = String(now.getUTCHours()).padStart(2, '0');
+        const minutes = String(now.getUTCMinutes()).padStart(2, '0');
+        const seconds = String(now.getUTCSeconds()).padStart(2, '0');
+        const clockEl = document.getElementById('synapse-clock');
+        if(clockEl) clockEl.textContent = `${hours}:${minutes}:${seconds} UTC`;
+      } catch(e) {}
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+  </script>
