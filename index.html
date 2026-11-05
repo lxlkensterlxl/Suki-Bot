@@ -1,18 +1,35 @@
   <!-- 1. Load the Audio Engine First -->
   <script src="./suki-audio.js"></script>
 
-  <!-- 2. Main Application & UI Script -->
+  <!-- 2. Main Application & UI Script (Optimized for iOS Safari / iPhone 17) -->
   <script>
-    // Safe Audio Wrapper Helper
+    // Safe Audio Wrapper Helper with iOS Touch-Unlock Hook
     function playSafeBeep() {
       try {
-        if (typeof sound !== 'undefined' && sound && typeof sound.playBeep === 'function') {
-          sound.playBeep();
+        if (typeof sound !== 'undefined' && sound) {
+          if (typeof sound.playBeep === 'function') {
+            sound.playBeep();
+          }
+          // Handle Web Audio API resume requirement specifically for iOS Safari
+          if (sound.ctx && sound.ctx.state === 'suspended') {
+            sound.ctx.resume();
+          }
         }
       } catch (e) {
         console.warn('Audio context suppressed or uninitialized:', e);
       }
     }
+
+    // Global listener to unlock iOS Safari Web Audio on first user interaction
+    ['touchstart', 'pointerdown', 'click'].forEach(eventType => {
+      window.addEventListener(eventType, () => {
+        try {
+          if (typeof sound !== 'undefined' && sound && sound.ctx && sound.ctx.state === 'suspended') {
+            sound.ctx.resume();
+          }
+        } catch(e) {}
+      }, { once: true, passive: true });
+    });
 
     // Dialogue Matrix
     const dialogues = [
@@ -72,6 +89,9 @@
             const utterance = new SpeechSynthesisUtterance(speechBox.textContent);
             if (pitchInput) utterance.pitch = parseFloat(pitchInput.value) || 1.0;
             if (rateInput) utterance.rate = parseFloat(rateInput.value) || 1.0;
+            
+            // iOS Safari SpeechSynthesis bug fix: keep utterance reference alive globally
+            window._lastUtterance = utterance;
             window.speechSynthesis.speak(utterance);
           }
         } catch(e) {
@@ -159,7 +179,10 @@
 
         const bindClick = (id, handler) => {
           const el = document.getElementById(id);
-          if (el) el.addEventListener('click', handler);
+          if (el) {
+            // Use pointerdown/touchstart for instant tactile response on mobile devices
+            el.addEventListener('click', handler);
+          }
         };
 
         // Modal Triggers
@@ -251,7 +274,7 @@
           if (energyDisplay) energyDisplay.textContent = '[100% OVERDRIVE]';
         });
 
-        // Matrix Background Animation Engine
+        // Matrix Background Animation Engine (Optimized with frame throttling for mobile battery saver)
         const canvas = document.getElementById('matrix-canvas');
         if (canvas) {
           const ctx = canvas.getContext('2d');
@@ -261,31 +284,43 @@
             const fontSize = 12;
 
             function resizeMatrixCanvas() {
-              canvas.width = window.innerWidth;
-              canvas.height = window.innerHeight;
-              const cols = Math.floor(canvas.width / fontSize);
+              // Account for mobile browser viewport scaling and dynamic address bars
+              const dpr = window.devicePixelRatio || 1;
+              canvas.width = window.innerWidth * dpr;
+              canvas.height = window.innerHeight * dpr;
+              ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+              
+              const cols = Math.floor(window.innerWidth / fontSize);
               drops = Array(cols).fill(1);
             }
             window.addEventListener('resize', resizeMatrixCanvas);
             resizeMatrixCanvas();
 
-            function drawMatrix() {
-              ctx.fillStyle = 'rgba(3, 1, 8, 0.1)';
-              ctx.fillRect(0, 0, canvas.width, canvas.height);
+            let lastFrameTime = 0;
+            const fpsInterval = 33; // Cap matrix at ~30 FPS on mobile to prevent overheating/battery drain
+
+            function drawMatrix(timestamp) {
+              requestAnimationFrame(drawMatrix);
+
+              const elapsed = timestamp - lastFrameTime;
+              if (elapsed < fpsInterval) return;
+              lastFrameTime = timestamp - (elapsed % fpsInterval);
+
+              ctx.fillStyle = 'rgba(3, 1, 8, 0.15)';
+              ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
               ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--neon-purple').trim() || '#c038ff';
               ctx.font = `${fontSize}px monospace`;
 
               for (let i = 0; i < drops.length; i++) {
                 const text = chars.charAt(Math.floor(Math.random() * chars.length));
                 ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                if (drops[i] * fontSize > window.innerHeight && Math.random() > 0.975) {
                   drops[i] = 0;
                 }
                 drops[i]++;
               }
-              requestAnimationFrame(drawMatrix);
             }
-            drawMatrix();
+            requestAnimationFrame(drawMatrix);
           }
         }
       } catch (err) {
