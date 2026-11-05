@@ -4,7 +4,6 @@ class CyberAudio {
   }
 
   async playBeep() {
-    // Prevent errors during Server-Side Rendering (SSR)
     if (typeof window === 'undefined') return;
 
     try {
@@ -15,8 +14,8 @@ class CyberAudio {
         this.ctx = new AudioContext();
       }
 
-      // Ensure AudioContext is running (crucial for iOS Safari)
-      if (this.ctx.state !== 'running') {
+      // Resume context if suspended (crucial for iOS Safari)
+      if (this.ctx.state === 'suspended') {
         await this.ctx.resume();
       }
 
@@ -30,12 +29,18 @@ class CyberAudio {
       osc.frequency.setValueAtTime(1400, now);
       osc.frequency.exponentialRampToValueAtTime(400, now + 0.08);
 
-      // Note: 0.01 is correctly used instead of 0 (exponential ramps cannot target 0)
       gain.gain.setValueAtTime(0.2, now);
       gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
 
+      // Connect nodes
       osc.connect(gain);
       gain.connect(this.ctx.destination);
+
+      // Clean up nodes from memory automatically when stopped
+      osc.onended = () => {
+        osc.disconnect();
+        gain.disconnect();
+      };
 
       osc.start(now);
       osc.stop(now + 0.08);
