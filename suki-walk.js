@@ -101,105 +101,144 @@
     }
   }
 
-  // A soft, shader-like cyan/violet aura pulses around Suki without changing the page background.
   function drawAura(time) {
-    const pulse = reduceMotion.matches ? 0.35 : (Math.sin(time * 2.4) + 1) * 0.5;
-    const radius = 40 + pulse * 10;
-    const aura = ctx.createRadialGradient(suki.x, suki.y, 5, suki.x, suki.y, radius);
-    aura.addColorStop(0, `rgba(103, 232, 249, ${0.08 + pulse * 0.06})`);
-    aura.addColorStop(0.55, `rgba(192, 132, 252, ${0.07 + pulse * 0.05})`);
-    aura.addColorStop(1, 'rgba(192, 132, 252, 0)');
+    const pulse = reduceMotion.matches ? 0.35 : (Math.sin(time * 2.8) + 1) * 0.5;
+    const auraRadius = 48 + pulse * 18;
+    const aura = ctx.createRadialGradient(suki.x, suki.y - 6, 12, suki.x, suki.y - 6, auraRadius);
+    aura.addColorStop(0, `rgba(103, 232, 249, ${0.12 + pulse * 0.12})`);
+    aura.addColorStop(0.45, `rgba(196, 132, 252, ${0.10 + pulse * 0.09})`);
+    aura.addColorStop(1, 'rgba(196, 132, 252, 0)');
 
     ctx.save();
-    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalCompositeOperation = 'screen';
     ctx.fillStyle = aura;
     ctx.beginPath();
-    ctx.ellipse(suki.x, suki.y + 3, radius * 0.78, radius, 0, 0, Math.PI * 2);
+    ctx.ellipse(suki.x, suki.y + 4, auraRadius * 0.75, auraRadius, 0, 0, Math.PI * 2);
     ctx.fill();
+    ctx.restore();
+
+    ctx.save();
+    ctx.strokeStyle = `rgba(103, 232, 249, ${0.18 + pulse * 0.22})`;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(suki.x, suki.y, 22 + pulse * 8, 0, Math.PI * 2);
+    ctx.stroke();
     ctx.restore();
   }
 
   function drawSuki(time, walking) {
     const stride = walking ? Math.sin(suki.step) : 0;
     const bounce = walking ? Math.abs(Math.sin(suki.step)) * 4 : Math.sin(time * 1.7) * 1.5;
-    const pulse = reduceMotion.matches ? 0.35 : (Math.sin(time * 2.4) + 1) * 0.5;
+    const pulse = reduceMotion.matches ? 0.35 : (Math.sin(time * 2.8) + 1) * 0.5;
     const x = suki.x;
     const y = suki.y + bounce;
 
     ctx.save();
     ctx.translate(x, y);
     ctx.scale(suki.facing, 1);
-    // Subtle colored light on the character gives the pulse a little depth.
-    ctx.shadowColor = pulse > 0.5 ? '#67e8f9' : '#c084fc';
-    ctx.shadowBlur = 7 + pulse * 7;
 
-    // Ground shadow and soft character glow.
     ctx.save();
-    ctx.globalAlpha = walking ? 0.2 : 0.13;
+    ctx.globalAlpha = walking ? 0.22 : 0.15;
     ctx.fillStyle = '#c084fc';
-    ctx.beginPath(); ctx.ellipse(0, 39, 23, 6, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(0, 41, 28, 7, 0, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
 
-    // Legs and shoes animate opposite each other while walking.
-    ctx.lineCap = 'round';
-    ctx.strokeStyle = '#6d4bd1';
-    ctx.lineWidth = 5;
+    // Side ribbons and hair silhouette for a more anime-girl look.
+    ctx.fillStyle = '#1d102f';
     ctx.beginPath();
-    ctx.moveTo(-7, 24); ctx.lineTo(-8 + stride * 7, 36 + Math.max(0, stride) * 2);
-    ctx.moveTo(7, 24); ctx.lineTo(8 - stride * 7, 36 + Math.max(0, -stride) * 2);
-    ctx.stroke();
-    ctx.strokeStyle = '#a5f3fc';
-    ctx.lineWidth = 4;
+    ctx.moveTo(-18, -12); ctx.quadraticCurveTo(-28, -42, -20, -56);
+    ctx.quadraticCurveTo(-8, -44, -8, -20); ctx.closePath();
+    ctx.moveTo(18, -12); ctx.quadraticCurveTo(28, -42, 20, -56);
+    ctx.quadraticCurveTo(8, -44, 8, -20); ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = '#f4d7ff';
     ctx.beginPath();
-    ctx.moveTo(-13 + stride * 7, 37 + Math.max(0, stride) * 2); ctx.lineTo(-4 + stride * 7, 37 + Math.max(0, stride) * 2);
-    ctx.moveTo(4 - stride * 7, 37 + Math.max(0, -stride) * 2); ctx.lineTo(13 - stride * 7, 37 + Math.max(0, -stride) * 2);
+    ctx.ellipse(0, -10, 16, 18, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#140d1f';
+    ctx.beginPath();
+    ctx.moveTo(-18, -12); ctx.lineTo(-12, -30); ctx.lineTo(0, -26); ctx.lineTo(12, -30); ctx.lineTo(18, -12);
+    ctx.quadraticCurveTo(0, 14, -18, -12); ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = '#201132';
+    ctx.beginPath();
+    ctx.moveTo(-20, -28); ctx.quadraticCurveTo(-28, -10, -14, 1);
+    ctx.quadraticCurveTo(-23, 2, -26, -18); ctx.closePath();
+    ctx.moveTo(20, -28); ctx.quadraticCurveTo(28, -10, 14, 1);
+    ctx.quadraticCurveTo(23, 2, 26, -18); ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = '#f9d8ff';
+    ctx.beginPath();
+    ctx.ellipse(-6, -11, 2.3, 4.5, 0, 0, Math.PI * 2);
+    ctx.ellipse(6, -11, 2.3, 4.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#67e8f9';
+    ctx.beginPath();
+    ctx.arc(-6, -11, 0.9, 0, Math.PI * 2);
+    ctx.arc(6, -11, 0.9, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = '#2a1b3b';
+    ctx.lineWidth = 1.7;
+    ctx.beginPath();
+    ctx.moveTo(-9, -5); ctx.lineTo(-3, -2); ctx.moveTo(9, -5); ctx.lineTo(3, -2);
     ctx.stroke();
 
-    // Dress and collar.
-    ctx.fillStyle = '#6865e8';
+    ctx.strokeStyle = '#e879b9';
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.arc(0, -3, 4.8, 0.2, Math.PI - 0.2);
+    ctx.stroke();
+
+    ctx.fillStyle = 'rgba(247, 168, 212, 0.7)';
+    ctx.beginPath();
+    ctx.ellipse(-10, -2, 3.6, 1.4, 0, 0, Math.PI * 2);
+    ctx.ellipse(10, -2, 3.6, 1.4, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#6557d8';
     ctx.beginPath();
     ctx.moveTo(-13, 4); ctx.quadraticCurveTo(0, -2, 13, 4);
-    ctx.lineTo(19, 28); ctx.quadraticCurveTo(0, 34, -19, 28); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#a5f3fc';
-    ctx.beginPath(); ctx.moveTo(-6, 5); ctx.lineTo(0, 15); ctx.lineTo(6, 5); ctx.closePath(); ctx.fill();
+    ctx.lineTo(19, 27); ctx.quadraticCurveTo(0, 34, -19, 27); ctx.closePath();
+    ctx.fill();
 
-    // Arms swing with her steps.
-    ctx.strokeStyle = '#f6d8ff'; ctx.lineWidth = 4.5;
+    ctx.fillStyle = '#a5f3fc';
+    ctx.beginPath();
+    ctx.moveTo(-6, 5); ctx.lineTo(0, 15); ctx.lineTo(6, 5); ctx.closePath();
+    ctx.fill();
+
+    ctx.strokeStyle = '#f6d8ff';
+    ctx.lineWidth = 4.5;
     ctx.beginPath();
     ctx.moveTo(-12, 8); ctx.lineTo(-17, 18 - stride * 4);
     ctx.moveTo(12, 8); ctx.lineTo(17, 18 + stride * 4);
     ctx.stroke();
 
-    // Hair, cat ears and face.
-    ctx.fillStyle = '#261438';
+    ctx.strokeStyle = '#6d4bd1';
+    ctx.lineWidth = 5;
     ctx.beginPath();
-    ctx.moveTo(-19, -10); ctx.lineTo(-25, -31); ctx.lineTo(-8, -23);
-    ctx.quadraticCurveTo(0, -29, 8, -23); ctx.lineTo(25, -31); ctx.lineTo(19, -9);
-    ctx.lineTo(16, 13); ctx.quadraticCurveTo(0, 26, -16, 13); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#f0abfc';
+    ctx.moveTo(-8, 24); ctx.lineTo(-9 + stride * 7, 37 + Math.max(0, stride) * 2);
+    ctx.moveTo(8, 24); ctx.lineTo(9 - stride * 7, 37 + Math.max(0, -stride) * 2);
+    ctx.stroke();
+
+    ctx.strokeStyle = '#a5f3fc';
+    ctx.lineWidth = 4;
     ctx.beginPath();
-    ctx.moveTo(-22, -28); ctx.lineTo(-14, -23); ctx.lineTo(-19, -16); ctx.closePath();
-    ctx.moveTo(22, -28); ctx.lineTo(14, -23); ctx.lineTo(19, -16); ctx.closePath(); ctx.fill();
+    ctx.moveTo(-13 + stride * 7, 38 + Math.max(0, stride) * 2); ctx.lineTo(-4 + stride * 7, 38 + Math.max(0, stride) * 2);
+    ctx.moveTo(4 - stride * 7, 38 + Math.max(0, -stride) * 2); ctx.lineTo(13 - stride * 7, 38 + Math.max(0, -stride) * 2);
+    ctx.stroke();
 
-    ctx.fillStyle = '#fff0fb';
-    ctx.beginPath(); ctx.ellipse(0, -8, 14, 17, 0, 0, Math.PI * 2); ctx.fill();
-    const blinking = suki.blink > 5.9 && suki.blink < 6.12;
-    ctx.strokeStyle = '#29213d'; ctx.fillStyle = '#29213d'; ctx.lineWidth = 2;
-    if (blinking) {
-      ctx.beginPath(); ctx.moveTo(-8, -9); ctx.lineTo(-4, -9); ctx.moveTo(4, -9); ctx.lineTo(8, -9); ctx.stroke();
-    } else {
-      ctx.beginPath(); ctx.ellipse(-6, -9, 2, 3.2, 0, 0, Math.PI * 2); ctx.ellipse(6, -9, 2, 3.2, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#67e8f9'; ctx.beginPath(); ctx.arc(-5.4, -10, 0.8, 0, Math.PI * 2); ctx.arc(6.6, -10, 0.8, 0, Math.PI * 2); ctx.fill();
-    }
-    ctx.strokeStyle = '#e879b9'; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.arc(0, -2, 3, 0.2, Math.PI - 0.2); ctx.stroke();
-    ctx.fillStyle = 'rgba(247, 168, 212, 0.6)';
-    ctx.beginPath(); ctx.ellipse(-10, -3, 3, 1.4, 0, 0, Math.PI * 2); ctx.ellipse(10, -3, 3, 1.4, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = `rgba(103, 232, 249, ${0.5 + pulse * 0.3})`;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(0, 0, 24 + pulse * 10, 0, Math.PI * 2);
+    ctx.stroke();
 
-    // Purple side locks.
-    ctx.fillStyle = '#9b5de5';
-    ctx.beginPath(); ctx.moveTo(-14, -20); ctx.quadraticCurveTo(-21, -2, -17, 16); ctx.quadraticCurveTo(-10, 13, -11, 0); ctx.closePath(); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(14, -20); ctx.quadraticCurveTo(21, -2, 17, 16); ctx.quadraticCurveTo(10, 13, 11, 0); ctx.closePath(); ctx.fill();
     ctx.restore();
   }
 
