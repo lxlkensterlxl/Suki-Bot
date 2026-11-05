@@ -1,122 +1,92 @@
-class sukitouchcontroller {
-  constructor(targetelement, callbacks = {}) {
-    this.target = targetelement;
-    this.callbacks = callbacks; // { ontap, onhold, ondrag, onswipe }
-    
-    this.touchstartx = 0;
-    this.touchstarty = 0;
-    this.holdtimer = null;
-    this.isdragging = false;
-    this.holdthreshold = 500; // ms to trigger long press
+class SukiTouchController {
+  constructor(targetElement, callbacks = {}) {
+    this.target = targetElement;
+    this.callbacks = callbacks;
+    this.touchStartX = 0;
+    this.touchStartY = 0;
+    this.holdTimer = null;
+    this.isDragging = false;
+    this.holdThreshold = 500;
 
+    if (!this.target) return;
     this.init();
   }
 
   init() {
-    // passive false ensures preventdefault works to block native browser actions
-    this.target.addeventlistener('touchstart', (e) => this.handletouchstart(e), { passive: false });
-    this.target.addeventlistener('touchmove', (e) => this.handletouchmove(e), { passive: false });
-    this.target.addeventlistener('touchend', (e) => this.handletouchend(e), { passive: false });
-    this.target.addeventlistener('touchcancel', () => this.resettouch());
+    this.target.addEventListener('touchstart', (event) => this.handleTouchStart(event), { passive: false });
+    this.target.addEventListener('touchmove', (event) => this.handleTouchMove(event), { passive: false });
+    this.target.addEventListener('touchend', (event) => this.handleTouchEnd(event), { passive: false });
+    this.target.addEventListener('touchcancel', () => this.resetTouch());
   }
 
-  handletouchstart(e) {
-    if (e.touches.length !== 1) return; // ignore multi-touch gestures like pinch
-    const touch = e.touches[0];
-    
-    this.touchstartx = touch.clientx;
-    this.touchstarty = touch.clienty;
-    this.isdragging = false;
+  handleTouchStart(event) {
+    if (event.touches.length !== 1) return;
+    const touch = event.touches[0];
+    this.touchStartX = touch.clientX;
+    this.touchStartY = touch.clientY;
+    this.isDragging = false;
 
-    // trigger hold event after threshold
-    this.holdtimer = settimeout(() => {
-      if (!this.isdragging && this.callbacks.onhold) {
-        this.callbacks.onhold({ x: this.touchstartx, y: this.touchstarty });
+    this.holdTimer = setTimeout(() => {
+      if (!this.isDragging && this.callbacks.onHold) {
+        this.callbacks.onHold({ x: this.touchStartX, y: this.touchStartY });
       }
-    }, this.holdthreshold);
+    }, this.holdThreshold);
   }
 
-  handletouchmove(e) {
-    if (e.touches.length !== 1) return;
-    e.preventdefault(); // stop rubber-band scrolling
+  handleTouchMove(event) {
+    if (event.touches.length !== 1) return;
+    event.preventDefault();
 
-    const touch = e.touches[0];
-    const deltax = touch.clientx - this.touchstartx;
-    const deltay = touch.clienty - this.touchstarty;
+    const touch = event.touches[0];
+    const deltaX = touch.clientX - this.touchStartX;
+    const deltaY = touch.clientY - this.touchStartY;
 
-    // treat as drag if moved beyond threshold (10px)
-    if (math.abs(deltax) > 10 || math.abs(deltay) > 10) {
-      this.isdragging = true;
-      cleartimeout(this.holdtimer);
+    if (Math.abs(deltaX) > 10 || Math.abs(deltaY) > 10) {
+      this.isDragging = true;
+      clearTimeout(this.holdTimer);
 
-      if (this.callbacks.ondrag) {
-        this.callbacks.ondrag({
-          x: touch.clientx,
-          y: touch.clienty,
-          deltax,
-          deltay
-        });
+      if (this.callbacks.onDrag) {
+        this.callbacks.onDrag({ x: touch.clientX, y: touch.clientY, deltaX, deltaY });
       }
     }
   }
 
-  handletouchend(e) {
-    cleartimeout(this.holdtimer);
+  handleTouchEnd(event) {
+    clearTimeout(this.holdTimer);
+    if (event.changedTouches.length !== 1) return;
 
-    if (e.changedtouches.length !== 1) return;
-    const touch = e.changedtouches[0];
-    const deltax = touch.clientx - this.touchstartx;
-    const deltay = touch.clienty - this.touchstarty;
+    const touch = event.changedTouches[0];
+    const deltaX = touch.clientX - this.touchStartX;
+    const deltaY = touch.clientY - this.touchStartY;
 
-    if (!this.isdragging) {
-      // tap detected
-      if (this.callbacks.ontap) {
-        this.callbacks.ontap({ x: touch.clientx, y: touch.clienty });
+    if (!this.isDragging) {
+      if (this.callbacks.onTap) {
+        this.callbacks.onTap({ x: touch.clientX, y: touch.clientY });
       }
     } else {
-      // swipe detection logic
-      const absx = math.abs(deltax);
-      const absy = math.abs(deltay);
-      const swipethreshold = 50;
+      const absX = Math.abs(deltaX);
+      const absY = Math.abs(deltaY);
+      const swipeThreshold = 50;
 
-      if (math.max(absx, absy) > swipethreshold && this.callbacks.onswipe) {
+      if (Math.max(absX, absY) > swipeThreshold && this.callbacks.onSwipe) {
         let direction = '';
-        if (absx > absy) {
-          direction = deltax > 0 ? 'right' : 'left';
+        if (absX > absY) {
+          direction = deltaX > 0 ? 'right' : 'left';
         } else {
-          direction = deltay > 0 ? 'down' : 'up';
+          direction = deltaY > 0 ? 'down' : 'up';
         }
-        this.callbacks.onswipe({ direction, deltax, deltay });
+
+        this.callbacks.onSwipe({ direction, deltaX, deltaY });
       }
     }
 
-    this.resettouch();
+    this.resetTouch();
   }
 
-  resettouch() {
-    cleartimeout(this.holdtimer);
-    this.isdragging = false;
+  resetTouch() {
+    clearTimeout(this.holdTimer);
+    this.isDragging = false;
   }
 }
 
-// instantiate and bind to sukibot canvas wrapper
-const canvaswrapper = document.getelementbyid('suki-canvas-wrapper');
-
-const touchhandler = new sukitouchcontroller(canvaswrapper, {
-  ontap: (coords) => {
-    console.log('tap triggered at', coords);
-    // trigger expression swap or tap reaction animation
-  },
-  onhold: (coords) => {
-    console.log('hold triggered at', coords);
-    // cycle hud neon theme
-    document.documentelement.setattribute('data-theme', 'cyber-cyan');
-  },
-  ondrag: (dragdata) => {
-    // map drag movement to character camera/head tracking
-  },
-  onswipe: (swipe) => {
-    console.log('swipe detected:', swipe.direction);
-    // swipe left/right to toggle hud panels
-  }
-});
+window.SukiTouchController = SukiTouchController;
