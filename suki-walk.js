@@ -69,21 +69,43 @@
 
   function drawBackground(time) {
     ctx.clearRect(0, 0, width, height);
-    const glow = ctx.createRadialGradient(width * 0.5, height * 0.52, 4, width * 0.5, height * 0.52, Math.max(width, height) * 0.72);
-    glow.addColorStop(0, 'rgba(86, 49, 126, 0.33)');
-    glow.addColorStop(0.55, 'rgba(30, 18, 49, 0.48)');
-    glow.addColorStop(1, 'rgba(10, 7, 18, 0.95)');
+    const sky = ctx.createLinearGradient(0, 0, 0, height);
+    sky.addColorStop(0, '#090817');
+    sky.addColorStop(0.58, '#17102b');
+    sky.addColorStop(1, '#080711');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, width, height);
+
+    const glow = ctx.createRadialGradient(width * 0.5, height * 0.57, 8, width * 0.5, height * 0.57, Math.max(width, height) * 0.68);
+    glow.addColorStop(0, 'rgba(58, 31, 92, 0.33)');
+    glow.addColorStop(0.55, 'rgba(20, 13, 39, 0.2)');
+    glow.addColorStop(1, 'rgba(8, 7, 17, 0)');
     ctx.fillStyle = glow;
     ctx.fillRect(0, 0, width, height);
 
-    // Slow, subtle stars keep the scene lively without competing with Suki.
-    for (let i = 0; i < 48; i += 1) {
+    // A compact neon skyline adds a cyberpunk backdrop without external assets.
+    const horizon = height * 0.78;
+    for (let i = 0; i < 13; i += 1) {
+      const buildingWidth = Math.max(22, width / 18);
+      const x = (i * width / 11.5 - width * 0.08) % (width + buildingWidth);
+      const buildingHeight = height * (0.08 + ((i * 37) % 11) / 100);
+      ctx.fillStyle = i % 2 ? 'rgba(15, 12, 31, 0.8)' : 'rgba(20, 13, 39, 0.88)';
+      ctx.fillRect(x, horizon - buildingHeight, buildingWidth, buildingHeight);
+      ctx.fillStyle = i % 3 === 0 ? 'rgba(255, 75, 205, 0.55)' : 'rgba(77, 233, 255, 0.45)';
+      for (let row = 0; row < 3; row += 1) {
+        ctx.fillRect(x + 5, horizon - buildingHeight + 9 + row * 11, 3, 2);
+        ctx.fillRect(x + buildingWidth - 10, horizon - buildingHeight + 9 + row * 11, 3, 2);
+      }
+    }
+
+    // Distant neon motes.
+    for (let i = 0; i < 38; i += 1) {
       const x = (i * 197.3) % width;
-      const y = (i * 113.9) % height;
-      const twinkle = 0.2 + (Math.sin(time * 0.8 + i * 1.7) + 1) * 0.22;
+      const y = (i * 113.9) % (height * 0.76);
+      const twinkle = 0.12 + (Math.sin(time * 0.8 + i * 1.7) + 1) * 0.18;
       ctx.fillStyle = i % 3 === 0
-        ? `rgba(103, 232, 249, ${twinkle})`
-        : `rgba(247, 241, 255, ${twinkle * 0.7})`;
+        ? `rgba(77, 233, 255, ${twinkle})`
+        : `rgba(255, 75, 205, ${twinkle * 0.7})`;
       ctx.fillRect(x, y, i % 5 === 0 ? 2 : 1.3, i % 5 === 0 ? 2 : 1.3);
     }
 
@@ -93,11 +115,14 @@
     floor.addColorStop(1, 'rgba(42, 20, 66, 0.4)');
     ctx.fillStyle = floor;
     ctx.fillRect(0, floorY, width, height - floorY);
-    ctx.strokeStyle = 'rgba(192, 132, 252, 0.09)';
+    ctx.strokeStyle = 'rgba(77, 233, 255, 0.12)';
     ctx.lineWidth = 1;
     for (let i = 0; i < 7; i += 1) {
       const y = floorY + i * i * 2.2;
       ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke();
+    }
+    for (let i = -8; i <= 8; i += 1) {
+      ctx.beginPath(); ctx.moveTo(width / 2 + i * 18, floorY); ctx.lineTo(width / 2 + i * 56, height); ctx.stroke();
     }
   }
 
@@ -105,9 +130,9 @@
     const pulse = reduceMotion.matches ? 0.35 : (Math.sin(time * 2.8) + 1) * 0.5;
     const auraRadius = 48 + pulse * 18;
     const aura = ctx.createRadialGradient(suki.x, suki.y - 6, 12, suki.x, suki.y - 6, auraRadius);
-    aura.addColorStop(0, `rgba(103, 232, 249, ${0.12 + pulse * 0.12})`);
-    aura.addColorStop(0.45, `rgba(196, 132, 252, ${0.10 + pulse * 0.09})`);
-    aura.addColorStop(1, 'rgba(196, 132, 252, 0)');
+    aura.addColorStop(0, `rgba(77, 233, 255, ${0.12 + pulse * 0.12})`);
+    aura.addColorStop(0.45, `rgba(255, 58, 196, ${0.10 + pulse * 0.09})`);
+    aura.addColorStop(1, 'rgba(255, 58, 196, 0)');
 
     ctx.save();
     ctx.globalCompositeOperation = 'screen';
@@ -118,7 +143,7 @@
     ctx.restore();
 
     ctx.save();
-    ctx.strokeStyle = `rgba(103, 232, 249, ${0.18 + pulse * 0.22})`;
+    ctx.strokeStyle = `rgba(77, 233, 255, ${0.18 + pulse * 0.22})`;
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.arc(suki.x, suki.y, 22 + pulse * 8, 0, Math.PI * 2);
@@ -130,6 +155,7 @@
     const stride = walking ? Math.sin(suki.step) : 0;
     const bounce = walking ? Math.abs(Math.sin(suki.step)) * 4 : Math.sin(time * 1.7) * 1.5;
     const pulse = reduceMotion.matches ? 0.35 : (Math.sin(time * 2.8) + 1) * 0.5;
+    const blinking = !reduceMotion.matches && suki.blink > 5.9 && suki.blink < 6.12;
     const x = suki.x;
     const y = suki.y + bounce;
 
@@ -137,107 +163,105 @@
     ctx.translate(x, y);
     ctx.scale(suki.facing, 1);
 
+    // Ground shadow and neon-edged silhouette.
     ctx.save();
     ctx.globalAlpha = walking ? 0.22 : 0.15;
-    ctx.fillStyle = '#c084fc';
+    ctx.fillStyle = '#ff3ac4';
     ctx.beginPath(); ctx.ellipse(0, 41, 28, 7, 0, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
 
-    // Side ribbons and hair silhouette for a more anime-girl look.
-    ctx.fillStyle = '#1d102f';
+    // Long dark hair with bright cyber-pink/cyan streaks and pointed cat-ear locks.
+    ctx.fillStyle = '#111020';
     ctx.beginPath();
-    ctx.moveTo(-18, -12); ctx.quadraticCurveTo(-28, -42, -20, -56);
-    ctx.quadraticCurveTo(-8, -44, -8, -20); ctx.closePath();
-    ctx.moveTo(18, -12); ctx.quadraticCurveTo(28, -42, 20, -56);
-    ctx.quadraticCurveTo(8, -44, 8, -20); ctx.closePath();
+    ctx.moveTo(-17, -15); ctx.lineTo(-27, -43); ctx.lineTo(-12, -34);
+    ctx.quadraticCurveTo(0, -43, 12, -34); ctx.lineTo(27, -43); ctx.lineTo(17, -12);
+    ctx.quadraticCurveTo(27, 8, 20, 24); ctx.lineTo(11, 12);
+    ctx.quadraticCurveTo(0, 22, -11, 12); ctx.lineTo(-20, 24);
+    ctx.quadraticCurveTo(-27, 6, -17, -15); ctx.closePath();
     ctx.fill();
 
-    ctx.fillStyle = '#f4d7ff';
+    // Neon hair streaks.
+    ctx.strokeStyle = '#ff3ac4'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(-16, -33); ctx.quadraticCurveTo(-19, -10, -15, 10); ctx.stroke();
+    ctx.strokeStyle = '#4de9ff';
+    ctx.beginPath(); ctx.moveTo(15, -32); ctx.quadraticCurveTo(19, -8, 15, 10); ctx.stroke();
+
+    // Cat-ear headset with luminous tips.
+    ctx.fillStyle = '#282340';
     ctx.beginPath();
-    ctx.ellipse(0, -10, 16, 18, 0, 0, Math.PI * 2);
+    ctx.moveTo(-19, -29); ctx.lineTo(-25, -48); ctx.lineTo(-7, -37); ctx.closePath();
+    ctx.moveTo(19, -29); ctx.lineTo(25, -48); ctx.lineTo(7, -37); ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = '#4de9ff'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(-22, -43); ctx.lineTo(-12, -38); ctx.moveTo(22, -43); ctx.lineTo(12, -38); ctx.stroke();
+    ctx.fillStyle = '#ff3ac4';
+    ctx.beginPath(); ctx.arc(-20, -29, 3, 0, Math.PI * 2); ctx.arc(20, -29, 3, 0, Math.PI * 2); ctx.fill();
+
+    // Face.
+    ctx.fillStyle = '#f6d9ed';
+    ctx.beginPath(); ctx.ellipse(0, -10, 15, 18, 0, 0, Math.PI * 2); ctx.fill();
+
+    // Side locks frame the face.
+    ctx.fillStyle = '#171527';
+    ctx.beginPath();
+    ctx.moveTo(-15, -25); ctx.quadraticCurveTo(-23, -8, -15, 5); ctx.lineTo(-11, -2); ctx.lineTo(-10, -21); ctx.closePath();
+    ctx.moveTo(15, -25); ctx.quadraticCurveTo(23, -8, 15, 5); ctx.lineTo(11, -2); ctx.lineTo(10, -21); ctx.closePath();
     ctx.fill();
 
-    ctx.fillStyle = '#140d1f';
-    ctx.beginPath();
-    ctx.moveTo(-18, -12); ctx.lineTo(-12, -30); ctx.lineTo(0, -26); ctx.lineTo(12, -30); ctx.lineTo(18, -12);
-    ctx.quadraticCurveTo(0, 14, -18, -12); ctx.closePath();
-    ctx.fill();
+    // Large luminous anime eyes, with a blink that respects reduced-motion settings.
+    if (blinking) {
+      ctx.strokeStyle = '#241a34'; ctx.lineWidth = 2.2;
+      ctx.beginPath(); ctx.moveTo(-10, -10); ctx.quadraticCurveTo(-6, -7, -2, -10); ctx.moveTo(2, -10); ctx.quadraticCurveTo(6, -7, 10, -10); ctx.stroke();
+    } else {
+      ctx.fillStyle = '#fff8ff';
+      ctx.beginPath(); ctx.ellipse(-6, -10, 4.1, 5.5, -0.1, 0, Math.PI * 2); ctx.ellipse(6, -10, 4.1, 5.5, 0.1, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#a432de';
+      ctx.beginPath(); ctx.ellipse(-6, -9.5, 2.5, 4.2, 0, 0, Math.PI * 2); ctx.ellipse(6, -9.5, 2.5, 4.2, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#4de9ff';
+      ctx.beginPath(); ctx.arc(-6, -10, 1.15, 0, Math.PI * 2); ctx.arc(6, -10, 1.15, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.arc(-7, -12, 1.2, 0, Math.PI * 2); ctx.arc(5, -12, 1.2, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#291b3a'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(-10, -16); ctx.lineTo(-3, -15); ctx.moveTo(3, -15); ctx.lineTo(10, -16); ctx.stroke();
+    }
 
-    ctx.fillStyle = '#201132';
-    ctx.beginPath();
-    ctx.moveTo(-20, -28); ctx.quadraticCurveTo(-28, -10, -14, 1);
-    ctx.quadraticCurveTo(-23, 2, -26, -18); ctx.closePath();
-    ctx.moveTo(20, -28); ctx.quadraticCurveTo(28, -10, 14, 1);
-    ctx.quadraticCurveTo(23, 2, 26, -18); ctx.closePath();
-    ctx.fill();
+    ctx.strokeStyle = '#d85aaf'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(0, -3, 3.8, 0.2, Math.PI - 0.2); ctx.stroke();
+    ctx.fillStyle = 'rgba(255, 90, 177, 0.55)';
+    ctx.beginPath(); ctx.ellipse(-10, -3, 3, 1.3, 0, 0, Math.PI * 2); ctx.ellipse(10, -3, 3, 1.3, 0, 0, Math.PI * 2); ctx.fill();
 
-    ctx.fillStyle = '#f9d8ff';
-    ctx.beginPath();
-    ctx.ellipse(-6, -11, 2.3, 4.5, 0, 0, Math.PI * 2);
-    ctx.ellipse(6, -11, 2.3, 4.5, 0, 0, Math.PI * 2);
-    ctx.fill();
+    // Cyber jacket, luminous collar, and compact chest panel.
+    ctx.fillStyle = '#29243f';
+    ctx.beginPath(); ctx.moveTo(-13, 4); ctx.lineTo(-20, 27); ctx.quadraticCurveTo(0, 35, 20, 27); ctx.lineTo(13, 4); ctx.quadraticCurveTo(0, -1, -13, 4); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#ff3ac4'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(-17, 24); ctx.lineTo(-12, 7); ctx.moveTo(17, 24); ctx.lineTo(12, 7); ctx.stroke();
+    ctx.fillStyle = '#4de9ff';
+    ctx.beginPath(); ctx.moveTo(-6, 5); ctx.lineTo(0, 14); ctx.lineTo(6, 5); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#111020'; ctx.fillRect(-4, 17, 8, 5);
+    ctx.fillStyle = `rgba(77, 233, 255, ${0.55 + pulse * 0.4})`; ctx.fillRect(-2, 18, 4, 2);
 
-    ctx.fillStyle = '#67e8f9';
-    ctx.beginPath();
-    ctx.arc(-6, -11, 0.9, 0, Math.PI * 2);
-    ctx.arc(6, -11, 0.9, 0, Math.PI * 2);
-    ctx.fill();
+    // Sleeves and small luminous wrist cuffs.
+    ctx.strokeStyle = '#302b49'; ctx.lineWidth = 7; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(-12, 8); ctx.lineTo(-18, 19 - stride * 3); ctx.moveTo(12, 8); ctx.lineTo(18, 19 + stride * 3); ctx.stroke();
+    ctx.strokeStyle = '#4de9ff'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(-17, 17 - stride * 3); ctx.lineTo(-19, 20 - stride * 3); ctx.moveTo(17, 17 + stride * 3); ctx.lineTo(19, 20 + stride * 3); ctx.stroke();
 
-    ctx.strokeStyle = '#2a1b3b';
-    ctx.lineWidth = 1.7;
-    ctx.beginPath();
-    ctx.moveTo(-9, -5); ctx.lineTo(-3, -2); ctx.moveTo(9, -5); ctx.lineTo(3, -2);
-    ctx.stroke();
+    // Pleated techwear skirt and moving legs.
+    ctx.fillStyle = '#171527';
+    ctx.beginPath(); ctx.moveTo(-13, 24); ctx.lineTo(13, 24); ctx.lineTo(18, 34); ctx.lineTo(-18, 34); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#ff3ac4'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(-10, 26); ctx.lineTo(-12, 33); ctx.moveTo(0, 26); ctx.lineTo(0, 34); ctx.moveTo(10, 26); ctx.lineTo(12, 33); ctx.stroke();
+    ctx.strokeStyle = '#f6d9ed'; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(-7, 34); ctx.lineTo(-8 + stride * 6, 40); ctx.moveTo(7, 34); ctx.lineTo(8 - stride * 6, 40); ctx.stroke();
+    ctx.strokeStyle = '#4de9ff'; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(-12 + stride * 6, 41); ctx.lineTo(-4 + stride * 6, 41); ctx.moveTo(4 - stride * 6, 41); ctx.lineTo(12 - stride * 6, 41); ctx.stroke();
 
-    ctx.strokeStyle = '#e879b9';
-    ctx.lineWidth = 1.8;
-    ctx.beginPath();
-    ctx.arc(0, -3, 4.8, 0.2, Math.PI - 0.2);
-    ctx.stroke();
-
-    ctx.fillStyle = 'rgba(247, 168, 212, 0.7)';
-    ctx.beginPath();
-    ctx.ellipse(-10, -2, 3.6, 1.4, 0, 0, Math.PI * 2);
-    ctx.ellipse(10, -2, 3.6, 1.4, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = '#6557d8';
-    ctx.beginPath();
-    ctx.moveTo(-13, 4); ctx.quadraticCurveTo(0, -2, 13, 4);
-    ctx.lineTo(19, 27); ctx.quadraticCurveTo(0, 34, -19, 27); ctx.closePath();
-    ctx.fill();
-
-    ctx.fillStyle = '#a5f3fc';
-    ctx.beginPath();
-    ctx.moveTo(-6, 5); ctx.lineTo(0, 15); ctx.lineTo(6, 5); ctx.closePath();
-    ctx.fill();
-
-    ctx.strokeStyle = '#f6d8ff';
-    ctx.lineWidth = 4.5;
-    ctx.beginPath();
-    ctx.moveTo(-12, 8); ctx.lineTo(-17, 18 - stride * 4);
-    ctx.moveTo(12, 8); ctx.lineTo(17, 18 + stride * 4);
-    ctx.stroke();
-
-    ctx.strokeStyle = '#6d4bd1';
-    ctx.lineWidth = 5;
-    ctx.beginPath();
-    ctx.moveTo(-8, 24); ctx.lineTo(-9 + stride * 7, 37 + Math.max(0, stride) * 2);
-    ctx.moveTo(8, 24); ctx.lineTo(9 - stride * 7, 37 + Math.max(0, -stride) * 2);
-    ctx.stroke();
-
-    ctx.strokeStyle = '#a5f3fc';
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.moveTo(-13 + stride * 7, 38 + Math.max(0, stride) * 2); ctx.lineTo(-4 + stride * 7, 38 + Math.max(0, stride) * 2);
-    ctx.moveTo(4 - stride * 7, 38 + Math.max(0, -stride) * 2); ctx.lineTo(13 - stride * 7, 38 + Math.max(0, -stride) * 2);
-    ctx.stroke();
-
-    ctx.strokeStyle = `rgba(103, 232, 249, ${0.5 + pulse * 0.3})`;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(0, 0, 24 + pulse * 10, 0, Math.PI * 2);
-    ctx.stroke();
+    // Neon orbit ring behind Suki's silhouette.
+    ctx.strokeStyle = `rgba(77, 233, 255, ${0.45 + pulse * 0.35})`;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.ellipse(0, 2, 31 + pulse * 3, 43 + pulse * 3, 0, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = '#ff3ac4';
+    ctx.beginPath(); ctx.arc(-31, -15, 2, 0, Math.PI * 2); ctx.arc(31, 19, 2, 0, Math.PI * 2); ctx.fill();
 
     ctx.restore();
   }
