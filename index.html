@@ -72,6 +72,7 @@
       <label class="flex items-center justify-between gap-3 text-[0.88rem]" for="voice-rate">Speaking speed <output id="rate-value">1.0</output></label>
       <input class="w-full accent-neon-cyan" id="voice-rate" type="range" min="0.5" max="1.8" step="0.1" value="1">
       <label class="flex items-center justify-between gap-3 text-[0.88rem]" for="matrix-toggle"><span>Matrix background</span><input id="matrix-toggle" type="checkbox" class="h-5 w-5 accent-neon-cyan"></label>
+      <label class="flex items-center justify-between gap-3 text-[0.88rem]" for="theme-toggle"><span>Light mode</span><input id="theme-toggle" type="checkbox" class="h-5 w-5 accent-neon-cyan"></label>
       <button class="mt-1 min-h-[42px] rounded-2xl bg-gradient-to-br from-[#d7a8ff] to-[#9e7dff] px-3 font-bold text-[#160c22]" value="done">Done</button>
     </form>
   </dialog>
@@ -95,10 +96,19 @@
       const canvas = $('matrix-canvas');
       const ctx = canvas.getContext('2d');
       const dialog = $('settings-dialog');
+      const themeToggle = $('theme-toggle');
       const store = {
         get(key) { try { return localStorage.getItem(key); } catch (_) { return null; } },
         set(key, value) { try { localStorage.setItem(key, value); } catch (_) {} }
       };
+
+      function applyTheme(isLight) {
+        const theme = isLight ? 'light' : 'dark';
+        document.documentElement.dataset.theme = theme;
+        if (themeToggle) themeToggle.checked = isLight;
+        store.set('suki_theme', theme);
+      }
+
       function beep() {
         try { if (window.sound) window.sound.playBeep(); } catch (_) {}
       }
@@ -161,6 +171,9 @@
       }
       const matrixToggle = $('matrix-toggle');
       matrixToggle.checked = store.get('suki_matrix') === 'on';
+      themeToggle.checked = store.get('suki_theme') === 'light';
+      themeToggle.addEventListener('change', () => applyTheme(themeToggle.checked));
+      applyTheme(store.get('suki_theme') === 'light');
       function resizeMatrix() {
         const ratio = Math.min(window.devicePixelRatio || 1, 2);
         canvas.width = Math.round(window.innerWidth * ratio);

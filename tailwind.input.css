@@ -18,6 +18,26 @@
 }
 
 @layer base {
+  :root {
+    color-scheme: dark;
+    --color-suki-bg: #07040d;
+    --color-suki-panel: rgb(18 10 31 / 76%);
+    --color-suki-border: rgb(189 0 255 / 38%);
+    --color-suki-border-soft: rgb(192 132 252 / 30%);
+    --color-suki-text: #f3eaff;
+    --color-suki-muted: #b9a9d3;
+  }
+
+  html[data-theme="light"] {
+    color-scheme: light;
+    --color-suki-bg: #f8f5ff;
+    --color-suki-panel: rgba(255, 255, 255, 0.72);
+    --color-suki-border: rgba(106, 67, 189, 0.28);
+    --color-suki-border-soft: rgba(106, 67, 189, 0.2);
+    --color-suki-text: #1f1630;
+    --color-suki-muted: #544a6f;
+  }
+
   html,
   body {
     min-height: 100%;
