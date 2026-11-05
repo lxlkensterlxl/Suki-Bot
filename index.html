@@ -1,4 +1,6 @@
 <!-- Include absolute-relative tags inside your <head> -->
+<link rel="apple-touch-icon" href="/icon-192.svg">
+<link rel="manifest" href="/manifest.json">
 <link rel="stylesheet" href="./style.css">
 
 <!-- Web App Meta Tags for iOS / Standalone PWA Execution -->
@@ -83,11 +85,9 @@
     playSafeBeep();
     const modeDisplay = document.getElementById('mode-display');
     if (modeDisplay) modeDisplay.textContent = `${modeName}-Tactical v2.6`;
-    
-    try { 
-      localStorage.setItem('suki_mode', modeName); 
+    try {
+      localStorage.setItem('suki_mode', modeName);
     } catch(e) {}
-    
     document.querySelectorAll('.control-btn').forEach(btn => {
       if (btn.dataset.mode) {
         if (btn.dataset.mode.toLowerCase() === modeName.toLowerCase()) {
@@ -107,12 +107,10 @@
         const speechBox = document.getElementById('speech-box');
         const pitchInput = document.getElementById('voice-pitch');
         const rateInput = document.getElementById('voice-rate');
-        
         if (speechBox && speechBox.textContent) {
           const utterance = new SpeechSynthesisUtterance(speechBox.textContent);
           if (pitchInput) utterance.pitch = parseFloat(pitchInput.value) || 1.0;
           if (rateInput) utterance.rate = parseFloat(rateInput.value) || 1.0;
-          
           // Workaround for iOS Safari silence bug on long strings or repeated invocations
           window._lastUtterance = utterance;
           window.speechSynthesis.speak(utterance);
@@ -150,10 +148,8 @@
     try {
       const savedAvatar = localStorage.getItem('suki_avatar');
       if (savedAvatar) updateAvatarSource(savedAvatar, false);
-
       const savedTheme = localStorage.getItem('suki_theme');
       if (savedTheme) applyTheme(savedTheme);
-
       const savedPitch = localStorage.getItem('suki_pitch');
       if (savedPitch) {
         const pitchEl = document.getElementById('voice-pitch');
@@ -161,7 +157,6 @@
         if (pitchEl) pitchEl.value = savedPitch;
         if (pitchVal) pitchVal.innerText = savedPitch;
       }
-
       const savedRate = localStorage.getItem('suki_rate');
       if (savedRate) {
         const rateEl = document.getElementById('voice-rate');
@@ -169,7 +164,6 @@
         if (rateEl) rateEl.value = savedRate;
         if (rateVal) rateVal.innerText = savedRate;
       }
-
       const savedMode = localStorage.getItem('suki_mode');
       if (savedMode) {
         setMode(savedMode);
@@ -182,7 +176,6 @@
           if (modeDisplay) modeDisplay.textContent = savedPersona;
         }
       }
-
       const savedMatrix = localStorage.getItem('suki_matrix');
       if (savedMatrix) {
         const matrixToggle = document.getElementById('matrix-toggle');
@@ -199,37 +192,29 @@
   document.addEventListener('DOMContentLoaded', () => {
     try {
       loadSavedSettings();
-
       const bindClick = (id, handler) => {
         const el = document.getElementById(id);
-        if (el) {
-          el.addEventListener('click', handler);
-        }
+        if (el) el.addEventListener('click', handler);
       };
-
       // Modal Triggers
       bindClick('btn-open-settings', () => {
         playSafeBeep();
         document.getElementById('settings-modal')?.classList.add('active');
       });
-
       bindClick('btn-close-settings', () => {
         playSafeBeep();
         document.getElementById('settings-modal')?.classList.remove('active');
       });
-
       // Settings Inputs
       document.getElementById('avatar-preset-select')?.addEventListener('change', (e) => {
         updateAvatarSource(e.target.value);
         const customUrl = document.getElementById('custom-avatar-url');
         if (customUrl) customUrl.value = '';
       });
-
       document.getElementById('custom-avatar-url')?.addEventListener('input', (e) => {
         const val = e.target.value.trim();
         if (val.length > 5) updateAvatarSource(val);
       });
-
       document.getElementById('local-avatar-file')?.addEventListener('change', (e) => {
         const file = e.target.files?.[0];
         if (file) {
@@ -238,48 +223,41 @@
           reader.readAsDataURL(file);
         }
       });
-
       document.getElementById('persona-select')?.addEventListener('change', (e) => {
         const val = e.target.value;
         const modeDisplay = document.getElementById('mode-display');
         if (modeDisplay) modeDisplay.textContent = val;
         try { localStorage.setItem('suki_persona', val); } catch(err){}
       });
-
       document.getElementById('voice-pitch')?.addEventListener('input', (e) => {
         const val = e.target.value;
         const pitchVal = document.getElementById('pitch-val');
         if (pitchVal) pitchVal.innerText = val;
         try { localStorage.setItem('suki_pitch', val); } catch(err){}
       });
-
       document.getElementById('voice-rate')?.addEventListener('input', (e) => {
         const val = e.target.value;
         const rateVal = document.getElementById('rate-val');
         if (rateVal) rateVal.innerText = val;
         try { localStorage.setItem('suki_rate', val); } catch(err){}
       });
-
       document.querySelectorAll('.theme-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
           playSafeBeep();
           applyTheme(e.target.dataset.theme);
         });
       });
-
       document.getElementById('matrix-toggle')?.addEventListener('change', (e) => {
         const val = e.target.value;
         const canvasEl = document.getElementById('matrix-canvas');
         if (canvasEl) canvasEl.style.opacity = val === 'on' ? '0.25' : '0';
         try { localStorage.setItem('suki_matrix', val); } catch(err){}
       });
-
       bindClick('btn-save-settings', () => {
         playSafeBeep();
         document.getElementById('settings-modal')?.classList.remove('active');
         speakSpeech();
       });
-
       // Control Action Bindings
       bindClick('btn-asr', () => setMode('ASR'));
       bindClick('btn-orb', () => setMode('Orb'));
@@ -288,14 +266,12 @@
       bindClick('btn-matrix', triggerGlitch);
       bindClick('btn-voice', speakSpeech);
       bindClick('btn-transmit', cycleDialogue);
-
       bindClick('energy-orb', () => {
         playSafeBeep();
         triggerGlitch();
         const energyDisplay = document.getElementById('energy-display');
         if (energyDisplay) energyDisplay.textContent = '[100% OVERDRIVE]';
       });
-
       // Canvas Matrix Engine (Viewport Sizing Fixes for Mobile Safari)
       const canvas = document.getElementById('matrix-canvas');
       if (canvas) {
@@ -304,47 +280,35 @@
           let drops = [];
           const chars = '0123456789ABCDEFSUKIBOT';
           const fontSize = 12;
-
           function resizeMatrixCanvas() {
-            // Native retina rendering calculation for mobile viewports
             const dpr = window.devicePixelRatio || 1;
             const width = window.innerWidth;
             const height = window.innerHeight;
-
             canvas.width = width * dpr;
             canvas.height = height * dpr;
             canvas.style.width = width + 'px';
             canvas.style.height = height + 'px';
-
             ctx.scale(dpr, dpr);
-            
             const cols = Math.floor(width / fontSize);
             drops = Array(cols).fill(1);
           }
           window.addEventListener('resize', resizeMatrixCanvas);
           resizeMatrixCanvas();
-
           let lastFrameTime = 0;
-          const fpsInterval = 33; // Frame capping at ~30 FPS to save mobile CPU/battery
-
+          const fpsInterval = 33;
           function drawMatrix(timestamp) {
             requestAnimationFrame(drawMatrix);
-
             const elapsed = timestamp - lastFrameTime;
             if (elapsed < fpsInterval) return;
             lastFrameTime = timestamp - (elapsed % fpsInterval);
-
             ctx.fillStyle = 'rgba(3, 1, 8, 0.15)';
             ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
             ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--neon-purple').trim() || '#c038ff';
             ctx.font = `${fontSize}px monospace`;
-
             for (let i = 0; i < drops.length; i++) {
               const text = chars.charAt(Math.floor(Math.random() * chars.length));
               ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-              if (drops[i] * fontSize > window.innerHeight && Math.random() > 0.975) {
-                drops[i] = 0;
-              }
+              if (drops[i] * fontSize > window.innerHeight && Math.random() > 0.975) drops[i] = 0;
               drops[i]++;
             }
           }
