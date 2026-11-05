@@ -1,54 +1,71 @@
-class CyberAudio {
-  constructor() {
-    this.ctx = null;
-  }
+(function () {
+  class CyberAudio {
+    constructor() {
+      this.ctx = null;
+      this.unlocked = false;
+    }
 
-  async playBeep() {
-    if (typeof window === 'undefined') return;
-
-    try {
+    async unlock() {
+      if (typeof window === 'undefined') return;
       const AudioContext = window.AudioContext || window.webkitAudioContext;
       if (!AudioContext) return;
 
-      if (!this.ctx) {
-        this.ctx = new AudioContext();
-      }
+      if (!this.ctx) this.ctx = new AudioContext();
 
-      // Resume context if suspended (crucial for iOS Safari)
       if (this.ctx.state === 'suspended') {
-        await this.ctx.resume();
+        try {
+          await this.ctx.resume();
+          this.unlocked = true;
+        } catch (_) {
+          this.unlocked = false;
+        }
+      } else if (this.ctx.state === 'running') {
+        this.unlocked = true;
       }
+    }
 
-      if (this.ctx.state !== 'running') return;
+    async playBeep() {
+      if (typeof window === 'undefined') return;
 
-      const now = this.ctx.currentTime;
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
 
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(1400, now);
-      osc.frequency.exponentialRampToValueAtTime(400, now + 0.08);
+        if (!this.ctx) this.ctx = new AudioContext();
+        if (this.ctx.state === 'suspended') await this.ctx.resume();
+        if (this.ctx.state !== 'running') return;
 
-      gain.gain.setValueAtTime(0.2, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
 
-      // Connect nodes
-      osc.connect(gain);
-      gain.connect(this.ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(1400, now);
+        osc.frequency.exponentialRampToValueAtTime(400, now + 0.08);
 
-      // Clean up nodes from memory automatically when stopped
-      osc.onended = () => {
-        osc.disconnect();
-        gain.disconnect();
-      };
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
 
-      osc.start(now);
-      osc.stop(now + 0.08);
-    } catch (error) {
-      console.warn('Audio playback unavailable:', error);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.onended = () => {
+          osc.disconnect();
+          gain.disconnect();
+        };
+
+        osc.start(now);
+        osc.stop(now + 0.08);
+      } catch (_) {
+        // Audio fails silently on iPhone when blocked by browser policy.
+      }
     }
   }
-}
 
-// Safely instantiate for client-side execution
-export const sound = typeof window !== 'undefined' ? new CyberAudio() : null;
+  window.sound = new CyberAudio();
+  window.addEventListener('pointerdown', () => {
+    if (window.sound && typeof window.sound.unlock === 'function') {
+      window.sound.unlock();
+    }
+  }, { passive: true, once: true });
+})();
