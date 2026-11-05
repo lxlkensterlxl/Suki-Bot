@@ -1,352 +1,372 @@
-<!-- Change this: -->
-<link rel="stylesheet" href="/style.css">
-<img src="/sukibot.png" alt="SukiBot">
-
-<!-- To this (relative): -->
+<!-- Include absolute-relative tags inside your <head> -->
 <link rel="stylesheet" href="./style.css">
-<img src="./sukibot.png" alt="SukiBot">
 
-  <!-- 1. Load the Audio Engine First -->
-  <script src="./suki-audio.js"></script>
+<!-- Web App Meta Tags for iOS / Standalone PWA Execution -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
-  <!-- 2. Main Application & UI Script (Optimized for iOS Safari / iPhone 17) -->
-  <script>
-    // Safe Audio Wrapper Helper with iOS Touch-Unlock Hook
-    function playSafeBeep() {
-      try {
-        if (typeof sound !== 'undefined' && sound) {
-          if (typeof sound.playBeep === 'function') {
-            sound.playBeep();
-          }
-          // Handle Web Audio API resume requirement specifically for iOS Safari
-          if (sound.ctx && sound.ctx.state === 'suspended') {
-            sound.ctx.resume();
-          }
+<!-- Image Tag placed in your HTML <body> -->
+<img src="./sukibot.png" alt="SukiBot" id="suki-img">
+
+<!-- Load Audio Engine -->
+<script src="./suki-audio.js"></script>
+
+<!-- Main Application & UI Script (Optimized for Mobile Safari) -->
+<script>
+  // Global reference to keep speech synthesis instances from getting garbage-collected in WebKit
+  window._lastUtterance = null;
+
+  // Safe Audio Wrapper Helper with iOS Touch-Unlock Hook
+  function playSafeBeep() {
+    try {
+      if (typeof sound !== 'undefined' && sound) {
+        if (typeof sound.playBeep === 'function') {
+          sound.playBeep();
         }
-      } catch (e) {
-        console.warn('Audio context suppressed or uninitialized:', e);
-      }
-    }
-
-    // Global listener to unlock iOS Safari Web Audio on first user interaction
-    ['touchstart', 'pointerdown', 'click'].forEach(eventType => {
-      window.addEventListener(eventType, () => {
-        try {
-          if (typeof sound !== 'undefined' && sound && sound.ctx && sound.ctx.state === 'suspended') {
-            sound.ctx.resume();
-          }
-        } catch(e) {}
-      }, { once: true, passive: true });
-    });
-
-    // Dialogue Matrix
-    const dialogues = [
-      "suki NEON VIOLET // Nya! Systems online, Senpai! Gemini initialized for direct kitsune-tactical uplink.",
-      "TACTICAL ADVICE // Scanners detect optimal network throughput. Neural latency is holding steady at 12ms.",
-      "ENCRYPTION ALERT // Quantum mesh firewall updated. Unauthorized intrusion attempts automatically redirected to void.",
-      "KITTY MATRIX // Energy core fully charged. Ready to assist with code synthesis, analysis, or strategic operations!"
-    ];
-    let diagIdx = 0;
-
-    function cycleDialogue() {
-      playSafeBeep();
-      diagIdx = (diagIdx + 1) % dialogues.length;
-      const speechBox = document.getElementById('speech-box');
-      if (speechBox) speechBox.textContent = dialogues[diagIdx];
-    }
-
-    function triggerGlitch() {
-      playSafeBeep();
-      const avatar = document.getElementById('suki-avatar');
-      if (avatar) {
-        avatar.classList.add('glitch-active');
-        setTimeout(() => avatar.classList.remove('glitch-active'), 500);
-      }
-    }
-
-    function setMode(modeName) {
-      playSafeBeep();
-      const modeDisplay = document.getElementById('mode-display');
-      if (modeDisplay) modeDisplay.textContent = `${modeName}-Tactical v2.6`;
-      
-      try { 
-        localStorage.setItem('suki_mode', modeName); 
-      } catch(e) {}
-      
-      document.querySelectorAll('.control-btn').forEach(btn => {
-        if (btn.dataset.mode) {
-          if (btn.dataset.mode.toLowerCase() === modeName.toLowerCase()) {
-            btn.classList.add('active');
-          } else {
-            btn.classList.remove('active');
-          }
-        }
-      });
-    }
-
-    function speakSpeech() {
-      playSafeBeep();
-      if ('speechSynthesis' in window) {
-        try {
-          window.speechSynthesis.cancel();
-          const speechBox = document.getElementById('speech-box');
-          const pitchInput = document.getElementById('voice-pitch');
-          const rateInput = document.getElementById('voice-rate');
-          
-          if (speechBox && speechBox.textContent) {
-            const utterance = new SpeechSynthesisUtterance(speechBox.textContent);
-            if (pitchInput) utterance.pitch = parseFloat(pitchInput.value) || 1.0;
-            if (rateInput) utterance.rate = parseFloat(rateInput.value) || 1.0;
-            
-            // iOS Safari SpeechSynthesis bug fix: keep utterance reference alive globally
-            window._lastUtterance = utterance;
-            window.speechSynthesis.speak(utterance);
-          }
-        } catch(e) {
-          console.warn('Speech synthesis error:', e);
+        if (sound.ctx && sound.ctx.state === 'suspended') {
+          sound.ctx.resume().catch(() => {});
         }
       }
+    } catch (e) {
+      console.warn('Audio context suppressed or uninitialized:', e);
     }
+  }
 
-    function updateAvatarSource(url, save = true) {
-      if (!url) return;
-      const img = document.getElementById('suki-img');
-      if (img) img.src = url;
-      if (save) {
-        try { localStorage.setItem('suki_avatar', url); } catch(e) {}
-        triggerGlitch();
-      }
-    }
-
-    function applyTheme(themeName) {
-      document.body.className = '';
-      if (themeName && themeName !== 'default') {
-        document.body.classList.add(`theme-${themeName}`);
-      }
-      document.querySelectorAll('.theme-btn').forEach(b => {
-        if (b.dataset.theme === themeName) b.classList.add('active');
-        else b.classList.remove('active');
-      });
-      try { localStorage.setItem('suki_theme', themeName); } catch(e) {}
-    }
-
-    // Load saved settings safely
-    function loadSavedSettings() {
-      try {
-        const savedAvatar = localStorage.getItem('suki_avatar');
-        if (savedAvatar) updateAvatarSource(savedAvatar, false);
-
-        const savedTheme = localStorage.getItem('suki_theme');
-        if (savedTheme) applyTheme(savedTheme);
-
-        const savedPitch = localStorage.getItem('suki_pitch');
-        if (savedPitch) {
-          const pitchEl = document.getElementById('voice-pitch');
-          const pitchVal = document.getElementById('pitch-val');
-          if (pitchEl) pitchEl.value = savedPitch;
-          if (pitchVal) pitchVal.innerText = savedPitch;
-        }
-
-        const savedRate = localStorage.getItem('suki_rate');
-        if (savedRate) {
-          const rateEl = document.getElementById('voice-rate');
-          const rateVal = document.getElementById('rate-val');
-          if (rateEl) rateEl.value = savedRate;
-          if (rateVal) rateVal.innerText = savedRate;
-        }
-
-        const savedMode = localStorage.getItem('suki_mode');
-        if (savedMode) {
-          setMode(savedMode);
-        } else {
-          const savedPersona = localStorage.getItem('suki_persona');
-          if (savedPersona) {
-            const personaSelect = document.getElementById('persona-select');
-            const modeDisplay = document.getElementById('mode-display');
-            if (personaSelect) personaSelect.value = savedPersona;
-            if (modeDisplay) modeDisplay.textContent = savedPersona;
-          }
-        }
-
-        const savedMatrix = localStorage.getItem('suki_matrix');
-        if (savedMatrix) {
-          const matrixToggle = document.getElementById('matrix-toggle');
-          const matrixCanvas = document.getElementById('matrix-canvas');
-          if (matrixToggle) matrixToggle.value = savedMatrix;
-          if (matrixCanvas) matrixCanvas.style.opacity = savedMatrix === 'on' ? '0.25' : '0';
-        }
-      } catch (e) {
-        console.warn('LocalStorage access restricted:', e);
-      }
-    }
-
-    // DOM Event Listeners & Initializations
-    document.addEventListener('DOMContentLoaded', () => {
-      try {
-        loadSavedSettings();
-
-        const bindClick = (id, handler) => {
-          const el = document.getElementById(id);
-          if (el) {
-            // Use pointerdown/touchstart for instant tactile response on mobile devices
-            el.addEventListener('click', handler);
-          }
-        };
-
-        // Modal Triggers
-        bindClick('btn-open-settings', () => {
-          playSafeBeep();
-          document.getElementById('settings-modal')?.classList.add('active');
-        });
-
-        bindClick('btn-close-settings', () => {
-          playSafeBeep();
-          document.getElementById('settings-modal')?.classList.remove('active');
-        });
-
-        // Settings Inputs safely bound
-        document.getElementById('avatar-preset-select')?.addEventListener('change', (e) => {
-          updateAvatarSource(e.target.value);
-          const customUrl = document.getElementById('custom-avatar-url');
-          if (customUrl) customUrl.value = '';
-        });
-
-        document.getElementById('custom-avatar-url')?.addEventListener('input', (e) => {
-          const val = e.target.value.trim();
-          if (val.length > 5) updateAvatarSource(val);
-        });
-
-        document.getElementById('local-avatar-file')?.addEventListener('change', (e) => {
-          const file = e.target.files?.[0];
-          if (file) {
-            const reader = new FileReader();
-            reader.onload = (event) => updateAvatarSource(event.target.result);
-            reader.readAsDataURL(file);
-          }
-        });
-
-        document.getElementById('persona-select')?.addEventListener('change', (e) => {
-          const val = e.target.value;
-          const modeDisplay = document.getElementById('mode-display');
-          if (modeDisplay) modeDisplay.textContent = val;
-          try { localStorage.setItem('suki_persona', val); } catch(err){}
-        });
-
-        document.getElementById('voice-pitch')?.addEventListener('input', (e) => {
-          const val = e.target.value;
-          const pitchVal = document.getElementById('pitch-val');
-          if (pitchVal) pitchVal.innerText = val;
-          try { localStorage.setItem('suki_pitch', val); } catch(err){}
-        });
-
-        document.getElementById('voice-rate')?.addEventListener('input', (e) => {
-          const val = e.target.value;
-          const rateVal = document.getElementById('rate-val');
-          if (rateVal) rateVal.innerText = val;
-          try { localStorage.setItem('suki_rate', val); } catch(err){}
-        });
-
-        document.querySelectorAll('.theme-btn').forEach(btn => {
-          btn.addEventListener('click', (e) => {
-            playSafeBeep();
-            applyTheme(e.target.dataset.theme);
+  // Global Audio Unlock Listener (Fires on initial interaction)
+  const unlockAudio = () => {
+    try {
+      if (typeof sound !== 'undefined' && sound && sound.ctx) {
+        if (sound.ctx.state === 'suspended') {
+          sound.ctx.resume().then(() => {
+            console.log('iOS Audio Context unlocked successfully.');
           });
-        });
-
-        document.getElementById('matrix-toggle')?.addEventListener('change', (e) => {
-          const val = e.target.value;
-          const canvasEl = document.getElementById('matrix-canvas');
-          if (canvasEl) canvasEl.style.opacity = val === 'on' ? '0.25' : '0';
-          try { localStorage.setItem('suki_matrix', val); } catch(err){}
-        });
-
-        bindClick('btn-save-settings', () => {
-          playSafeBeep();
-          document.getElementById('settings-modal')?.classList.remove('active');
-          speakSpeech();
-        });
-
-        // Control Action Bindings
-        bindClick('btn-asr', () => setMode('ASR'));
-        bindClick('btn-orb', () => setMode('Orb'));
-        bindClick('btn-core', () => setMode('Core'));
-        bindClick('btn-tactics', () => setMode('Tactics'));
-        bindClick('btn-matrix', triggerGlitch);
-        bindClick('btn-voice', speakSpeech);
-        bindClick('btn-transmit', cycleDialogue);
-
-        bindClick('energy-orb', () => {
-          playSafeBeep();
-          triggerGlitch();
-          const energyDisplay = document.getElementById('energy-display');
-          if (energyDisplay) energyDisplay.textContent = '[100% OVERDRIVE]';
-        });
-
-        // Matrix Background Animation Engine (Optimized with frame throttling for mobile battery saver)
-        const canvas = document.getElementById('matrix-canvas');
-        if (canvas) {
-          const ctx = canvas.getContext('2d');
-          if (ctx) {
-            let drops = [];
-            const chars = '0123456789ABCDEFSUKIBOT';
-            const fontSize = 12;
-
-            function resizeMatrixCanvas() {
-              // Account for mobile browser viewport scaling and dynamic address bars
-              const dpr = window.devicePixelRatio || 1;
-              canvas.width = window.innerWidth * dpr;
-              canvas.height = window.innerHeight * dpr;
-              ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-              
-              const cols = Math.floor(window.innerWidth / fontSize);
-              drops = Array(cols).fill(1);
-            }
-            window.addEventListener('resize', resizeMatrixCanvas);
-            resizeMatrixCanvas();
-
-            let lastFrameTime = 0;
-            const fpsInterval = 33; // Cap matrix at ~30 FPS on mobile to prevent overheating/battery drain
-
-            function drawMatrix(timestamp) {
-              requestAnimationFrame(drawMatrix);
-
-              const elapsed = timestamp - lastFrameTime;
-              if (elapsed < fpsInterval) return;
-              lastFrameTime = timestamp - (elapsed % fpsInterval);
-
-              ctx.fillStyle = 'rgba(3, 1, 8, 0.15)';
-              ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
-              ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--neon-purple').trim() || '#c038ff';
-              ctx.font = `${fontSize}px monospace`;
-
-              for (let i = 0; i < drops.length; i++) {
-                const text = chars.charAt(Math.floor(Math.random() * chars.length));
-                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-                if (drops[i] * fontSize > window.innerHeight && Math.random() > 0.975) {
-                  drops[i] = 0;
-                }
-                drops[i]++;
-              }
-            }
-            requestAnimationFrame(drawMatrix);
-          }
         }
-      } catch (err) {
-        console.error('Critical initialization error caught:', err);
+      }
+      // Warm up SpeechSynthesis engine for iOS Safari
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.resume();
+      }
+    } catch (e) {}
+  };
+
+  ['touchstart', 'touchend', 'pointerdown', 'click'].forEach(eventType => {
+    window.addEventListener(eventType, unlockAudio, { once: true, passive: true });
+  });
+
+  // Dialogue Matrix
+  const dialogues = [
+    "suki NEON VIOLET // Nya! Systems online, Senpai! Gemini initialized for direct kitsune-tactical uplink.",
+    "TACTICAL ADVICE // Scanners detect optimal network throughput. Neural latency is holding steady at 12ms.",
+    "ENCRYPTION ALERT // Quantum mesh firewall updated. Unauthorized intrusion attempts automatically redirected to void.",
+    "KITTY MATRIX // Energy core fully charged. Ready to assist with code synthesis, analysis, or strategic operations!"
+  ];
+  let diagIdx = 0;
+
+  function cycleDialogue() {
+    playSafeBeep();
+    diagIdx = (diagIdx + 1) % dialogues.length;
+    const speechBox = document.getElementById('speech-box');
+    if (speechBox) speechBox.textContent = dialogues[diagIdx];
+  }
+
+  function triggerGlitch() {
+    playSafeBeep();
+    const avatar = document.getElementById('suki-avatar');
+    if (avatar) {
+      avatar.classList.add('glitch-active');
+      setTimeout(() => avatar.classList.remove('glitch-active'), 500);
+    }
+  }
+
+  function setMode(modeName) {
+    playSafeBeep();
+    const modeDisplay = document.getElementById('mode-display');
+    if (modeDisplay) modeDisplay.textContent = `${modeName}-Tactical v2.6`;
+    
+    try { 
+      localStorage.setItem('suki_mode', modeName); 
+    } catch(e) {}
+    
+    document.querySelectorAll('.control-btn').forEach(btn => {
+      if (btn.dataset.mode) {
+        if (btn.dataset.mode.toLowerCase() === modeName.toLowerCase()) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
       }
     });
+  }
 
-    // Realtime UTC Clock Display Safeguard
-    function updateClock() {
+  function speakSpeech() {
+    playSafeBeep();
+    if ('speechSynthesis' in window) {
       try {
-        const now = new Date();
-        const hours = String(now.getUTCHours()).padStart(2, '0');
-        const minutes = String(now.getUTCMinutes()).padStart(2, '0');
-        const seconds = String(now.getUTCSeconds()).padStart(2, '0');
-        const clockEl = document.getElementById('synapse-clock');
-        if (clockEl) clockEl.textContent = `${hours}:${minutes}:${seconds} UTC`;
-      } catch(e) {}
+        window.speechSynthesis.cancel();
+        const speechBox = document.getElementById('speech-box');
+        const pitchInput = document.getElementById('voice-pitch');
+        const rateInput = document.getElementById('voice-rate');
+        
+        if (speechBox && speechBox.textContent) {
+          const utterance = new SpeechSynthesisUtterance(speechBox.textContent);
+          if (pitchInput) utterance.pitch = parseFloat(pitchInput.value) || 1.0;
+          if (rateInput) utterance.rate = parseFloat(rateInput.value) || 1.0;
+          
+          // Workaround for iOS Safari silence bug on long strings or repeated invocations
+          window._lastUtterance = utterance;
+          window.speechSynthesis.speak(utterance);
+        }
+      } catch(e) {
+        console.warn('Speech synthesis error:', e);
+      }
     }
-    setInterval(updateClock, 1000);
-    updateClock();
-  </script>
+  }
+
+  function updateAvatarSource(url, save = true) {
+    if (!url) return;
+    const img = document.getElementById('suki-img');
+    if (img) img.src = url;
+    if (save) {
+      try { localStorage.setItem('suki_avatar', url); } catch(e) {}
+      triggerGlitch();
+    }
+  }
+
+  function applyTheme(themeName) {
+    document.body.className = '';
+    if (themeName && themeName !== 'default') {
+      document.body.classList.add(`theme-${themeName}`);
+    }
+    document.querySelectorAll('.theme-btn').forEach(b => {
+      if (b.dataset.theme === themeName) b.classList.add('active');
+      else b.classList.remove('active');
+    });
+    try { localStorage.setItem('suki_theme', themeName); } catch(e) {}
+  }
+
+  // Load saved settings safely
+  function loadSavedSettings() {
+    try {
+      const savedAvatar = localStorage.getItem('suki_avatar');
+      if (savedAvatar) updateAvatarSource(savedAvatar, false);
+
+      const savedTheme = localStorage.getItem('suki_theme');
+      if (savedTheme) applyTheme(savedTheme);
+
+      const savedPitch = localStorage.getItem('suki_pitch');
+      if (savedPitch) {
+        const pitchEl = document.getElementById('voice-pitch');
+        const pitchVal = document.getElementById('pitch-val');
+        if (pitchEl) pitchEl.value = savedPitch;
+        if (pitchVal) pitchVal.innerText = savedPitch;
+      }
+
+      const savedRate = localStorage.getItem('suki_rate');
+      if (savedRate) {
+        const rateEl = document.getElementById('voice-rate');
+        const rateVal = document.getElementById('rate-val');
+        if (rateEl) rateEl.value = savedRate;
+        if (rateVal) rateVal.innerText = savedRate;
+      }
+
+      const savedMode = localStorage.getItem('suki_mode');
+      if (savedMode) {
+        setMode(savedMode);
+      } else {
+        const savedPersona = localStorage.getItem('suki_persona');
+        if (savedPersona) {
+          const personaSelect = document.getElementById('persona-select');
+          const modeDisplay = document.getElementById('mode-display');
+          if (personaSelect) personaSelect.value = savedPersona;
+          if (modeDisplay) modeDisplay.textContent = savedPersona;
+        }
+      }
+
+      const savedMatrix = localStorage.getItem('suki_matrix');
+      if (savedMatrix) {
+        const matrixToggle = document.getElementById('matrix-toggle');
+        const matrixCanvas = document.getElementById('matrix-canvas');
+        if (matrixToggle) matrixToggle.value = savedMatrix;
+        if (matrixCanvas) matrixCanvas.style.opacity = savedMatrix === 'on' ? '0.25' : '0';
+      }
+    } catch (e) {
+      console.warn('LocalStorage access restricted:', e);
+    }
+  }
+
+  // DOM Event Listeners & Initializations
+  document.addEventListener('DOMContentLoaded', () => {
+    try {
+      loadSavedSettings();
+
+      const bindClick = (id, handler) => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.addEventListener('click', handler);
+        }
+      };
+
+      // Modal Triggers
+      bindClick('btn-open-settings', () => {
+        playSafeBeep();
+        document.getElementById('settings-modal')?.classList.add('active');
+      });
+
+      bindClick('btn-close-settings', () => {
+        playSafeBeep();
+        document.getElementById('settings-modal')?.classList.remove('active');
+      });
+
+      // Settings Inputs
+      document.getElementById('avatar-preset-select')?.addEventListener('change', (e) => {
+        updateAvatarSource(e.target.value);
+        const customUrl = document.getElementById('custom-avatar-url');
+        if (customUrl) customUrl.value = '';
+      });
+
+      document.getElementById('custom-avatar-url')?.addEventListener('input', (e) => {
+        const val = e.target.value.trim();
+        if (val.length > 5) updateAvatarSource(val);
+      });
+
+      document.getElementById('local-avatar-file')?.addEventListener('change', (e) => {
+        const file = e.target.files?.[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (event) => updateAvatarSource(event.target.result);
+          reader.readAsDataURL(file);
+        }
+      });
+
+      document.getElementById('persona-select')?.addEventListener('change', (e) => {
+        const val = e.target.value;
+        const modeDisplay = document.getElementById('mode-display');
+        if (modeDisplay) modeDisplay.textContent = val;
+        try { localStorage.setItem('suki_persona', val); } catch(err){}
+      });
+
+      document.getElementById('voice-pitch')?.addEventListener('input', (e) => {
+        const val = e.target.value;
+        const pitchVal = document.getElementById('pitch-val');
+        if (pitchVal) pitchVal.innerText = val;
+        try { localStorage.setItem('suki_pitch', val); } catch(err){}
+      });
+
+      document.getElementById('voice-rate')?.addEventListener('input', (e) => {
+        const val = e.target.value;
+        const rateVal = document.getElementById('rate-val');
+        if (rateVal) rateVal.innerText = val;
+        try { localStorage.setItem('suki_rate', val); } catch(err){}
+      });
+
+      document.querySelectorAll('.theme-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          playSafeBeep();
+          applyTheme(e.target.dataset.theme);
+        });
+      });
+
+      document.getElementById('matrix-toggle')?.addEventListener('change', (e) => {
+        const val = e.target.value;
+        const canvasEl = document.getElementById('matrix-canvas');
+        if (canvasEl) canvasEl.style.opacity = val === 'on' ? '0.25' : '0';
+        try { localStorage.setItem('suki_matrix', val); } catch(err){}
+      });
+
+      bindClick('btn-save-settings', () => {
+        playSafeBeep();
+        document.getElementById('settings-modal')?.classList.remove('active');
+        speakSpeech();
+      });
+
+      // Control Action Bindings
+      bindClick('btn-asr', () => setMode('ASR'));
+      bindClick('btn-orb', () => setMode('Orb'));
+      bindClick('btn-core', () => setMode('Core'));
+      bindClick('btn-tactics', () => setMode('Tactics'));
+      bindClick('btn-matrix', triggerGlitch);
+      bindClick('btn-voice', speakSpeech);
+      bindClick('btn-transmit', cycleDialogue);
+
+      bindClick('energy-orb', () => {
+        playSafeBeep();
+        triggerGlitch();
+        const energyDisplay = document.getElementById('energy-display');
+        if (energyDisplay) energyDisplay.textContent = '[100% OVERDRIVE]';
+      });
+
+      // Canvas Matrix Engine (Viewport Sizing Fixes for Mobile Safari)
+      const canvas = document.getElementById('matrix-canvas');
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          let drops = [];
+          const chars = '0123456789ABCDEFSUKIBOT';
+          const fontSize = 12;
+
+          function resizeMatrixCanvas() {
+            // Native retina rendering calculation for mobile viewports
+            const dpr = window.devicePixelRatio || 1;
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+
+            canvas.width = width * dpr;
+            canvas.height = height * dpr;
+            canvas.style.width = width + 'px';
+            canvas.style.height = height + 'px';
+
+            ctx.scale(dpr, dpr);
+            
+            const cols = Math.floor(width / fontSize);
+            drops = Array(cols).fill(1);
+          }
+          window.addEventListener('resize', resizeMatrixCanvas);
+          resizeMatrixCanvas();
+
+          let lastFrameTime = 0;
+          const fpsInterval = 33; // Frame capping at ~30 FPS to save mobile CPU/battery
+
+          function drawMatrix(timestamp) {
+            requestAnimationFrame(drawMatrix);
+
+            const elapsed = timestamp - lastFrameTime;
+            if (elapsed < fpsInterval) return;
+            lastFrameTime = timestamp - (elapsed % fpsInterval);
+
+            ctx.fillStyle = 'rgba(3, 1, 8, 0.15)';
+            ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+            ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--neon-purple').trim() || '#c038ff';
+            ctx.font = `${fontSize}px monospace`;
+
+            for (let i = 0; i < drops.length; i++) {
+              const text = chars.charAt(Math.floor(Math.random() * chars.length));
+              ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+              if (drops[i] * fontSize > window.innerHeight && Math.random() > 0.975) {
+                drops[i] = 0;
+              }
+              drops[i]++;
+            }
+          }
+          requestAnimationFrame(drawMatrix);
+        }
+      }
+    } catch (err) {
+      console.error('Critical initialization error caught:', err);
+    }
+  });
+
+  // Realtime UTC Clock Display
+  function updateClock() {
+    try {
+      const now = new Date();
+      const hours = String(now.getUTCHours()).padStart(2, '0');
+      const minutes = String(now.getUTCMinutes()).padStart(2, '0');
+      const seconds = String(now.getUTCSeconds()).padStart(2, '0');
+      const clockEl = document.getElementById('synapse-clock');
+      if (clockEl) clockEl.textContent = `${hours}:${minutes}:${seconds} UTC`;
+    } catch(e) {}
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+</script>
