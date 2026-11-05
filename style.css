@@ -1,26 +1,431 @@
-
-
-/* Full-screen transparent layer for Suki's roaming companion animation. */
-.suki-roam-canvas {
-  position: fixed;
-  z-index: 2;
-  inset: 0;
-  display: block;
-  width: 100vw;
-  width: 100dvw;
-  height: 100vh;
-  height: 100dvh;
-  pointer-events: none;
-  background: transparent;
-}
-
-.avatar-badge {
-  color: var(--purple);
-  font-size: 2.6rem;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .suki-roam-canvas {
-    visibility: hidden;
-  }
-}
+ 
+ 
+ /* Full-screen transparent layer for Suki's roaming companion animation. */
+ .suki-roam-canvas {
+   position: fixed;
+   z-index: 2;
+   inset: 0;
+   display: block;
+   width: 100vw;
+   width: 100dvw;
+   height: 100vh;
+   height: 100dvh;
+   pointer-events: none;
+   background: transparent;
+ }
+ 
+ .avatar-badge {
+   color: var(--purple);
+   font-size: 2.6rem;
+ }
+ 
+ @media (prefers-reduced-motion: reduce) {
+   .suki-roam-canvas {
+     visibility: hidden;
+   }
+ }
+ 
+ :root {
+   --bg-deep: #07040d;
+   --bg-panel: rgba(18, 10, 31, 0.76);
+   --bg-panel-strong: rgba(28, 15, 43, 0.9);
+   --panel-border: rgba(189, 0, 255, 0.38);
+   --panel-border-soft: rgba(192 132 252 / 30%);
+   --neon-purple: #bd00ff;
+   --neon-cyan: #67e8f9;
+   --text-main: #f3eaff;
+   --text-dim: #b9a9d3;
+   --text-strong: #160c22;
+   --shadow: rgba(0, 0, 0, 0.32);
+ }
+ 
+ * { box-sizing: border-box; }
+ 
+ html, body {
+   margin: 0;
+   min-height: 100%;
+   background: var(--bg-deep);
+   color: var(--text-main);
+   font-family: Inter, "Segoe UI", sans-serif;
+ }
+ 
+ body {
+   min-height: 100dvh;
+   overflow: hidden;
+ }
+ 
+ #matrix-canvas {
+   position: fixed;
+   inset: 0;
+   width: 100vw;
+   height: 100vh;
+   z-index: 0;
+   opacity: 0;
+   pointer-events: none;
+   transition: opacity 0.25s ease;
+ }
+ 
+ #matrix-canvas.visible {
+   opacity: 1;
+ }
+ 
+ .app-shell {
+   position: relative;
+   z-index: 1;
+   width: min(100%, 460px);
+   min-height: 100dvh;
+   margin: 0 auto;
+   padding: calc(12px + env(safe-area-inset-top)) 14px calc(18px + env(safe-area-inset-bottom));
+   display: flex;
+   flex-direction: column;
+   gap: 14px;
+ }
+ 
+ .topbar,
+ .panel,
+ .settings-dialog,
+ .button,
+ .mode-button,
+ .icon-button {
+   border-radius: 16px;
+ }
+ 
+ .topbar {
+   display: flex;
+   align-items: center;
+   justify-content: space-between;
+   gap: 10px;
+   width: 100%;
+   padding: 8px 10px 8px 12px;
+   background: rgba(12, 7, 20, 0.66);
+   border: 1px solid var(--panel-border-soft);
+   box-shadow: 0 0 18px rgba(189, 0, 255, 0.18);
+   backdrop-filter: blur(10px);
+   -webkit-backdrop-filter: blur(10px);
+ }
+ 
+ .brand {
+   display: inline-flex;
+   align-items: center;
+   gap: 8px;
+   font-size: 0.95rem;
+   font-weight: 800;
+   letter-spacing: 0.14em;
+ }
+ 
+ .brand-mark {
+   display: inline-grid;
+   place-items: center;
+   width: 22px;
+   height: 22px;
+   color: var(--neon-cyan);
+   text-shadow: 0 0 12px rgba(103, 232, 249, 0.8);
+ }
+ 
+ .brand-accent {
+   color: var(--neon-cyan);
+ }
+ 
+ .online {
+   display: inline-flex;
+   align-items: center;
+   gap: 8px;
+   font-size: 0.72rem;
+   font-weight: 800;
+   letter-spacing: 0.18em;
+   color: var(--neon-cyan);
+ }
+ 
+ .online i {
+   width: 8px;
+   height: 8px;
+   display: inline-block;
+   border-radius: 50%;
+   background: #80ffce;
+   box-shadow: 0 0 12px rgba(128, 255, 206, 0.8);
+ }
+ 
+ .icon-button {
+   width: 36px;
+   height: 36px;
+   border: 1px solid var(--panel-border-soft);
+   background: rgba(255, 255, 255, 0.03);
+   color: var(--text-main);
+   font-size: 1.2rem;
+   cursor: pointer;
+ }
+ 
+ .intro {
+   display: grid;
+   gap: 6px;
+   padding: 0 4px;
+ }
+ 
+ .eyebrow {
+   margin: 0;
+   color: var(--text-dim);
+   font-size: 0.7rem;
+   font-weight: 700;
+   letter-spacing: 0.2em;
+ }
+ 
+ .intro h1 {
+   margin: 0;
+   font-size: clamp(2.05rem, 6vw, 3rem);
+   line-height: 0.98;
+   letter-spacing: -0.05em;
+ }
+ 
+ .intro h1 span {
+   color: var(--neon-cyan);
+ }
+ 
+ .subheading {
+   margin: 0;
+   color: var(--text-dim);
+   font-size: 0.95rem;
+ }
+ 
+ .panel {
+   padding: 14px 14px 12px;
+   background: var(--bg-panel);
+   border: 1px solid var(--panel-border);
+   box-shadow: inset 0 0 12px rgba(189, 0, 255, 0.12), 0 0 18px rgba(189, 0, 255, 0.14);
+   backdrop-filter: blur(12px);
+   -webkit-backdrop-filter: blur(12px);
+ }
+ 
+ .companion {
+   display: grid;
+   grid-template-columns: 96px 1fr;
+   align-items: center;
+   gap: 12px;
+ }
+ 
+ .avatar {
+   display: block;
+   width: 96px;
+   height: 96px;
+   border-radius: 18px;
+   background: radial-gradient(circle at 35% 30%, rgba(103, 232, 249, 0.32), rgba(27, 20, 38, 0.4) 42%, rgba(9, 6, 17, 0.78) 70%);
+   border: 1px solid var(--panel-border-soft);
+ }
+ 
+ .companion h2,
+ .section-heading h2 {
+   margin: 0;
+   color: var(--text-main);
+   letter-spacing: 0.06em;
+ }
+ 
+ .companion h2 {
+   font-size: clamp(1.1rem, 4vw, 1.5rem);
+ }
+ 
+ .muted {
+   margin: 6px 0 0;
+   color: var(--text-dim);
+   font-size: 0.87rem;
+ }
+ 
+ .section-heading {
+   display: flex;
+   align-items: center;
+   justify-content: space-between;
+   gap: 10px;
+   margin-bottom: 10px;
+ }
+ 
+ .section-heading h2 {
+   font-size: 0.86rem;
+   letter-spacing: 0.18em;
+ }
+ 
+ #synapse-clock,
+ .hint {
+   color: var(--text-dim);
+   font-size: 0.72rem;
+   letter-spacing: 0.08em;
+ }
+ 
+ .message {
+   min-height: 3.2em;
+   margin: 0;
+   color: var(--text-main);
+   line-height: 1.5;
+ }
+ 
+ .actions {
+   display: flex;
+   gap: 8px;
+   margin-top: 12px;
+ }
+ 
+ .button {
+   flex: 1 1 0;
+   min-height: 42px;
+   border: 1px solid var(--panel-border-soft);
+   padding: 0 12px;
+   font: inherit;
+   font-weight: 700;
+   cursor: pointer;
+ }
+ 
+ .button.primary {
+   color: var(--text-strong);
+   background: linear-gradient(135deg, #d7a8ff, #9e7dff);
+   border-color: transparent;
+ }
+ 
+ .button.secondary {
+   color: var(--text-main);
+   background: rgba(255, 255, 255, 0.03);
+ }
+ 
+ .mode-grid {
+   display: grid;
+   grid-template-columns: repeat(2, minmax(0, 1fr));
+   gap: 8px;
+   margin-top: 8px;
+ }
+ 
+ .mode-button {
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   gap: 6px;
+   min-height: 46px;
+   border: 1px solid var(--panel-border-soft);
+   background: rgba(255, 255, 255, 0.018);
+   color: var(--text-main);
+   font: inherit;
+   font-weight: 700;
+   letter-spacing: 0.08em;
+   cursor: pointer;
+ }
+ 
+ .mode-button.active {
+   border-color: rgba(103, 232, 249, 0.8);
+   background: rgba(103, 232, 249, 0.12);
+   box-shadow: inset 0 0 12px rgba(103, 232, 249, 0.08);
+ }
+ 
+ .app-footer {
+   display: flex;
+   align-items: center;
+   justify-content: space-between;
+   gap: 12px;
+   color: var(--text-dim);
+   font-size: 0.76rem;
+   letter-spacing: 0.08em;
+   padding: 0 4px;
+ }
+ 
+ .app-footer i {
+   display: inline-block;
+   width: 8px;
+   height: 8px;
+   margin-right: 8px;
+   border-radius: 50%;
+   background: #7cf2b9;
+   box-shadow: 0 0 8px rgba(124, 242, 185, 0.7);
+ }
+ 
+ .settings-dialog {
+   width: min(100vw - 24px, 420px);
+   border: 1px solid var(--panel-border);
+   background: rgba(12, 7, 20, 0.9);
+   color: var(--text-main);
+   padding: 0;
+ }
+ 
+ .settings-form {
+   display: grid;
+   gap: 12px;
+   padding: 14px;
+ }
+ 
+ .setting-label,
+ .toggle-row {
+   display: flex;
+   align-items: center;
+   justify-content: space-between;
+   gap: 12px;
+   color: var(--text-main);
+   font-size: 0.88rem;
+ }
+ 
+ input[type="range"] {
+   width: 100%;
+ }
+ 
+ .toggle-row {
+   justify-content: space-between;
+ }
+ 
+ .done-button {
+   margin-top: 4px;
+ }
+ 
+ @media (max-width: 430px) {
+   .app-shell {
+     width: 100%;
+     padding-left: max(12px, env(safe-area-inset-left));
+     padding-right: max(12px, env(safe-area-inset-right));
+   }
+ 
+   .topbar {
+     padding-left: 10px;
+     padding-right: 8px;
+   }
+ 
+   .brand {
+     font-size: 0.82rem;
+     letter-spacing: 0.12em;
+   }
+ 
+   .online {
+     letter-spacing: 0.12em;
+   }
+ 
+   .companion {
+     grid-template-columns: 76px 1fr;
+   }
+ 
+   .avatar {
+     width: 76px;
+     height: 76px;
+   }
+ 
+   .actions {
+     flex-direction: column;
+   }
+ 
+   .button {
+     width: 100%;
+   }
+ }
+ 
+ @media (max-width: 360px) {
+   .app-shell {
+     gap: 12px;
+     padding-top: calc(10px + env(safe-area-inset-top));
+   }
+ 
+   .panel {
+     padding: 12px;
+   }
+ 
+   .brand {
+     gap: 6px;
+   }
+ 
+   .topbar {
+     gap: 6px;
+   }
+ 
+   .message {
+     font-size: 0.92rem;
+   }
+ }
+ " ,"message":"Improve HUD layout and iPhone-safe responsive sizing","owner":"lxlkensterlxl","repo":"lxlkensterlxl.github.io
