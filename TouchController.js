@@ -1,92 +1,161 @@
-class SukiTouchController {
-  constructor(targetElement, callbacks = {}) {
-    this.target = targetElement;
-    this.callbacks = callbacks;
-    this.touchStartX = 0;
-    this.touchStartY = 0;
-    this.holdTimer = null;
-    this.isDragging = false;
-    this.holdThreshold = 500;
+(() => {
+  'use strict';
 
-    if (!this.target) return;
-    this.init();
-  }
-
-  init() {
-    this.target.addEventListener('touchstart', (event) => this.handleTouchStart(event), { passive: false });
-    this.target.addEventListener('touchmove', (event) => this.handleTouchMove(event), { passive: false });
-    this.target.addEventListener('touchend', (event) => this.handleTouchEnd(event), { passive: false });
-    this.target.addEventListener('touchcancel', () => this.resetTouch());
-  }
-
-  handleTouchStart(event) {
-    if (event.touches.length !== 1) return;
-    const touch = event.touches[0];
-    this.touchStartX = touch.clientX;
-    this.touchStartY = touch.clientY;
-    this.isDragging = false;
-
-    this.holdTimer = setTimeout(() => {
-      if (!this.isDragging && this.callbacks.onHold) {
-        this.callbacks.onHold({ x: this.touchStartX, y: this.touchStartY });
+  class SukiTouchController {
+    constructor(targetElement, callbacks = {}, options = {}) {
+      if (!targetElement || typeof targetElement.addEventListener !== 'function') {
+        throw new TypeError('SukiTouchController requires an event target.');
       }
-    }, this.holdThreshold);
-  }
 
-  handleTouchMove(event) {
-    if (event.touches.length !== 1) return;
-    event.preventDefault();
+      this.target = targetElement;
+      this.callbacks = callbacks && typeof callbacks === 'object' ? callbacks : {};
+      this.holdThreshold = Number.isFinite(options.holdThreshold)
+        ? Math.max(0, options.holdThreshold)
+        : 500;
+      this.dragThreshold = Number.isFinite(options.dragThreshold)
+        ? Math.max(0, options.dragThreshold)
+        : 10;
+      this.swipeThreshold = Number.isFinite(options.swipeThreshold)
+        ? Math.max(0, options.swipeThreshold)
+        : 50;
 
-    const touch = event.touches[0];
-    const deltaX = touch.clientX - this.touchStartX;
-    const deltaY = touch.clientY - this.touchStartY;
+      this.touchStartX = 0;
+      this.touchStartY = 0;
+      this.touchId = null;
+      this.holdTimer = null;
+      this.isDragging = false;
+      this.didHold = false;
+      this.active = false;
+      this.listeners = [];
 
-    if (Math.abs(deltaX) > 10 || Math.abs(deltaY) > 10) {
+      this.init();
+    }
+
+    addListener(type, handler, options) {
+      this.target.addEventListener(type, handler, options);
+      this.listeners.push([type, handler, options]);
+    }
+
+    init() {
+      this.addListener('touchstart', (event) => this.handleTouchStart(event), { passive: true });
+      // A non-passive listener is needed only to cancel native scrolling while dragging.
+      this.addListener('touchmove', (event) => this.handleTouchMove(event), { passive: false });
+      this.addListener('touchend', (event) => this.handleTouchEnd(event), { passive: true });
+      this.addListener('touchcancel', () => this.resetTouch(), { passive: true });
+    }
+
+    findTouch(touches, identifier) {
+      for (let index = 0; index < touches.length; index += 1) {
+        if (touches[index].identifier === identifier) return touches[index];
+      }
+      return null;
+    }
+
+    handleTouchStart(event) {
+      // Treat multi-touch as cancellation rather than leaving an old hold timer alive.
+      if (event.touches.length !== 1) {
+        this.resetTouch();
+        return;
+      }
+
+      this.resetTouch();
+      const touch = event.touches[0];
+      this.touchId = touch.identifier;
+      this.touchStartX = touch.clientX;
+      this.touchStartY = touch.clientY;
+      this.active = true;
+      this.isDragging = false;
+      this.didHold = false;
+
+      this.holdTimer = window.setTimeout(() => {
+        this.holdTimer = null;
+        if (!this.active || this.isDragging) return;
+        this.didHold = true;
+        this.callCallback('onHold', { x: this.touchStartX, y: this.touchStartY });
+      }, this.holdThreshold);
+    }
+
+    handleTouchMove(event) {
+      if (!this.active) return;
+      if (event.touches.length !== 1) {
+        this.resetTouch();
+        return;
+      }
+
+      const touch = this.findTouch(event.touches, this.touchId);
+      if (!touch) return;
+
+      const deltaX = touch.clientX - this.touchStartX;
+      const deltaY = touch.clientY - this.touchStartY;
+      if (!this.isDragging && Math.hypot(deltaX, deltaY) <= this.dragThreshold) return;
+
       this.isDragging = true;
-      clearTimeout(this.holdTimer);
-
-      if (this.callbacks.onDrag) {
-        this.callbacks.onDrag({ x: touch.clientX, y: touch.clientY, deltaX, deltaY });
-      }
+      this.clearHoldTimer();
+      if (event.cancelable) event.preventDefault();
+      this.callCallback('onDrag', { x: touch.clientX, y: touch.clientY, deltaX, deltaY });
     }
-  }
 
-  handleTouchEnd(event) {
-    clearTimeout(this.holdTimer);
-    if (event.changedTouches.length !== 1) return;
+    handleTouchEnd(event) {
+      if (!this.active) return;
+      const touch = this.findTouch(event.changedTouches, this.touchId);
+      if (!touch) return;
 
-    const touch = event.changedTouches[0];
-    const deltaX = touch.clientX - this.touchStartX;
-    const deltaY = touch.clientY - this.touchStartY;
+      this.clearHoldTimer();
+      const deltaX = touch.clientX - this.touchStartX;
+      const deltaY = touch.clientY - this.touchStartY;
 
-    if (!this.isDragging) {
-      if (this.callbacks.onTap) {
-        this.callbacks.onTap({ x: touch.clientX, y: touch.clientY });
-      }
-    } else {
-      const absX = Math.abs(deltaX);
-      const absY = Math.abs(deltaY);
-      const swipeThreshold = 50;
-
-      if (Math.max(absX, absY) > swipeThreshold && this.callbacks.onSwipe) {
-        let direction = '';
-        if (absX > absY) {
-          direction = deltaX > 0 ? 'right' : 'left';
-        } else {
-          direction = deltaY > 0 ? 'down' : 'up';
+      if (!this.isDragging && !this.didHold) {
+        this.callCallback('onTap', { x: touch.clientX, y: touch.clientY });
+      } else if (this.isDragging) {
+        const absX = Math.abs(deltaX);
+        const absY = Math.abs(deltaY);
+        if (Math.max(absX, absY) >= this.swipeThreshold) {
+          const direction = absX > absY
+            ? (deltaX > 0 ? 'right' : 'left')
+            : (deltaY > 0 ? 'down' : 'up');
+          this.callCallback('onSwipe', { direction, deltaX, deltaY });
         }
+      }
 
-        this.callbacks.onSwipe({ direction, deltaX, deltaY });
+      this.resetTouch();
+    }
+
+    callCallback(name, payload) {
+      const callback = this.callbacks[name];
+      if (typeof callback !== 'function') return;
+      try {
+        callback(payload);
+      } catch (error) {
+        // A consumer callback should not leave gesture tracking in a broken state.
+        window.setTimeout(() => { throw error; }, 0);
       }
     }
 
-    this.resetTouch();
+    clearHoldTimer() {
+      if (this.holdTimer !== null) {
+        window.clearTimeout(this.holdTimer);
+        this.holdTimer = null;
+      }
+    }
+
+    resetTouch() {
+      this.clearHoldTimer();
+      this.touchId = null;
+      this.active = false;
+      this.isDragging = false;
+      this.didHold = false;
+    }
+
+    destroy() {
+      this.resetTouch();
+      for (const [type, handler, options] of this.listeners) {
+        this.target.removeEventListener(type, handler, options);
+      }
+      this.listeners.length = 0;
+    }
   }
 
-  resetTouch() {
-    clearTimeout(this.holdTimer);
-    this.isDragging = false;
+  if (typeof window !== 'undefined') {
+    window.SukiTouchController = SukiTouchController;
   }
-}
-
-window.SukiTouchController = SukiTouchController;
+})();
