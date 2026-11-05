@@ -13,10 +13,10 @@
   <link rel="stylesheet" href="./tailwind.css">
   <link rel="stylesheet" href="./style.css">
 </head>
-<body class="min-h-screen overflow-hidden bg-suki-bg text-suki-text antialiased">
+<body class="min-h-screen overflow-hidden bg-[var(--bg-surface)] text-[var(--text-primary)] antialiased">
   <canvas id="matrix-canvas" class="fixed inset-0 z-0 h-screen w-screen pointer-events-none opacity-0 transition-opacity duration-200 [&.visible]:opacity-100" aria-hidden="true"></canvas>
   <main class="relative z-[1] mx-auto flex min-h-dvh w-full max-w-[460px] flex-col gap-[14px] px-[14px] pt-[calc(12px+env(safe-area-inset-top))] pb-[calc(18px+env(safe-area-inset-bottom))] max-[430px]:px-[max(12px,env(safe-area-inset-left))] max-[430px]:pr-[max(12px,env(safe-area-inset-right))] max-[360px]:gap-3 max-[360px]:pt-[calc(10px+env(safe-area-inset-top))]">
-    <header class="flex w-full items-center justify-between gap-2 rounded-2xl border border-suki-border-soft bg-[rgb(12_7_20_/_66%)] px-3 py-2 shadow-[0_0_18px_rgb(189_0_255_/_18%)] backdrop-blur-[10px] max-[430px]:gap-1.5 max-[430px]:pl-2.5 max-[430px]:pr-2">
+    <header class="flex w-full items-center justify-between gap-2 rounded-[20px] border border-[var(--panel-border-soft)] bg-[color:rgba(12,7,20,0.66)] px-3 py-2 shadow-[0_0_18px_var(--glow)] backdrop-blur-xl transition-colors duration-200 max-[430px]:gap-1.5 max-[430px]:pl-2.5 max-[430px]:pr-2">
       <div class="inline-flex items-center gap-2 text-[0.95rem] font-extrabold tracking-[0.14em] max-[430px]:gap-1.5 max-[430px]:text-[0.82rem] max-[430px]:tracking-[0.12em]">
         <span class="inline-grid h-[22px] w-[22px] shrink-0 place-items-center text-neon-cyan drop-shadow-[0_0_12px_rgb(103_232_249_/_80%)]" aria-hidden="true">
           <svg viewBox="0 0 32 32" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -28,45 +28,45 @@
         <span>SUKI<span class="text-neon-cyan">BOT</span></span>
       </div>
       <span class="inline-flex items-center gap-2 text-[0.72rem] font-extrabold tracking-[0.18em] text-neon-cyan max-[430px]:tracking-[0.12em]"><i class="inline-block h-2 w-2 rounded-full bg-[#80ffce] shadow-[0_0_12px_rgb(128_255_206_/_80%)]"></i> READY</span>
-      <button id="open-settings" class="grid h-9 w-9 shrink-0 place-items-center rounded-2xl border border-suki-border-soft bg-white/[0.03] text-[1.2rem] text-suki-text" type="button" aria-label="Open settings">⚙</button>
+      <button id="open-settings" class="grid h-9 w-9 shrink-0 place-items-center rounded-2xl border border-[var(--panel-border-soft)] bg-white/[0.03] text-[1.2rem] text-[var(--text-primary)] transition-colors duration-200" type="button" aria-label="Open settings">⚙</button>
     </header>
 
     <section class="grid gap-1.5 px-1">
-      <p class="m-0 text-[0.7rem] font-bold tracking-[0.2em] text-suki-muted">PERSONAL COMPANION // v2.6</p>
+      <p class="m-0 text-[0.7rem] font-bold tracking-[0.2em] text-[var(--text-secondary)]">PERSONAL COMPANION // v2.6</p>
       <h1 class="m-0 text-[clamp(2.05rem,6vw,3rem)] leading-[0.98] tracking-[-0.05em]">Hey there, <span class="text-neon-cyan">Senpai.</span></h1>
-      <p class="m-0 text-[0.95rem] text-suki-muted">Your neon companion is ready.</p>
+      <p class="m-0 text-[0.95rem] text-[var(--text-secondary)]">Your neon companion is ready.</p>
     </section>
 
-    <section class="grid grid-cols-[76px_minmax(0,1fr)] items-center gap-3 rounded-2xl border border-suki-border bg-suki-panel p-3.5 shadow-[inset_0_0_12px_rgb(189_0_255_/_12%),0_0_18px_rgb(189_0_255_/_14%)] backdrop-blur-xl min-[431px]:grid-cols-[96px_minmax(0,1fr)] max-[360px]:p-3" aria-label="SukiBot status">
-      <canvas id="suki-avatar-canvas" class="block h-[76px] w-[76px] rounded-[18px] border border-suki-border-soft bg-[radial-gradient(circle_at_35%_30%,rgb(103_232_249_/_32%),rgb(27_20_38_/_40%)_42%,rgb(9_6_17_/_78%)_70%)] min-[431px]:h-24 min-[431px]:w-24" role="img" aria-label="Suki, your animated companion. Tap or move over her to guide her; use the arrow keys when focused." tabindex="0"></canvas>
-      <div class="min-w-0"><p class="m-0 text-[0.7rem] font-bold tracking-[0.2em] text-suki-muted">SUKI / <span id="mode-display">CORE</span></p><h2 id="greeting" class="m-0 text-[clamp(1.1rem,4vw,1.5rem)] tracking-[0.06em]">Systems online!</h2><p class="mt-1.5 mb-0 text-[0.87rem] text-suki-muted">A friendly little console for your day.</p></div>
+    <section class="grid grid-cols-[76px_minmax(0,1fr)] items-center gap-3 rounded-[20px] border border-[var(--panel-border)] bg-[var(--panel-surface)] p-3.5 shadow-[inset_0_0_12px_rgb(189_0_255_/_12%),0_0_18px_var(--glow)] backdrop-blur-xl transition-colors duration-200 min-[431px]:grid-cols-[96px_minmax(0,1fr)] max-[360px]:p-3" aria-label="SukiBot status">
+      <canvas id="suki-avatar-canvas" class="block h-[76px] w-[76px] rounded-[18px] border border-[var(--panel-border-soft)] bg-[radial-gradient(circle_at_35%_30%,rgb(103_232_249_/_32%),rgb(27_20_38_/_40%)_42%,rgb(9_6_17_/_78%)_70%)] min-[431px]:h-24 min-[431px]:w-24" role="img" aria-label="Suki, your animated companion. Tap or move over her to guide her; use the arrow keys when focused." tabindex="0"></canvas>
+      <div class="min-w-0"><p class="m-0 text-[0.7rem] font-bold tracking-[0.2em] text-[var(--text-secondary)]">SUKI / <span id="mode-display">CORE</span></p><h2 id="greeting" class="m-0 text-[clamp(1.1rem,4vw,1.5rem)] tracking-[0.06em]">Systems online!</h2><p class="mt-1.5 mb-0 text-[0.87rem] text-[var(--text-secondary)]">A friendly little console for your day.</p></div>
     </section>
 
-    <section class="rounded-2xl border border-suki-border bg-suki-panel p-3.5 shadow-[inset_0_0_12px_rgb(189_0_255_/_12%),0_0_18px_rgb(189_0_255_/_14%)] backdrop-blur-xl max-[360px]:p-3" aria-labelledby="transmission-title">
-      <div class="mb-2.5 flex items-center justify-between gap-2.5"><h2 id="transmission-title" class="m-0 text-[0.86rem] tracking-[0.18em]">TRANSMISSION</h2><span id="synapse-clock" class="text-[0.72rem] tracking-[0.08em] text-suki-muted">--:-- UTC</span></div>
+    <section class="rounded-[20px] border border-[var(--panel-border)] bg-[var(--panel-surface)] p-3.5 shadow-[inset_0_0_12px_rgb(189_0_255_/_12%),0_0_18px_var(--glow)] backdrop-blur-xl transition-colors duration-200 max-[360px]:p-3" aria-labelledby="transmission-title">
+      <div class="mb-2.5 flex items-center justify-between gap-2.5"><h2 id="transmission-title" class="m-0 text-[0.86rem] tracking-[0.18em]">TRANSMISSION</h2><span id="synapse-clock" class="text-[0.72rem] tracking-[0.08em] text-[var(--text-secondary)]">--:-- UTC</span></div>
       <p id="speech-box" class="m-0 min-h-[3.2em] leading-6" aria-live="polite">Nya! Suki is online and ready to help.</p>
       <div class="mt-3 flex gap-2 max-[430px]:flex-col">
         <button id="btn-transmit" class="min-h-[42px] flex-1 rounded-2xl border border-transparent bg-gradient-to-br from-[#d7a8ff] to-[#9e7dff] px-3 font-bold text-[#160c22]" type="button">↻ &nbsp;Transmit</button>
-        <button id="btn-voice" class="min-h-[42px] flex-1 rounded-2xl border border-suki-border-soft bg-white/[0.03] px-3 font-bold text-suki-text max-[430px]:w-full" type="button">♫ &nbsp;Speak</button>
+        <button id="btn-voice" class="min-h-[42px] flex-1 rounded-2xl border border-[var(--panel-border-soft)] bg-white/[0.03] px-3 font-bold text-[var(--text-primary)] max-[430px]:w-full" type="button">♫ &nbsp;Speak</button>
       </div>
     </section>
 
-    <section class="rounded-2xl border border-suki-border bg-suki-panel p-3.5 shadow-[inset_0_0_12px_rgb(189_0_255_/_12%),0_0_18px_rgb(189_0_255_/_14%)] backdrop-blur-xl max-[360px]:p-3" aria-labelledby="modes-title">
-      <div class="mb-2.5 flex items-center justify-between gap-2.5"><h2 id="modes-title" class="m-0 text-[0.86rem] tracking-[0.18em]">QUICK MODES</h2><span class="text-[0.72rem] tracking-[0.08em] text-suki-muted">Tap to switch</span></div>
+    <section class="rounded-[20px] border border-[var(--panel-border)] bg-[var(--panel-surface)] p-3.5 shadow-[inset_0_0_12px_rgb(189_0_255_/_12%),0_0_18px_var(--glow)] backdrop-blur-xl transition-colors duration-200 max-[360px]:p-3" aria-labelledby="modes-title">
+      <div class="mb-2.5 flex items-center justify-between gap-2.5"><h2 id="modes-title" class="m-0 text-[0.86rem] tracking-[0.18em]">QUICK MODES</h2><span class="text-[0.72rem] tracking-[0.08em] text-[var(--text-secondary)]">Tap to switch</span></div>
       <div class="mt-2 grid grid-cols-2 gap-2">
-        <button class="mode-button min-h-[46px] rounded-2xl border border-suki-border-soft bg-white/[0.018] font-bold tracking-[0.08em] text-suki-text" type="button" data-mode="ASR" aria-pressed="false"><span>◉</span> ASR</button>
-        <button class="mode-button min-h-[46px] rounded-2xl border border-suki-border-soft bg-white/[0.018] font-bold tracking-[0.08em] text-suki-text" type="button" data-mode="ORB" aria-pressed="false"><span>◌</span> Orb</button>
-        <button class="mode-button mode-active min-h-[46px] rounded-2xl border border-suki-border-soft bg-white/[0.018] font-bold tracking-[0.08em] text-suki-text" type="button" data-mode="CORE" aria-pressed="true"><span>✧</span> Core</button>
-        <button class="mode-button min-h-[46px] rounded-2xl border border-suki-border-soft bg-white/[0.018] font-bold tracking-[0.08em] text-suki-text" type="button" data-mode="TACTICS" aria-pressed="false"><span>⌁</span> Tactics</button>
+        <button class="mode-button min-h-[46px] rounded-2xl border border-[var(--panel-border-soft)] bg-white/[0.018] font-bold tracking-[0.08em] text-[var(--text-primary)]" type="button" data-mode="ASR" aria-pressed="false"><span>◉</span> ASR</button>
+        <button class="mode-button min-h-[46px] rounded-2xl border border-[var(--panel-border-soft)] bg-white/[0.018] font-bold tracking-[0.08em] text-[var(--text-primary)]" type="button" data-mode="ORB" aria-pressed="false"><span>◌</span> Orb</button>
+        <button class="mode-button mode-active min-h-[46px] rounded-2xl border border-[var(--panel-border-soft)] bg-white/[0.018] font-bold tracking-[0.08em] text-[var(--text-primary)]" type="button" data-mode="CORE" aria-pressed="true"><span>✧</span> Core</button>
+        <button class="mode-button min-h-[46px] rounded-2xl border border-[var(--panel-border-soft)] bg-white/[0.018] font-bold tracking-[0.08em] text-[var(--text-primary)]" type="button" data-mode="TACTICS" aria-pressed="false"><span>⌁</span> Tactics</button>
       </div>
     </section>
 
-    <footer class="flex items-center justify-between gap-3 px-1 text-[0.76rem] tracking-[0.08em] text-suki-muted"><span><i class="mr-2 inline-block h-2 w-2 rounded-full bg-[#7cf2b9] shadow-[0_0_8px_rgb(124_242_185_/_70%)]"></i>All systems local</span><span id="energy-display">100% energy</span></footer>
+    <footer class="flex items-center justify-between gap-3 px-1 text-[0.76rem] tracking-[0.08em] text-[var(--text-secondary)]"><span><i class="mr-2 inline-block h-2 w-2 rounded-full bg-[#7cf2b9] shadow-[0_0_8px_rgb(124_242_185_/_70%)]"></i>All systems local</span><span id="energy-display">100% energy</span></footer>
   </main>
 
-  <dialog id="settings-dialog" class="m-auto w-[min(calc(100vw-24px),420px)] rounded-2xl border border-suki-border bg-[rgb(12_7_20_/_90%)] p-0 text-suki-text backdrop-blur-xl" aria-labelledby="settings-title">
+  <dialog id="settings-dialog" class="m-auto w-[min(calc(100vw-24px),420px)] rounded-[22px] border border-[var(--panel-border)] bg-[rgb(12_7_20_/_90%)] p-0 text-[var(--text-primary)] backdrop-blur-xl" aria-labelledby="settings-title">
     <form method="dialog" class="grid gap-3 p-3.5">
-      <div class="mb-2.5 flex items-center justify-between gap-2.5"><h2 id="settings-title" class="m-0 text-[0.86rem] tracking-[0.18em]">SETTINGS</h2><button class="close-button grid h-9 w-9 place-items-center rounded-2xl border border-suki-border-soft bg-white/[0.03] text-[1.2rem]" value="close" aria-label="Close settings">×</button></div>
+      <div class="mb-2.5 flex items-center justify-between gap-2.5"><h2 id="settings-title" class="m-0 text-[0.86rem] tracking-[0.18em]">SETTINGS</h2><button class="close-button grid h-9 w-9 place-items-center rounded-2xl border border-[var(--panel-border-soft)] bg-white/[0.03] text-[1.2rem]" value="close" aria-label="Close settings">×</button></div>
       <label class="flex items-center justify-between gap-3 text-[0.88rem]" for="voice-pitch">Voice pitch <output id="pitch-value">1.0</output></label>
       <input class="w-full accent-neon-cyan" id="voice-pitch" type="range" min="0.5" max="2" step="0.1" value="1">
       <label class="flex items-center justify-between gap-3 text-[0.88rem]" for="voice-rate">Speaking speed <output id="rate-value">1.0</output></label>
