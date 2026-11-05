@@ -1,4 +1,4 @@
-:root {
+/root {
   /* Core Theme Colors */
   --bg-dark: #07040d;
   --panel-bg: rgba(18, 10, 31, 0.75);
