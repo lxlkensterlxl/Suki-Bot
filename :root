@@ -1,1 +1,70 @@
+:root {
+  /* Core Theme Colors */
+  --bg-dark: #07040d;
+  --panel-bg: rgba(18, 10, 31, 0.75);
+  --panel-border: rgba(189, 0, 255, 0.4);
+  
+  /* Accent Channels */
+  --neon-purple: #bd00ff;
+  --neon-purple-glow: rgba(189, 0, 255, 0.35);
+  --neon-cyan: #00f0ff;
+  --neon-cyan-glow: rgba(0, 240, 255, 0.35);
+  --neon-pink: #ff0055;
+  --neon-pink-glow: rgba(255, 0, 85, 0.35);
+  --text-main: #f0e6ff;
+  --text-dim: #9d8ec4;
+
+  /* Interactive State Defaults */
+  --hud-glow: var(--neon-purple-glow);
+  --hud-accent: var(--neon-purple);
+
+  /* iOS Edge-to-Edge Safe Areas */
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+}
+
+/* Theme Modifier Override Examples */
+[data-theme="cyber-cyan"] {
+  --hud-accent: var(--neon-cyan);
+  --hud-glow: var(--neon-cyan-glow);
+  --panel-border: rgba(0, 240, 255, 0.4);
+}
+
+[data-theme="goth-pink"] {
+  --hud-accent: var(--neon-pink);
+  --hud-glow: var(--neon-pink-glow);
+  --panel-border: rgba(255, 0, 85, 0.4);
+}
+
+/* Canvas & HUD Container Styles */
+.hud-wrapper {
+  position: relative;
+  width: 100vw;
+  height: calc(100vh - var(--sat) - var(--sab));
+  padding-top: var(--sat);
+  padding-bottom: var(--sab);
+  padding-left: var(--sal);
+  padding-right: var(--sar);
+  background-color: var(--bg-dark);
+  box-sizing: border-box;
+  overflow: hidden;
+  touch-action: none; /* Prevents unwanted browser scrolling on canvas drag */
+}
+
+.hud-panel {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  box-shadow: 0 0 15px var(--hud-glow), inset 0 0 10px var(--hud-glow);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 8px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hud-panel.active-touch {
+  border-color: var(--hud-accent);
+  box-shadow: 0 0 25px var(--hud-glow), inset 0 0 15px var(--hud-glow);
+}
 
