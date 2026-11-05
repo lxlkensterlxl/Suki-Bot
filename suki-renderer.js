@@ -59,6 +59,10 @@ class sukiRenderer {
       updateCoord(event.clientX, event.clientY);
     });
 
+    canvas.addEventListener('pointerleave', () => {
+      this.mouse.active = false;
+    });
+
     // Automatically handle window/container resizing
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.resizeObserver.observe(canvas);
@@ -375,5 +379,5 @@ class sukiRenderer {
 }
 
 if (typeof window !== 'undefined') {
-  window.SukiRenderer = SukiRenderer;
+  window.sukiRenderer = sukiRenderer;
 }
