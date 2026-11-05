@@ -4,277 +4,271 @@
   const canvas = document.getElementById('suki-avatar-canvas');
   if (!canvas) return;
 
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return;
+  const THREE_URL = 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js';
+  const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+  let destroyCurrent = () => {};
 
-  const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  const state = {
-    x: 0,
-    y: 0,
-    targetX: 0,
-    targetY: 0,
-    facing: 1,
-    blink: 0,
-    step: 0,
-    pause: 0,
-    width: 1,
-    height: 1,
-    raf: 0,
-    last: 0,
-    destroyed: false,
-  };
-
-  function clamp(value, min, max) {
-    return Math.min(max, Math.max(min, value));
+  function loadThree() {
+    if (window.THREE) return Promise.resolve(window.THREE);
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = THREE_URL;
+      script.async = true;
+      script.onload = () => window.THREE ? resolve(window.THREE) : reject(new Error('Three.js loaded without a global THREE object'));
+      script.onerror = () => reject(new Error('Unable to load Three.js'));
+      document.head.appendChild(script);
+    });
   }
 
-  function resize() {
-    const rect = canvas.getBoundingClientRect();
-    const cssWidth = rect.width || canvas.clientWidth || 120;
-    const cssHeight = rect.height || canvas.clientHeight || 120;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-
-    state.width = cssWidth;
-    state.height = cssHeight;
-    canvas.width = Math.max(1, Math.round(cssWidth * dpr));
-    canvas.height = Math.max(1, Math.round(cssHeight * dpr));
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-    if (!state.x && !state.y) {
-      state.x = state.targetX = cssWidth * 0.5;
-      state.y = state.targetY = cssHeight * 0.62;
-    } else {
-      const bounds = { left: 18, right: cssWidth - 18, top: 18, bottom: cssHeight - 18 };
-      state.x = clamp(state.x, bounds.left, bounds.right);
-      state.y = clamp(state.y, bounds.top, bounds.bottom);
-      state.targetX = clamp(state.targetX, bounds.left, bounds.right);
-      state.targetY = clamp(state.targetY, bounds.top, bounds.bottom);
-    }
+  function replaceCanvas(oldCanvas) {
+    const replacement = oldCanvas.cloneNode(false);
+    oldCanvas.replaceWith(replacement);
+    return replacement;
   }
 
-  function pickDestination() {
-    if (state.destroyed || document.hidden || prefersReducedMotion) return;
-    const margin = 18;
-    state.targetX = margin + Math.random() * (state.width - margin * 2);
-    state.targetY = margin + Math.random() * (state.height - margin * 2);
-    state.facing = state.targetX < state.x ? -1 : 1;
-    state.pause = 0.8 + Math.random() * 2.1;
-  }
+  function startFallback(oldCanvas) {
+    const fallbackCanvas = replaceCanvas(oldCanvas);
+    const ctx = fallbackCanvas.getContext('2d');
+    if (!ctx) return;
 
-  function drawBackground() {
-    ctx.clearRect(0, 0, state.width, state.height);
-    const gradient = ctx.createRadialGradient(
-      state.width * 0.5,
-      state.height * 0.5,
-      10,
-      state.width * 0.5,
-      state.height * 0.5,
-      Math.max(state.width, state.height) * 0.8
-    );
-    gradient.addColorStop(0, 'rgba(103, 232, 249, 0.20)');
-    gradient.addColorStop(0.45, 'rgba(28, 18, 42, 0.60)');
-    gradient.addColorStop(1, 'rgba(9, 7, 18, 0.96)');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, state.width, state.height);
+    let width = 1;
+    let height = 1;
+    let frame = 0;
+    let phase = 0;
+    let observer;
 
-    for (let i = 0; i < 24; i += 1) {
-      const x = (i * 29.7) % state.width;
-      const y = (i * 41.3) % state.height;
-      ctx.fillStyle = i % 2 === 0 ? 'rgba(255,255,255,0.25)' : 'rgba(103,232,249,0.18)';
-      ctx.fillRect(x, y, 2, 2);
-    }
-  }
-
-  function drawSuki(time, walking) {
-    const size = Math.min(state.width, state.height) * 0.28;
-    const x = state.x;
-    const y = state.y + (walking ? Math.abs(Math.sin(state.step)) * 4 : Math.sin(time * 1.3) * 2);
-    const blink = Math.sin(state.blink * 9) > 0.72 ? 0.25 : 1;
-
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.scale(state.facing, 1);
-
-    // shadow
-    ctx.fillStyle = 'rgba(189, 0, 255, 0.18)';
-    ctx.beginPath();
-    ctx.ellipse(0, size * 0.75, size * 0.82, size * 0.28, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // ears
-    ctx.fillStyle = '#f4d7ff';
-    ctx.beginPath();
-    ctx.moveTo(-size * 0.52, -size * 0.72);
-    ctx.lineTo(-size * 0.38, -size * 1.05);
-    ctx.lineTo(-size * 0.26, -size * 0.72);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.beginPath();
-    ctx.moveTo(size * 0.52, -size * 0.72);
-    ctx.lineTo(size * 0.38, -size * 1.05);
-    ctx.lineTo(size * 0.26, -size * 0.72);
-    ctx.closePath();
-    ctx.fill();
-
-    // head
-    ctx.fillStyle = '#f4d7ff';
-    ctx.beginPath();
-    ctx.ellipse(0, -size * 0.12, size * 0.56, size * 0.64, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // hair
-    ctx.fillStyle = '#1d122c';
-    ctx.beginPath();
-    ctx.ellipse(0, -size * 0.46, size * 0.52, size * 0.42, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // face details
-    ctx.fillStyle = '#1b102d';
-    ctx.beginPath();
-    ctx.ellipse(-size * 0.18, -size * 0.12, size * 0.08, size * 0.12 * blink, 0, 0, Math.PI * 2);
-    ctx.ellipse(size * 0.18, -size * 0.12, size * 0.08, size * 0.12 * blink, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = '#67e8f9';
-    ctx.beginPath();
-    ctx.arc(-size * 0.18, -size * 0.12, size * 0.04, 0, Math.PI * 2);
-    ctx.arc(size * 0.18, -size * 0.12, size * 0.04, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.strokeStyle = '#ff5dcb';
-    ctx.lineWidth = Math.max(1.5, size * 0.04);
-    ctx.beginPath();
-    ctx.arc(0, size * 0.05, size * 0.17, Math.PI * 0.08, Math.PI * 0.92);
-    ctx.stroke();
-
-    ctx.fillStyle = '#ff9de6';
-    ctx.beginPath();
-    ctx.arc(-size * 0.34, size * 0.18, size * 0.07, 0, Math.PI * 2);
-    ctx.arc(size * 0.34, size * 0.18, size * 0.07, 0, Math.PI * 2);
-    ctx.fill();
-
-    // body
-    ctx.fillStyle = '#f4d7ff';
-    ctx.beginPath();
-    ctx.fillRect(-size * 0.25, size * 0.42, size * 0.5, size * 0.72);
-    ctx.fill();
-
-    ctx.fillStyle = '#2c1a3d';
-    ctx.fillRect(-size * 0.22, size * 0.72, size * 0.44, size * 0.22);
-
-    // arms and legs
-    ctx.strokeStyle = '#f4d7ff';
-    ctx.lineWidth = Math.max(4, size * 0.09);
-    ctx.beginPath();
-    ctx.moveTo(-size * 0.25, size * 0.52);
-    ctx.lineTo(-size * 0.56, size * 0.9);
-    ctx.moveTo(size * 0.25, size * 0.52);
-    ctx.lineTo(size * 0.56, size * 0.9);
-    ctx.moveTo(-size * 0.12, size * 1.12);
-    ctx.lineTo(-size * 0.14, size * 1.58);
-    ctx.moveTo(size * 0.12, size * 1.12);
-    ctx.lineTo(size * 0.14, size * 1.58);
-    ctx.stroke();
-
-    // boots
-    ctx.fillStyle = '#67e8f9';
-    ctx.fillRect(-size * 0.24, size * 1.5, size * 0.18, size * 0.18);
-    ctx.fillRect(size * 0.06, size * 1.5, size * 0.18, size * 0.18);
-
-    // glow ring
-    ctx.strokeStyle = 'rgba(103, 232, 249, 0.6)';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(0, size * 0.2, size * 0.9, 0, Math.PI * 2);
-    ctx.stroke();
-
-    ctx.restore();
-  }
-
-  function render(timeSec) {
-    drawBackground();
-
-    const dx = state.targetX - state.x;
-    const dy = state.targetY - state.y;
-    const distance = Math.hypot(dx, dy);
-
-    if (distance > 1) {
-      const stepSize = Math.min(distance, 70 * (1 / 60));
-      state.x += (dx / distance) * stepSize;
-      state.y += (dy / distance) * stepSize;
-      state.facing = dx < 0 ? -1 : 1;
-      state.step += 0.16;
-      state.pause = 0;
-    } else {
-      state.x = state.targetX;
-      state.y = state.targetY;
-      state.pause -= 1 / 60;
-      if (state.pause <= 0) pickDestination();
+    function resize() {
+      const rect = fallbackCanvas.getBoundingClientRect();
+      width = Math.max(1, rect.width);
+      height = Math.max(1, rect.height);
+      const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      fallbackCanvas.width = Math.round(width * ratio);
+      fallbackCanvas.height = Math.round(height * ratio);
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      draw();
     }
 
-    state.blink += 1 / 60;
-    const walking = Math.hypot(state.targetX - state.x, state.targetY - state.y) > 2;
-    drawSuki(timeSec, walking);
-  }
+    function draw() {
+      ctx.clearRect(0, 0, width, height);
+      const gradient = ctx.createRadialGradient(width / 2, height / 2, 4, width / 2, height / 2, Math.max(width, height));
+      gradient.addColorStop(0, 'rgba(103,232,249,.25)');
+      gradient.addColorStop(1, 'rgba(9,7,18,.96)');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, width, height);
 
-  function tick(timestamp) {
-    if (state.destroyed || document.hidden || prefersReducedMotion) return;
-    const dt = state.last ? Math.min((timestamp - state.last) / 1000, 0.04) : 1 / 60;
-    state.last = timestamp;
-
-    const moveFactor = Math.min(1, dt * 60);
-    const dx = state.targetX - state.x;
-    const dy = state.targetY - state.y;
-    if (Math.hypot(dx, dy) > 2) {
-      state.x += (dx / Math.hypot(dx, dy)) * 1.5 * moveFactor;
-      state.y += (dy / Math.hypot(dx, dy)) * 1.5 * moveFactor;
+      const size = Math.min(width, height) * 0.23;
+      const x = width / 2 + Math.sin(phase) * width * 0.12;
+      const y = height / 2 + Math.sin(phase * 2) * 3;
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.fillStyle = '#f4d7ff';
+      ctx.beginPath();
+      ctx.moveTo(-size * .55, -size * .35); ctx.lineTo(-size * .42, -size * 1.15); ctx.lineTo(-size * .08, -size * .62);
+      ctx.moveTo(size * .55, -size * .35); ctx.lineTo(size * .42, -size * 1.15); ctx.lineTo(size * .08, -size * .62);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(0, 0, size * .72, size * .8, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#20132f';
+      ctx.beginPath();
+      ctx.ellipse(0, -size * .43, size * .68, size * .42, 0, Math.PI, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#67e8f9';
+      ctx.beginPath();
+      ctx.ellipse(-size * .24, 0, size * .07, size * .15, 0, 0, Math.PI * 2);
+      ctx.ellipse(size * .24, 0, size * .07, size * .15, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
     }
 
-    render(timestamp / 1000);
-    state.raf = requestAnimationFrame(tick);
-  }
+    function animate() {
+      if (document.hidden || reducedMotion?.matches) { frame = 0; return; }
+      phase += 0.025;
+      draw();
+      frame = requestAnimationFrame(animate);
+    }
 
-  function start() {
+    observer = typeof ResizeObserver === 'function' ? new ResizeObserver(resize) : null;
+    observer?.observe(fallbackCanvas);
+    window.addEventListener('resize', resize, { passive: true });
+    const onVisibility = () => {
+      if (document.hidden) { if (frame) cancelAnimationFrame(frame); frame = 0; }
+      else if (!reducedMotion?.matches && !frame) frame = requestAnimationFrame(animate);
+    };
+    document.addEventListener('visibilitychange', onVisibility);
     resize();
-    if (prefersReducedMotion) {
-      render(performance.now() / 1000);
-      return;
-    }
-    pickDestination();
-    state.raf = requestAnimationFrame(tick);
+    if (!reducedMotion?.matches) frame = requestAnimationFrame(animate);
+
+    destroyCurrent = () => {
+      if (frame) cancelAnimationFrame(frame);
+      observer?.disconnect();
+      window.removeEventListener('resize', resize);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
   }
 
-  function onVisibilityChange() {
-    if (document.hidden) {
-      if (state.raf) cancelAnimationFrame(state.raf);
-      state.raf = 0;
-      state.last = 0;
-    } else if (!prefersReducedMotion && !state.raf) {
-      pickDestination();
-      state.raf = requestAnimationFrame(tick);
+  function startThree(oldCanvas, THREE) {
+    const renderer = new THREE.WebGLRenderer({ canvas: oldCanvas, alpha: true, antialias: true, powerPreference: 'low-power' });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+    renderer.setClearColor(0x000000, 0);
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 50);
+    camera.position.set(0, 0.15, 7.2);
+
+    scene.add(new THREE.HemisphereLight(0xc7f7ff, 0x271238, 2));
+    const keyLight = new THREE.DirectionalLight(0xffffff, 2.2);
+    keyLight.position.set(-3, 5, 6);
+    scene.add(keyLight);
+    const cyanLight = new THREE.PointLight(0x67e8f9, 18, 12);
+    cyanLight.position.set(2, 1, 3);
+    scene.add(cyanLight);
+    const pinkLight = new THREE.PointLight(0xff5dcb, 12, 12);
+    pinkLight.position.set(-2, -1, 2);
+    scene.add(pinkLight);
+
+    const suki = new THREE.Group();
+    scene.add(suki);
+    const mat = (color, emissive = 0x000000, intensity = 0) => new THREE.MeshStandardMaterial({ color, emissive, emissiveIntensity: intensity, roughness: 0.48, metalness: 0.08 });
+    const skin = mat(0xf4d7ff, 0x351443, 0.35);
+    const hair = mat(0x21142e, 0x12091d, 0.2);
+    const cyan = mat(0x67e8f9, 0x27cbe5, 1.4);
+    const pink = mat(0xff5dcb, 0x9c176e, 0.9);
+    const suit = mat(0x382455, 0x160b2c, 0.45);
+    const dark = mat(0x191124);
+
+    function add(geometry, material, x, y, z, sx = 1, sy = 1, sz = 1) {
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.position.set(x, y, z);
+      mesh.scale.set(sx, sy, sz);
+      suki.add(mesh);
+      return mesh;
     }
+
+    // Chibi bust sized to remain visible in the compact HUD canvas.
+    add(new THREE.SphereGeometry(0.82, 24, 20), skin, 0, 0.34, 0, 1, 1.12, 0.82);
+    add(new THREE.SphereGeometry(0.86, 24, 16, 0, Math.PI * 2, 0, Math.PI * 0.56), hair, 0, 0.66, -0.02, 1.04, 1.1, 0.95);
+    add(new THREE.ConeGeometry(0.22, 0.68, 12), hair, -0.61, 1.15, 0, 1, 1, 0.8).rotation.z = 0.22;
+    add(new THREE.ConeGeometry(0.22, 0.68, 12), hair, 0.61, 1.15, 0, 1, 1, 0.8).rotation.z = -0.22;
+    add(new THREE.BoxGeometry(1.05, 0.23, 0.3), hair, 0, 0.85, 0.69).rotation.z = -0.08;
+
+    const leftEye = add(new THREE.SphereGeometry(0.095, 16, 12), cyan, -0.27, 0.32, 0.72, 1, 1.45, 0.45);
+    const rightEye = add(new THREE.SphereGeometry(0.095, 16, 12), cyan, 0.27, 0.32, 0.72, 1, 1.45, 0.45);
+    add(new THREE.SphereGeometry(0.075, 12, 10), pink, 0, 0.08, 0.75, 0.7, 0.55, 0.45);
+    const mouth = new THREE.Mesh(new THREE.TorusGeometry(0.13, 0.018, 8, 24, Math.PI), pink);
+    mouth.position.set(0, -0.08, 0.72);
+    mouth.rotation.z = Math.PI;
+    suki.add(mouth);
+
+    add(new THREE.CapsuleGeometry(0.42, 0.62, 5, 12), suit, 0, -0.95, 0, 1, 1, 0.75);
+    add(new THREE.TorusGeometry(0.42, 0.065, 8, 28), cyan, 0, -0.54, 0.02, 1, 1, 0.8).rotation.x = Math.PI / 2;
+
+    const halo = new THREE.Mesh(new THREE.TorusGeometry(1.52, 0.035, 8, 64), cyan);
+    halo.position.set(0, -0.22, -0.25);
+    halo.rotation.x = 0.35;
+    suki.add(halo);
+
+    const sparkles = new THREE.Group();
+    scene.add(sparkles);
+    for (let i = 0; i < 10; i += 1) {
+      const dot = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 8), i % 2 ? cyan : pink);
+      const angle = i * Math.PI * 2 / 10;
+      dot.position.set(Math.cos(angle) * 1.55, Math.sin(angle) * 1.2, -0.15);
+      sparkles.add(dot);
+    }
+
+    let frame = 0;
+    let observer;
+    let phase = 0;
+    const target = new THREE.Vector2(0, 0);
+    const onPointer = (event) => {
+      const rect = oldCanvas.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      target.x = THREE.MathUtils.clamp(((event.clientX - rect.left) / rect.width - 0.5) * 0.5, -0.25, 0.25);
+      target.y = THREE.MathUtils.clamp((0.5 - (event.clientY - rect.top) / rect.height) * 0.35, -0.18, 0.18);
+    };
+    const onPointerLeave = () => { target.set(0, 0); };
+
+    function resize() {
+      const rect = oldCanvas.getBoundingClientRect();
+      const width = Math.max(1, rect.width || oldCanvas.clientWidth || 96);
+      const height = Math.max(1, rect.height || oldCanvas.clientHeight || 96);
+      renderer.setSize(width, height, false);
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+    }
+
+    function draw() {
+      phase += 0.018;
+      suki.position.x += (target.x - suki.position.x) * 0.045;
+      suki.position.y += (target.y + Math.sin(phase * 2) * 0.035 - suki.position.y) * 0.045;
+      suki.rotation.y = Math.sin(phase * 0.7) * 0.16;
+      suki.rotation.z = Math.sin(phase * 1.4) * 0.035;
+      halo.rotation.z += 0.006;
+      sparkles.rotation.z -= 0.003;
+      const blink = Math.sin(phase * 2.2) > 0.985 ? 0.12 : 1;
+      leftEye.scale.y = blink;
+      rightEye.scale.y = blink;
+      renderer.render(scene, camera);
+    }
+
+    function animate() {
+      if (document.hidden || reducedMotion?.matches) { frame = 0; return; }
+      draw();
+      frame = requestAnimationFrame(animate);
+    }
+
+    const onVisibility = () => {
+      if (document.hidden) { if (frame) cancelAnimationFrame(frame); frame = 0; }
+      else if (!reducedMotion?.matches && !frame) frame = requestAnimationFrame(animate);
+      else if (reducedMotion?.matches) draw();
+    };
+    const onMotionChange = () => {
+      if (reducedMotion.matches) { if (frame) cancelAnimationFrame(frame); frame = 0; draw(); }
+      else if (!document.hidden && !frame) frame = requestAnimationFrame(animate);
+    };
+    const onContextLost = (event) => { event.preventDefault(); if (frame) cancelAnimationFrame(frame); frame = 0; };
+
+    oldCanvas.addEventListener('pointermove', onPointer, { passive: true });
+    oldCanvas.addEventListener('pointerdown', onPointer, { passive: true });
+    oldCanvas.addEventListener('pointerleave', onPointerLeave, { passive: true });
+    oldCanvas.addEventListener('webglcontextlost', onContextLost, false);
+    window.addEventListener('resize', resize, { passive: true });
+    document.addEventListener('visibilitychange', onVisibility);
+    reducedMotion?.addEventListener?.('change', onMotionChange);
+    observer = typeof ResizeObserver === 'function' ? new ResizeObserver(resize) : null;
+    observer?.observe(oldCanvas);
+
+    resize();
+    if (reducedMotion?.matches) draw();
+    else frame = requestAnimationFrame(animate);
+
+    destroyCurrent = () => {
+      if (frame) cancelAnimationFrame(frame);
+      observer?.disconnect();
+      oldCanvas.removeEventListener('pointermove', onPointer);
+      oldCanvas.removeEventListener('pointerdown', onPointer);
+      oldCanvas.removeEventListener('pointerleave', onPointerLeave);
+      oldCanvas.removeEventListener('webglcontextlost', onContextLost);
+      window.removeEventListener('resize', resize);
+      document.removeEventListener('visibilitychange', onVisibility);
+      reducedMotion?.removeEventListener?.('change', onMotionChange);
+      renderer.dispose();
+    };
   }
 
-  window.addEventListener('resize', resize, { passive: true });
-  document.addEventListener('visibilitychange', onVisibilityChange);
-  start();
+  loadThree()
+    .then((THREE) => {
+      if (canvas.isConnected) startThree(canvas, THREE);
+    })
+    .catch((error) => {
+      console.warn('[SukiBot] 3D renderer unavailable; using 2D fallback.', error);
+      if (canvas.isConnected) startFallback(canvas);
+    });
 
   window.sukiWalk = {
     destroy() {
-      state.destroyed = true;
-      if (state.raf) cancelAnimationFrame(state.raf);
-      window.removeEventListener('resize', resize);
-      document.removeEventListener('visibilitychange', onVisibilityChange);
+      destroyCurrent();
     }
   };
 })();
-
-if (window.THREE) {
-  // Keep the existing Three.js version as an optional upgrade path.
-  // The 2D fallback above is the reliable default and ensures graphics render on all browsers.
-  if (window.sukiWalk && typeof window.sukiWalk.destroy === 'function') {
-    window.sukiWalk.destroy();
-  }
-}
