@@ -4,4 +4,36 @@
   --color-neon-purple: #bd00ff;
   --color-neon-cyan: #67e8f9;
   --color-suki-bg: #07040d;
+  --color-suki-panel: rgb(18 10 31 / 76%);
+  --color-suki-border: rgb(189 0 255 / 38%);
+  --color-suki-border-soft: rgb(192 132 252 / 30%);
+  --color-suki-text: #f3eaff;
+  --color-suki-muted: #b9a9d3;
+}
+
+@utility mode-active {
+  border-color: rgb(103 232 249 / 80%);
+  background-color: rgb(103 232 249 / 12%);
+  box-shadow: inset 0 0 12px rgb(103 232 249 / 8%);
+}
+
+@layer base {
+  html,
+  body {
+    min-height: 100%;
+    margin: 0;
+    background: var(--color-suki-bg);
+    color: var(--color-suki-text);
+    font-family: Inter, "Segoe UI", sans-serif;
+  }
+
+  body {
+    min-height: 100dvh;
+    overflow: hidden;
+  }
+
+  dialog::backdrop {
+    background: rgb(0 0 0 / 65%);
+    backdrop-filter: blur(4px);
+  }
 }
