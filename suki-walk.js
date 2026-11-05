@@ -63,20 +63,20 @@
       ctx.translate(x, y);
       ctx.fillStyle = '#f4d7ff';
       ctx.beginPath();
-      ctx.moveTo(-size * .55, -size * .35); ctx.lineTo(-size * .42, -size * 1.15); ctx.lineTo(-size * .08, -size * .62);
-      ctx.moveTo(size * .55, -size * .35); ctx.lineTo(size * .42, -size * 1.15); ctx.lineTo(size * .08, -size * .62);
+      ctx.moveTo(-size * .55, -size * 1.15); ctx.lineTo(-size * .42, -size * 1.75); ctx.lineTo(-size * .08, -size * .85);
+      ctx.moveTo(size * .55, -size * 1.15); ctx.lineTo(size * .42, -size * 1.75); ctx.lineTo(size * .08, -size * .85);
       ctx.fill();
       ctx.beginPath();
-      ctx.ellipse(0, 0, size * .72, size * .8, 0, 0, Math.PI * 2);
+      ctx.ellipse(0, -size * .55, size * .72, size * .8, 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.fillStyle = '#20132f';
       ctx.beginPath();
-      ctx.ellipse(0, -size * .43, size * .68, size * .42, 0, Math.PI, Math.PI * 2);
+      ctx.ellipse(0, -size * .95, size * .68, size * .42, Math.PI, Math.PI * 2);
       ctx.fill();
       ctx.fillStyle = '#67e8f9';
       ctx.beginPath();
-      ctx.ellipse(-size * .24, 0, size * .07, size * .15, 0, 0, Math.PI * 2);
-      ctx.ellipse(size * .24, 0, size * .07, size * .15, 0, 0, Math.PI * 2);
+      ctx.ellipse(-size * .24, -size * .55, size * .07, size * .15, 0, 0, Math.PI * 2);
+      ctx.ellipse(size * .24, -size * .55, size * .07, size * .15, 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.restore();
     }
@@ -109,7 +109,7 @@
 
   function startThree(oldCanvas, THREE) {
     const renderer = new THREE.WebGLRenderer({ canvas: oldCanvas, alpha: true, antialias: true, powerPreference: 'low-power' });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setClearColor(0x000000, 0);
 
     const scene = new THREE.Scene();
@@ -135,7 +135,6 @@
     const cyan = mat(0x67e8f9, 0x27cbe5, 1.4);
     const pink = mat(0xff5dcb, 0x9c176e, 0.9);
     const suit = mat(0x382455, 0x160b2c, 0.45);
-    const dark = mat(0x191124);
 
     function add(geometry, material, x, y, z, sx = 1, sy = 1, sz = 1) {
       const mesh = new THREE.Mesh(geometry, material);
@@ -145,13 +144,11 @@
       return mesh;
     }
 
-    // Chibi bust sized to remain visible in the compact HUD canvas.
     add(new THREE.SphereGeometry(0.82, 24, 20), skin, 0, 0.34, 0, 1, 1.12, 0.82);
     add(new THREE.SphereGeometry(0.86, 24, 16, 0, Math.PI * 2, 0, Math.PI * 0.56), hair, 0, 0.66, -0.02, 1.04, 1.1, 0.95);
     add(new THREE.ConeGeometry(0.22, 0.68, 12), hair, -0.61, 1.15, 0, 1, 1, 0.8).rotation.z = 0.22;
     add(new THREE.ConeGeometry(0.22, 0.68, 12), hair, 0.61, 1.15, 0, 1, 1, 0.8).rotation.z = -0.22;
     add(new THREE.BoxGeometry(1.05, 0.23, 0.3), hair, 0, 0.85, 0.69).rotation.z = -0.08;
-
     const leftEye = add(new THREE.SphereGeometry(0.095, 16, 12), cyan, -0.27, 0.32, 0.72, 1, 1.45, 0.45);
     const rightEye = add(new THREE.SphereGeometry(0.095, 16, 12), cyan, 0.27, 0.32, 0.72, 1, 1.45, 0.45);
     add(new THREE.SphereGeometry(0.075, 12, 10), pink, 0, 0.08, 0.75, 0.7, 0.55, 0.45);
@@ -159,7 +156,6 @@
     mouth.position.set(0, -0.08, 0.72);
     mouth.rotation.z = Math.PI;
     suki.add(mouth);
-
     add(new THREE.CapsuleGeometry(0.42, 0.62, 5, 12), suit, 0, -0.95, 0, 1, 1, 0.75);
     add(new THREE.TorusGeometry(0.42, 0.065, 8, 28), cyan, 0, -0.54, 0.02, 1, 1, 0.8).rotation.x = Math.PI / 2;
 
@@ -167,7 +163,6 @@
     halo.position.set(0, -0.22, -0.25);
     halo.rotation.x = 0.35;
     suki.add(halo);
-
     const sparkles = new THREE.Group();
     scene.add(sparkles);
     for (let i = 0; i < 10; i += 1) {
@@ -187,7 +182,7 @@
       target.x = THREE.MathUtils.clamp(((event.clientX - rect.left) / rect.width - 0.5) * 0.5, -0.25, 0.25);
       target.y = THREE.MathUtils.clamp((0.5 - (event.clientY - rect.top) / rect.height) * 0.35, -0.18, 0.18);
     };
-    const onPointerLeave = () => { target.set(0, 0); };
+    const onPointerLeave = () => target.set(0, 0);
 
     function resize() {
       const rect = oldCanvas.getBoundingClientRect();
