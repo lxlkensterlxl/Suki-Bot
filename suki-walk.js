@@ -3,250 +3,360 @@
 
   const canvas = document.getElementById('suki-avatar-canvas');
   if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return;
 
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const suki = { x: 0, y: 0, targetX: 0, targetY: 0, facing: 1, step: 0, blink: 0, pause: 0 };
-  let width = 1;
-  let height = 1;
-  let raf = 0;
-  let lastTime = 0;
-  let destroyed = false;
-  const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+  if (!window.THREE) {
+    const fallback = canvas.getContext('2d');
+    if (!fallback) return;
+    const legacy = (() => {
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+      const suki = { x: 0, y: 0, targetX: 0, targetY: 0, facing: 1, step: 0, blink: 0, pause: 0 };
+      let width = 1; let height = 1; let raf = 0; let lastTime = 0; let destroyed = false;
+      const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
-  function resize() {
-    const viewport = window.visualViewport;
-    width = Math.max(1, viewport ? viewport.width : window.innerWidth);
-    height = Math.max(1, viewport ? viewport.height : window.innerHeight);
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.width = Math.round(width * dpr);
-    canvas.height = Math.round(height * dpr);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    if (!suki.x) {
-      suki.x = suki.targetX = width * 0.5;
-      suki.y = suki.targetY = height * 0.64;
-    } else {
-      const bounds = movementBounds();
-      suki.x = clamp(suki.x, bounds.left, bounds.right);
-      suki.y = clamp(suki.y, bounds.top, bounds.bottom);
-      suki.targetX = clamp(suki.targetX, bounds.left, bounds.right);
-      suki.targetY = clamp(suki.targetY, bounds.top, bounds.bottom);
-    }
-    if (reduceMotion.matches) render(performance.now() / 1000, 0);
-  }
-
-  function movementBounds() {
-    const marginX = Math.min(42, width * 0.15);
-    const marginY = Math.min(64, height * 0.18);
-    return { left: marginX, right: Math.max(marginX, width - marginX), top: marginY, bottom: Math.max(marginY, height - marginY) };
-  }
-
-  function pickDestination() {
-    if (destroyed || document.hidden || reduceMotion.matches) return;
-    const b = movementBounds();
-    suki.targetX = b.left + Math.random() * (b.right - b.left);
-    suki.targetY = b.top + Math.random() * (b.bottom - b.top);
-    suki.facing = suki.targetX < suki.x ? -1 : 1;
-    suki.pause = 1.2 + Math.random() * 2.4;
-  }
-
-  function drawBackground(time) {
-    ctx.clearRect(0, 0, width, height);
-    const sky = ctx.createLinearGradient(0, 0, 0, height);
-    sky.addColorStop(0, '#070812'); sky.addColorStop(0.65, '#151025'); sky.addColorStop(1, '#080711');
-    ctx.fillStyle = sky; ctx.fillRect(0, 0, width, height);
-
-    const horizon = height * 0.78;
-    for (let i = 0; i < 13; i += 1) {
-      const bw = Math.max(22, width / 18);
-      const x = (i * width / 11.5 - width * 0.08) % (width + bw);
-      const bh = height * (0.08 + ((i * 37) % 11) / 100);
-      ctx.fillStyle = i % 2 ? 'rgba(15,12,31,.85)' : 'rgba(20,13,39,.9)';
-      ctx.fillRect(x, horizon - bh, bw, bh);
-      ctx.fillStyle = i % 3 ? 'rgba(77,233,255,.55)' : 'rgba(255,58,196,.65)';
-      for (let row = 0; row < 3; row += 1) {
-        ctx.fillRect(x + 5, horizon - bh + 9 + row * 11, 3, 2);
-        ctx.fillRect(x + bw - 10, horizon - bh + 9 + row * 11, 3, 2);
+      function resize() {
+        const viewport = window.visualViewport;
+        width = Math.max(1, viewport ? viewport.width : window.innerWidth);
+        height = Math.max(1, viewport ? viewport.height : window.innerHeight);
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+        fallback.setTransform(dpr, 0, 0, dpr, 0, 0);
+        if (!suki.x) {
+          suki.x = suki.targetX = width * 0.5;
+          suki.y = suki.targetY = height * 0.64;
+        } else {
+          const b = { left: 24, right: width - 24, top: 36, bottom: height - 36 };
+          suki.x = clamp(suki.x, b.left, b.right);
+          suki.y = clamp(suki.y, b.top, b.bottom);
+          suki.targetX = clamp(suki.targetX, b.left, b.right);
+          suki.targetY = clamp(suki.targetY, b.top, b.bottom);
+        }
       }
-    }
 
-    // Falling fragments evoke encrypted terminal output in the distant city.
-    ctx.font = '10px monospace';
-    for (let i = 0; i < 24; i += 1) {
-      const x = (i * 71.7) % width;
-      const speed = 16 + (i % 5) * 7;
-      const y = (i * 53 + time * speed) % Math.max(1, horizon);
-      ctx.fillStyle = i % 2 ? 'rgba(77,233,255,.22)' : 'rgba(255,58,196,.2)';
-      ctx.fillText(i % 3 ? '01' : '//', x, y);
-    }
-    ctx.strokeStyle = 'rgba(77,233,255,.12)'; ctx.lineWidth = 1;
-    for (let i = 0; i < 7; i += 1) {
-      const y = height * 0.83 + i * i * 2.2;
-      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke();
-    }
-    for (let i = -8; i <= 8; i += 1) {
-      ctx.beginPath(); ctx.moveTo(width / 2 + i * 18, horizon); ctx.lineTo(width / 2 + i * 56, height); ctx.stroke();
-    }
-  }
-
-  function drawAura(time) {
-    const pulse = reduceMotion.matches ? 0.4 : (Math.sin(time * 3) + 1) / 2;
-    const radius = 52 + pulse * 18;
-    const g = ctx.createRadialGradient(suki.x, suki.y - 5, 10, suki.x, suki.y - 5, radius);
-    g.addColorStop(0, `rgba(77,233,255,${0.13 + pulse * 0.12})`);
-    g.addColorStop(0.5, `rgba(255,58,196,${0.1 + pulse * 0.1})`);
-    g.addColorStop(1, 'rgba(255,58,196,0)');
-    ctx.save(); ctx.globalCompositeOperation = 'screen'; ctx.fillStyle = g;
-    ctx.beginPath(); ctx.ellipse(suki.x, suki.y, radius * 0.72, radius, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore();
-  }
-
-  function drawHackerHUD(time) {
-    const pulse = reduceMotion.matches ? 0.5 : (Math.sin(time * 3.4) + 1) / 2;
-    ctx.save();
-    ctx.strokeStyle = `rgba(77,233,255,${0.35 + pulse * 0.35})`;
-    ctx.fillStyle = 'rgba(77,233,255,.72)';
-    ctx.lineWidth = 1;
-    // Floating diagnostic brackets and tiny terminal readouts.
-    const x = suki.x + 43;
-    const y = suki.y - 34;
-    ctx.strokeRect(x, y, 42, 27);
-    ctx.beginPath(); ctx.moveTo(x + 5, y + 7); ctx.lineTo(x + 26, y + 7); ctx.moveTo(x + 5, y + 13); ctx.lineTo(x + 34, y + 13); ctx.moveTo(x + 5, y + 19); ctx.lineTo(x + 19, y + 19); ctx.stroke();
-    ctx.font = '7px monospace'; ctx.fillText('TRACE: ON', x + 3, y - 4);
-    ctx.strokeStyle = `rgba(255,58,196,${0.35 + pulse * 0.3})`;
-    ctx.beginPath(); ctx.moveTo(suki.x - 42, suki.y - 15); ctx.lineTo(suki.x - 54, suki.y - 15); ctx.lineTo(suki.x - 54, suki.y + 8); ctx.stroke();
-    ctx.fillStyle = '#ff3ac4'; ctx.fillRect(suki.x - 57, suki.y + 7, 5, 2);
-    ctx.restore();
-  }
-
-  function drawSuki(time, walking) {
-    const stride = walking ? Math.sin(suki.step) : 0;
-    const bounce = walking ? Math.abs(Math.sin(suki.step)) * 3 : Math.sin(time * 1.7) * 1.2;
-    const pulse = reduceMotion.matches ? 0.4 : (Math.sin(time * 3) + 1) / 2;
-    const blinking = !reduceMotion.matches && suki.blink > 5.9 && suki.blink < 6.12;
-    ctx.save(); ctx.translate(suki.x, suki.y + bounce); ctx.scale(suki.facing, 1);
-
-    // Hood and long, asymmetric hair.
-    ctx.fillStyle = '#171525';
-    ctx.beginPath(); ctx.moveTo(-18, -17); ctx.lineTo(-29, -42); ctx.lineTo(-13, -35); ctx.quadraticCurveTo(0, -46, 13, -35); ctx.lineTo(29, -42); ctx.lineTo(18, -13); ctx.quadraticCurveTo(29, 9, 20, 25); ctx.lineTo(10, 11); ctx.quadraticCurveTo(0, 19, -11, 10); ctx.lineTo(-21, 25); ctx.quadraticCurveTo(-28, 4, -18, -17); ctx.closePath(); ctx.fill();
-    ctx.strokeStyle = '#ff3ac4'; ctx.lineWidth = 3; ctx.lineCap = 'round';
-    ctx.beginPath(); ctx.moveTo(-16, -33); ctx.quadraticCurveTo(-20, -8, -15, 11); ctx.stroke();
-    ctx.strokeStyle = '#4de9ff'; ctx.beginPath(); ctx.moveTo(15, -33); ctx.quadraticCurveTo(19, -8, 15, 11); ctx.stroke();
-
-    // Raised cyber hood with a high collar.
-    ctx.fillStyle = '#252239'; ctx.beginPath(); ctx.moveTo(-18, -26); ctx.quadraticCurveTo(-24, -45, 0, -47); ctx.quadraticCurveTo(24, -45, 18, -26); ctx.lineTo(12, -16); ctx.lineTo(-12, -16); ctx.closePath(); ctx.fill();
-    ctx.strokeStyle = '#4de9ff'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(0, -31, 15, Math.PI, Math.PI * 2); ctx.stroke();
-
-    // Face and sharp, confident expression.
-    ctx.fillStyle = '#f4d6e8'; ctx.beginPath(); ctx.ellipse(0, -10, 14, 17, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#171525'; ctx.beginPath();
-    ctx.moveTo(-14, -25); ctx.quadraticCurveTo(-24, -8, -15, 5); ctx.lineTo(-10, -2); ctx.lineTo(-10, -20); ctx.closePath();
-    ctx.moveTo(14, -25); ctx.quadraticCurveTo(24, -8, 15, 5); ctx.lineTo(10, -2); ctx.lineTo(10, -20); ctx.closePath(); ctx.fill();
-
-    if (blinking) {
-      ctx.strokeStyle = '#241a34'; ctx.lineWidth = 2.2; ctx.beginPath();
-      ctx.moveTo(-10, -10); ctx.lineTo(-3, -8); ctx.moveTo(3, -8); ctx.lineTo(10, -10); ctx.stroke();
-    } else {
-      ctx.fillStyle = '#fff8ff'; ctx.beginPath(); ctx.ellipse(-6, -10, 4, 5, 0, 0, Math.PI * 2); ctx.ellipse(6, -10, 4, 5, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#a432de'; ctx.beginPath(); ctx.ellipse(-6, -9.5, 2.4, 4, 0, 0, Math.PI * 2); ctx.ellipse(6, -9.5, 2.4, 4, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#4de9ff'; ctx.beginPath(); ctx.arc(-6, -10, 1.1, 0, Math.PI * 2); ctx.arc(6, -10, 1.1, 0, Math.PI * 2); ctx.fill();
-      // Angled eyebrows give her a focused, formidable hacker look.
-      ctx.strokeStyle = '#20192f'; ctx.lineWidth = 2.2; ctx.beginPath(); ctx.moveTo(-11, -17); ctx.lineTo(-3, -14); ctx.moveTo(3, -14); ctx.lineTo(11, -17); ctx.stroke();
-      ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(-7, -12, 1, 0, Math.PI * 2); ctx.arc(5, -12, 1, 0, Math.PI * 2); ctx.fill();
-    }
-    ctx.strokeStyle = '#a83d87'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(-2, -2); ctx.lineTo(2, -2); ctx.stroke();
-    ctx.fillStyle = 'rgba(255,58,196,.55)'; ctx.beginPath(); ctx.ellipse(-10, -3, 2.8, 1.2, 0, 0, Math.PI * 2); ctx.ellipse(10, -3, 2.8, 1.2, 0, 0, Math.PI * 2); ctx.fill();
-
-    // Headset mic, ear module, and a narrow neon visor lens.
-    ctx.strokeStyle = '#4de9ff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, -10, 17, Math.PI * 1.05, Math.PI * 1.95); ctx.stroke();
-    ctx.fillStyle = '#ff3ac4'; ctx.fillRect(-18, -14, 4, 9);
-    ctx.strokeStyle = '#4de9ff'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(-16, -5); ctx.quadraticCurveTo(-12, 2, -4, 0); ctx.stroke();
-    ctx.fillStyle = 'rgba(77,233,255,.22)'; ctx.fillRect(3, -19, 9, 2);
-
-    // Tactical hacker jacket, luminous piping, and access-card display.
-    ctx.fillStyle = '#29243f'; ctx.beginPath(); ctx.moveTo(-13, 4); ctx.lineTo(-20, 27); ctx.quadraticCurveTo(0, 35, 20, 27); ctx.lineTo(13, 4); ctx.quadraticCurveTo(0, -1, -13, 4); ctx.closePath(); ctx.fill();
-    ctx.strokeStyle = '#ff3ac4'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-17, 25); ctx.lineTo(-12, 7); ctx.moveTo(17, 25); ctx.lineTo(12, 7); ctx.stroke();
-    ctx.fillStyle = '#10101c'; ctx.fillRect(-5, 15, 10, 8);
-    ctx.fillStyle = `rgba(77,233,255,${0.55 + pulse * 0.4})`; ctx.fillRect(-3, 17, 6, 1.5);
-    ctx.fillStyle = '#ff3ac4'; ctx.fillRect(-3, 20, 4, 1);
-
-    // Gloved arms and bright wrist interfaces.
-    ctx.strokeStyle = '#171525'; ctx.lineWidth = 7; ctx.lineCap = 'round'; ctx.beginPath();
-    ctx.moveTo(-12, 8); ctx.lineTo(-18, 19 - stride * 3); ctx.moveTo(12, 8); ctx.lineTo(18, 19 + stride * 3); ctx.stroke();
-    ctx.strokeStyle = '#4de9ff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-17, 18 - stride * 3); ctx.lineTo(-20, 21 - stride * 3); ctx.moveTo(17, 18 + stride * 3); ctx.lineTo(20, 21 + stride * 3); ctx.stroke();
-
-    // Utility belt, techwear skirt, and boots.
-    ctx.fillStyle = '#171525'; ctx.beginPath(); ctx.moveTo(-13, 24); ctx.lineTo(13, 24); ctx.lineTo(18, 34); ctx.lineTo(-18, 34); ctx.closePath(); ctx.fill();
-    ctx.strokeStyle = '#ff3ac4'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(-10, 26); ctx.lineTo(-12, 33); ctx.moveTo(0, 26); ctx.lineTo(0, 34); ctx.moveTo(10, 26); ctx.lineTo(12, 33); ctx.stroke();
-    ctx.fillStyle = '#4de9ff'; ctx.fillRect(10, 25, 5, 3);
-    ctx.strokeStyle = '#f4d6e8'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(-7, 34); ctx.lineTo(-8 + stride * 6, 40); ctx.moveTo(7, 34); ctx.lineTo(8 - stride * 6, 40); ctx.stroke();
-    ctx.strokeStyle = '#4de9ff'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(-12 + stride * 6, 41); ctx.lineTo(-4 + stride * 6, 41); ctx.moveTo(4 - stride * 6, 41); ctx.lineTo(12 - stride * 6, 41); ctx.stroke();
-
-    // Dynamic targeting reticle.
-    ctx.strokeStyle = `rgba(77,233,255,${0.38 + pulse * 0.35})`; ctx.lineWidth = 1.4;
-    ctx.beginPath(); ctx.arc(0, 0, 29 + pulse * 3, 0, Math.PI * 2); ctx.stroke();
-    ctx.fillStyle = '#ff3ac4'; ctx.beginPath(); ctx.arc(-30, -14, 2, 0, Math.PI * 2); ctx.arc(30, 17, 2, 0, Math.PI * 2); ctx.fill();
-    ctx.restore();
-  }
-
-  function render(time, dt) {
-    drawBackground(time);
-    if (dt > 0) {
-      const dx = suki.targetX - suki.x;
-      const dy = suki.targetY - suki.y;
-      const distance = Math.hypot(dx, dy);
-      if (distance > 1.5) {
-        const travel = Math.min(distance, 105 * dt);
-        suki.x += dx / distance * travel; suki.y += dy / distance * travel;
-        suki.facing = dx < 0 ? -1 : 1; suki.step += dt * 10; suki.pause = 0;
-      } else {
-        suki.x = suki.targetX; suki.y = suki.targetY; suki.pause -= dt;
-        if (suki.pause <= 0) pickDestination();
+      function pickDestination() {
+        if (destroyed || document.hidden || reduceMotion.matches) return;
+        suki.targetX = 24 + Math.random() * (width - 48);
+        suki.targetY = 36 + Math.random() * (height - 72);
+        suki.facing = suki.targetX < suki.x ? -1 : 1;
+        suki.pause = 1.2 + Math.random() * 2.4;
       }
-      suki.blink = (suki.blink + dt) % 7;
-    }
-    const walking = Math.hypot(suki.targetX - suki.x, suki.targetY - suki.y) > 1.5;
-    drawAura(time); drawHackerHUD(time); drawSuki(time, walking);
+
+      function drawBackground(time) {
+        fallback.clearRect(0, 0, width, height);
+        const sky = fallback.createRadialGradient(width * 0.5, height * 0.5, 20, width * 0.5, height * 0.5, Math.max(width, height));
+        sky.addColorStop(0, 'rgba(86, 49, 126, 0.3)');
+        sky.addColorStop(1, 'rgba(9, 7, 18, 1)');
+        fallback.fillStyle = sky; fallback.fillRect(0, 0, width, height);
+      }
+
+      function drawSuki(time, walking) {
+        const stride = walking ? Math.sin(suki.step) : 0;
+        const bounce = walking ? Math.abs(Math.sin(suki.step)) * 4 : Math.sin(time * 1.7) * 1.5;
+        const x = suki.x; const y = suki.y + bounce;
+        fallback.save(); fallback.translate(x, y); fallback.scale(suki.facing, 1);
+        fallback.fillStyle = 'rgba(158,109,255,.2)'; fallback.beginPath(); fallback.ellipse(0, 30, 22, 5, 0, 0, Math.PI * 2); fallback.fill();
+        fallback.fillStyle = '#f4d7ff'; fallback.beginPath(); fallback.ellipse(0, -5, 12, 15, 0, 0, Math.PI * 2); fallback.fill();
+        fallback.fillStyle = '#28213d'; fallback.beginPath(); fallback.moveTo(-14, -10); ctxItSelfLine(); fallback.restore();
+      }
+
+      function ctxItSelfLine() {
+        return null;
+      }
+
+      function render(time, dt) {
+        drawBackground(time);
+        if (dt > 0) {
+          const dx = suki.targetX - suki.x; const dy = suki.targetY - suki.y; const distance = Math.hypot(dx, dy);
+          if (distance > 1.5) {
+            const travel = Math.min(distance, 90 * dt); suki.x += dx / distance * travel; suki.y += dy / distance * travel; suki.facing = dx < 0 ? -1 : 1; suki.step += dt * 10; suki.pause = 0;
+          } else {
+            suki.x = suki.targetX; suki.y = suki.targetY; suki.pause -= dt; if (suki.pause <= 0) pickDestination();
+          }
+          suki.blink = (suki.blink + dt) % 7;
+        }
+        const walking = Math.hypot(suki.targetX - suki.x, suki.targetY - suki.y) > 1.5;
+        drawSuki(time, walking);
+      }
+
+      function tick(timestamp) {
+        if (destroyed || document.hidden || reduceMotion.matches) { raf = 0; return; }
+        const dt = lastTime ? Math.min((timestamp - lastTime) / 1000, 0.04) : 1 / 60;
+        lastTime = timestamp; render(timestamp / 1000, dt); raf = requestAnimationFrame(tick);
+      }
+
+      function start() {
+        resize(); if (reduceMotion.matches) { render(performance.now() / 1000, 0); return; }
+        pickDestination(); raf = requestAnimationFrame(tick);
+      }
+
+      function onVisibilityChange() {
+        if (document.hidden) { if (raf) cancelAnimationFrame(raf); raf = 0; lastTime = 0; }
+        else if (!reduceMotion.matches && !raf) { pickDestination(); raf = requestAnimationFrame(tick); }
+      }
+      window.addEventListener('resize', resize, { passive: true });
+      if (window.visualViewport) window.visualViewport.addEventListener('resize', resize, { passive: true });
+      document.addEventListener('visibilitychange', onVisibilityChange);
+      start();
+      return { destroy() { destroyed = true; if (raf) cancelAnimationFrame(raf); window.removeEventListener('resize', resize); if (window.visualViewport) window.visualViewport.removeEventListener('resize', resize); document.removeEventListener('visibilitychange', onVisibilityChange); } };
+    })();
+    window.sukiWalk = legacy;
+    return;
   }
 
-  function tick(timestamp) {
-    if (destroyed || document.hidden || reduceMotion.matches) { raf = 0; return; }
-    const dt = lastTime ? Math.min((timestamp - lastTime) / 1000, 0.04) : 1 / 60;
-    lastTime = timestamp; render(timestamp / 1000, dt); raf = requestAnimationFrame(tick);
+  const THREE = window.THREE;
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.Fog(0x070812, 14, 30);
+
+  const camera = new THREE.PerspectiveCamera(28, 1, 0.1, 100);
+  camera.position.set(0, 0.8, 7.8);
+
+  const root = new THREE.Group();
+  scene.add(root);
+
+  const ambient = new THREE.HemisphereLight(0xa5f3ff, 0x120a2a, 1.2);
+  scene.add(ambient);
+
+  const rim = new THREE.DirectionalLight(0x67e8f9, 1.4);
+  rim.position.set(3, 4, 5);
+  scene.add(rim);
+
+  const pink = new THREE.PointLight(0xff4dcb, 3, 18, 2);
+  pink.position.set(-1.2, 1.4, 2.4);
+  scene.add(pink);
+
+  const cyan = new THREE.PointLight(0x67e8f9, 2.5, 18, 2);
+  cyan.position.set(1.6, 1.6, 2.2);
+  scene.add(cyan);
+
+  const floor = new THREE.Mesh(
+    new THREE.CircleGeometry(4.2, 32),
+    new THREE.MeshStandardMaterial({
+      color: 0x120a22,
+      emissive: 0x120a22,
+      transparent: true,
+      opacity: 0.9,
+      metalness: 0.3,
+      roughness: 0.7,
+    })
+  );
+  floor.rotation.x = -Math.PI / 2;
+  floor.position.y = -2.2;
+  root.add(floor);
+
+  const halo = new THREE.Mesh(
+    new THREE.TorusGeometry(2.6, 0.08, 16, 160),
+    new THREE.MeshStandardMaterial({
+      color: 0x67e8f9,
+      emissive: 0x67e8f9,
+      emissiveIntensity: 1,
+      transparent: true,
+      opacity: 0.7,
+    })
+  );
+  halo.rotation.x = Math.PI / 2;
+  halo.position.y = -1.8;
+  root.add(halo);
+
+  const materialBody = new THREE.MeshStandardMaterial({ color: 0xf5d7ff, emissive: 0x2a123a, emissiveIntensity: 0.5, roughness: 0.7, metalness: 0.1 });
+  const materialHair = new THREE.MeshStandardMaterial({ color: 0x1c1224, emissive: 0x170d20, roughness: 0.9, metalness: 0.12 });
+  const materialAccent = new THREE.MeshStandardMaterial({ color: 0x67e8f9, emissive: 0x67e8f9, emissiveIntensity: 1.5, metalness: 0.2, roughness: 0.4 });
+  const materialPink = new THREE.MeshStandardMaterial({ color: 0xff5dcb, emissive: 0xff5dcb, emissiveIntensity: 1.3, metalness: 0.2, roughness: 0.4 });
+  const materialDark = new THREE.MeshStandardMaterial({ color: 0x1d1230, emissive: 0x130b1d, roughness: 0.8, metalness: 0.15 });
+  const materialSuit = new THREE.MeshStandardMaterial({ color: 0x2c2e59, emissive: 0x0f1333, roughness: 0.75, metalness: 0.28 });
+
+  const sukiGroup = new THREE.Group();
+  root.add(sukiGroup);
+
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.9, 32, 32), materialBody);
+  head.position.y = 1.7;
+  sukiGroup.add(head);
+
+  const hairBack = new THREE.Mesh(new THREE.SphereGeometry(1.05, 32, 24, 0, Math.PI * 2, 0, Math.PI * 0.9), materialHair);
+  hairBack.scale.y = 1.2;
+  hairBack.position.set(0, 1.88, -0.18);
+  hairBack.rotation.z = Math.PI * 0.15;
+  sukiGroup.add(hairBack);
+
+  const bangs = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.6, 0.5), materialHair);
+  bangs.position.set(0, 2.35, 0.55);
+  bangs.rotation.x = 0.3;
+  sukiGroup.add(bangs);
+
+  const leftEar = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.5, 12), materialHair);
+  leftEar.position.set(-0.8, 2.5, 0.03);
+  leftEar.rotation.z = -0.7;
+  sukiGroup.add(leftEar);
+
+  const rightEar = leftEar.clone();
+  rightEar.position.x = 0.8;
+  rightEar.rotation.z = 0.7;
+  sukiGroup.add(rightEar);
+
+  const eyeGeo = new THREE.SphereGeometry(0.12, 16, 16);
+  const leftEye = new THREE.Mesh(eyeGeo, materialAccent);
+  leftEye.position.set(-0.25, 1.8, 0.77);
+  sukiGroup.add(leftEye);
+
+  const rightEye = leftEye.clone();
+  rightEye.position.x = 0.25;
+  sukiGroup.add(rightEye);
+
+  const irisLeft = new THREE.Mesh(new THREE.SphereGeometry(0.05, 12, 12), materialPink);
+  irisLeft.position.set(-0.25, 1.8, 0.87);
+  sukiGroup.add(irisLeft);
+
+  const irisRight = irisLeft.clone();
+  irisRight.position.x = 0.25;
+  sukiGroup.add(irisRight);
+
+  const nose = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.22, 8), materialPink);
+  nose.position.set(0, 1.45, 0.82);
+  nose.rotation.x = Math.PI / 2;
+  sukiGroup.add(nose);
+
+  const mouth = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.02, 8, 24, Math.PI), materialPink);
+  mouth.rotation.z = Math.PI;
+  mouth.position.set(0, 1.15, 0.79);
+  sukiGroup.add(mouth);
+
+  const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.8, 1.5, 8, 16), materialSuit);
+  torso.position.y = -0.25;
+  sukiGroup.add(torso);
+
+  const collar = new THREE.Mesh(new THREE.TorusGeometry(0.48, 0.1, 12, 40), materialAccent);
+  collar.position.set(0, 0.7, 0.1);
+  collar.rotation.x = Math.PI / 2;
+  sukiGroup.add(collar);
+
+  const waist = new THREE.Mesh(new THREE.CylinderGeometry(0.72, 0.8, 0.7, 16), materialDark);
+  waist.position.y = -1.45;
+  sukiGroup.add(waist);
+
+  const skirt = new THREE.Mesh(new THREE.ConeGeometry(1.25, 1.3, 18), materialDark);
+  skirt.position.y = -2.0;
+  skirt.rotation.y = Math.PI / 18;
+  sukiGroup.add(skirt);
+
+  const leftArm = new THREE.Mesh(new THREE.CapsuleGeometry(0.18, 1.1, 6, 12), materialBody);
+  leftArm.position.set(-1.1, 0.2, 0.05);
+  leftArm.rotation.z = -0.7;
+  sukiGroup.add(leftArm);
+
+  const rightArm = leftArm.clone();
+  rightArm.position.x = 1.1;
+  rightArm.rotation.z = 0.7;
+  sukiGroup.add(rightArm);
+
+  const leftHand = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16, 16), materialPink);
+  leftHand.position.set(-1.5, -0.65, 0.1);
+  sukiGroup.add(leftHand);
+
+  const rightHand = leftHand.clone();
+  rightHand.position.x = 1.5;
+  sukiGroup.add(rightHand);
+
+  const leftLeg = new THREE.Mesh(new THREE.CapsuleGeometry(0.24, 1.2, 6, 12), materialBody);
+  leftLeg.position.set(-0.38, -2.8, 0.1);
+  leftLeg.rotation.x = 0.12;
+  sukiGroup.add(leftLeg);
+
+  const rightLeg = leftLeg.clone();
+  rightLeg.position.x = 0.38;
+  sukiGroup.add(rightLeg);
+
+  const leftBoot = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.22, 0.9), materialAccent);
+  leftBoot.position.set(-0.38, -3.75, 0.18);
+  sukiGroup.add(leftBoot);
+
+  const rightBoot = leftBoot.clone();
+  rightBoot.position.x = 0.38;
+  sukiGroup.add(rightBoot);
+
+  const accentRing = new THREE.Mesh(
+    new THREE.TorusGeometry(1.4, 0.04, 10, 100),
+    new THREE.MeshStandardMaterial({ color: 0x67e8f9, emissive: 0x67e8f9, emissiveIntensity: 2, transparent: true, opacity: 0.8 })
+  );
+  accentRing.position.y = 0.2;
+  accentRing.rotation.x = Math.PI / 2;
+  sukiGroup.add(accentRing);
+
+  const particles = new THREE.Group();
+  const particlesMaterial = new THREE.MeshStandardMaterial({ color: 0x67e8f9, emissive: 0x67e8f9, emissiveIntensity: 1.8 });
+  for (let i = 0; i < 26; i += 1) {
+    const p = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 8), particlesMaterial);
+    p.position.set((Math.random() - 0.5) * 5, (Math.random() - 0.5) * 5, (Math.random() - 0.5) * 5);
+    particles.add(p);
+  }
+  root.add(particles);
+
+  const target = { x: 0, y: 0, z: 0 };
+  const state = { x: 0, y: 0 };
+  let animationFrame = 0;
+
+  function resizeRenderer() {
+    const width =canvas.clientWidth || canvas.parentElement?.clientWidth || 220;
+    const height = canvas.clientHeight || canvas.parentElement?.clientHeight || 220;
+    renderer.setSize(width, height, false);
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
   }
 
-  function start() {
-    resize();
-    if (reduceMotion.matches) { render(performance.now() / 1000, 0); return; }
-    pickDestination(); raf = requestAnimationFrame(tick);
-  }
-  function onVisibilityChange() {
-    if (document.hidden) { if (raf) cancelAnimationFrame(raf); raf = 0; lastTime = 0; }
-    else if (!reduceMotion.matches && !raf) { pickDestination(); raf = requestAnimationFrame(tick); }
-  }
-  function onMotionChange() {
-    if (raf) cancelAnimationFrame(raf); raf = 0; lastTime = 0;
-    if (!reduceMotion.matches && !document.hidden) { pickDestination(); raf = requestAnimationFrame(tick); }
-    else render(performance.now() / 1000, 0);
+  function animate() {
+    const time = performance.now() * 0.001;
+    state.x += (target.x - state.x) * 0.06;
+    state.y += (target.y - state.y) * 0.06;
+    sukiGroup.position.x = state.x;
+    sukiGroup.position.y = state.y + Math.sin(time * 2.4) * 0.18;
+    sukiGroup.rotation.y = Math.sin(time * 0.9) * 0.7;
+    sukiGroup.rotation.z = Math.sin(time * 1.5) * 0.12;
+    accentRing.rotation.z = time * 1.2;
+    halo.rotation.z = -time * 0.8;
+
+    particles.rotation.y = time * 0.7;
+    particles.rotation.x = time * 0.9;
+    particles.children.forEach((p, idx) => {
+      const offset = idx * 0.13;
+      p.position.y += Math.sin(time * 2 + offset) * 0.002;
+      p.position.x += Math.cos(time * 2.4 + offset) * 0.0012;
+    });
+
+    pink.intensity = 2.8 + Math.sin(time * 2.6) * 0.8;
+    cyan.intensity = 2.2 + Math.cos(time * 2.2) * 0.7;
+
+    leftEye.scale.y = 1.0 - Math.sin(time * 5) * 0.1;
+    rightEye.scale.y = 1.0 - Math.sin(time * 5 + 0.4) * 0.1;
+    leftEye.material.emissiveIntensity = 1.5 + Math.sin(time * 5) * 0.3;
+    rightEye.material.emissiveIntensity = 1.5 + Math.sin(time * 5 + 0.4) * 0.3;
+
+    renderer.render(scene, camera);
+    animationFrame = requestAnimationFrame(animate);
   }
 
-  window.addEventListener('resize', resize, { passive: true });
-  if (window.visualViewport) window.visualViewport.addEventListener('resize', resize, { passive: true });
-  document.addEventListener('visibilitychange', onVisibilityChange);
-  if (typeof reduceMotion.addEventListener === 'function') reduceMotion.addEventListener('change', onMotionChange);
-  else if (typeof reduceMotion.addListener === 'function') reduceMotion.addListener(onMotionChange);
-  start();
+  const onPointer = (event) => {
+    const rect = canvas.getBoundingClientRect();
+    const px = (event.clientX - rect.left) / rect.width;
+    const py = (event.clientY - rect.top) / rect.height;
+    target.x = (px - 0.5) * 2.4;
+    target.y = (0.5 - py) * 1.4;
+  };
+
+  canvas.addEventListener('pointermove', onPointer);
+  canvas.addEventListener('pointerdown', onPointer);
+  canvas.addEventListener('pointerleave', () => {
+    target.x = 0; target.y = 0;
+  });
+
+  resizeRenderer();
+  window.addEventListener('resize', resizeRenderer, { passive: true });
+  animate();
 
   window.sukiWalk = {
     destroy() {
-      destroyed = true;
-      if (raf) cancelAnimationFrame(raf);
-      window.removeEventListener('resize', resize);
-      if (window.visualViewport) window.visualViewport.removeEventListener('resize', resize);
-      document.removeEventListener('visibilitychange', onVisibilityChange);
-      if (typeof reduceMotion.removeEventListener === 'function') reduceMotion.removeEventListener('change', onMotionChange);
-      else if (typeof reduceMotion.removeListener === 'function') reduceMotion.removeListener(onMotionChange);
-      ctx.clearRect(0, 0, width, height);
-    },
+      if (animationFrame) cancelAnimationFrame(animationFrame);
+      canvas.removeEventListener('pointermove', onPointer);
+      canvas.removeEventListener('pointerdown', onPointer);
+      window.removeEventListener('resize', resizeRenderer);
+    }
   };
 })();
