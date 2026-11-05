@@ -1,336 +1,198 @@
-<!-- Include absolute-relative tags inside your <head> -->
-<link rel="apple-touch-icon" href="/icon-192.svg">
-<link rel="manifest" href="/manifest.json">
-<link rel="stylesheet" href="./style.css">
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#120a2a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="SukiBot companion console">
+  <title>SukiBot — Companion Console</title>
+  <link rel="manifest" href="./manifest.json">
+  <link rel="apple-touch-icon" href="./icon-512.svg">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <canvas id="matrix-canvas" aria-hidden="true"></canvas>
+  <main class="app-shell">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">S</span><span>SUKI<span class="brand-accent">BOT</span></span></div>
+      <span class="online"><i></i> READY</span>
+      <button id="open-settings" class="icon-button" type="button" aria-label="Open settings">⚙</button>
+    </header>
 
-<!-- Web App Meta Tags for iOS / Standalone PWA Execution -->
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <section class="intro">
+      <p class="eyebrow">PERSONAL COMPANION // v2.6</p>
+      <h1>Hey there, <span>Senpai.</span></h1>
+      <p class="subheading">Your neon companion is ready.</p>
+    </section>
 
-<!-- Image Tag placed in your HTML <body> -->
-<img src="./sukibot.png" alt="SukiBot" id="suki-img">
+    <section class="panel companion" aria-label="SukiBot status">
+      <div class="avatar" id="suki-avatar" role="img" aria-label="Fox companion">🦊</div>
+      <div><p class="eyebrow">SUKI / <span id="mode-display">CORE</span></p><h2 id="greeting">Systems online!</h2><p class="muted">A friendly little console for your day.</p></div>
+    </section>
 
-<!-- Load Audio Engine -->
-<script src="./suki-audio.js"></script>
+    <section class="panel transmission" aria-labelledby="transmission-title">
+      <div class="section-heading"><h2 id="transmission-title">TRANSMISSION</h2><span id="synapse-clock">--:-- UTC</span></div>
+      <p id="speech-box" class="message" aria-live="polite">Nya! Suki is online and ready to help.</p>
+      <div class="actions">
+        <button id="btn-transmit" class="button primary" type="button">↻ &nbsp;Transmit</button>
+        <button id="btn-voice" class="button secondary" type="button">♫ &nbsp;Speak</button>
+      </div>
+    </section>
 
-<!-- Main Application & UI Script (Optimized for Mobile Safari) -->
-<script>
-  // Global reference to keep speech synthesis instances from getting garbage-collected in WebKit
-  window._lastUtterance = null;
+    <section class="panel modes" aria-labelledby="modes-title">
+      <div class="section-heading"><h2 id="modes-title">QUICK MODES</h2><span class="hint">Tap to switch</span></div>
+      <div class="mode-grid">
+        <button class="mode-button" type="button" data-mode="ASR" aria-pressed="false"><span>◉</span>ASR</button>
+        <button class="mode-button" type="button" data-mode="ORB" aria-pressed="false"><span>◌</span>Orb</button>
+        <button class="mode-button" type="button" data-mode="CORE" aria-pressed="true"><span>✧</span>Core</button>
+        <button class="mode-button" type="button" data-mode="TACTICS" aria-pressed="false"><span>⌁</span>Tactics</button>
+      </div>
+    </section>
 
-  // Safe Audio Wrapper Helper with iOS Touch-Unlock Hook
-  function playSafeBeep() {
-    try {
-      if (typeof sound !== 'undefined' && sound) {
-        if (typeof sound.playBeep === 'function') {
-          sound.playBeep();
-        }
-        if (sound.ctx && sound.ctx.state === 'suspended') {
-          sound.ctx.resume().catch(() => {});
-        }
-      }
-    } catch (e) {
-      console.warn('Audio context suppressed or uninitialized:', e);
-    }
-  }
+    <footer class="app-footer"><span><i></i> All systems local</span><span id="energy-display">100% energy</span></footer>
+  </main>
 
-  // Global Audio Unlock Listener (Fires on initial interaction)
-  const unlockAudio = () => {
-    try {
-      if (typeof sound !== 'undefined' && sound && sound.ctx) {
-        if (sound.ctx.state === 'suspended') {
-          sound.ctx.resume().then(() => {
-            console.log('iOS Audio Context unlocked successfully.');
-          });
-        }
-      }
-      // Warm up SpeechSynthesis engine for iOS Safari
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.resume();
-      }
-    } catch (e) {}
-  };
+  <dialog id="settings-dialog" class="settings-dialog" aria-labelledby="settings-title">
+    <form method="dialog" class="settings-form">
+      <div class="section-heading"><h2 id="settings-title">SETTINGS</h2><button class="icon-button close-button" value="close" aria-label="Close settings">×</button></div>
+      <label class="setting-label" for="voice-pitch">Voice pitch <output id="pitch-value">1.0</output></label>
+      <input id="voice-pitch" type="range" min="0.5" max="2" step="0.1" value="1">
+      <label class="setting-label" for="voice-rate">Speaking speed <output id="rate-value">1.0</output></label>
+      <input id="voice-rate" type="range" min="0.5" max="1.8" step="0.1" value="1">
+      <label class="toggle-row" for="matrix-toggle"><span>Matrix background</span><input id="matrix-toggle" type="checkbox"></label>
+      <button class="button primary done-button" value="done">Done</button>
+    </form>
+  </dialog>
 
-  ['touchstart', 'touchend', 'pointerdown', 'click'].forEach(eventType => {
-    window.addEventListener(eventType, unlockAudio, { once: true, passive: true });
-  });
-
-  // Dialogue Matrix
-  const dialogues = [
-    "suki NEON VIOLET // Nya! Systems online, Senpai! Gemini initialized for direct kitsune-tactical uplink.",
-    "TACTICAL ADVICE // Scanners detect optimal network throughput. Neural latency is holding steady at 12ms.",
-    "ENCRYPTION ALERT // Quantum mesh firewall updated. Unauthorized intrusion attempts automatically redirected to void.",
-    "KITTY MATRIX // Energy core fully charged. Ready to assist with code synthesis, analysis, or strategic operations!"
-  ];
-  let diagIdx = 0;
-
-  function cycleDialogue() {
-    playSafeBeep();
-    diagIdx = (diagIdx + 1) % dialogues.length;
-    const speechBox = document.getElementById('speech-box');
-    if (speechBox) speechBox.textContent = dialogues[diagIdx];
-  }
-
-  function triggerGlitch() {
-    playSafeBeep();
-    const avatar = document.getElementById('suki-avatar');
-    if (avatar) {
-      avatar.classList.add('glitch-active');
-      setTimeout(() => avatar.classList.remove('glitch-active'), 500);
-    }
-  }
-
-  function setMode(modeName) {
-    playSafeBeep();
-    const modeDisplay = document.getElementById('mode-display');
-    if (modeDisplay) modeDisplay.textContent = `${modeName}-Tactical v2.6`;
-    try {
-      localStorage.setItem('suki_mode', modeName);
-    } catch(e) {}
-    document.querySelectorAll('.control-btn').forEach(btn => {
-      if (btn.dataset.mode) {
-        if (btn.dataset.mode.toLowerCase() === modeName.toLowerCase()) {
-          btn.classList.add('active');
-        } else {
-          btn.classList.remove('active');
-        }
-      }
-    });
-  }
-
-  function speakSpeech() {
-    playSafeBeep();
-    if ('speechSynthesis' in window) {
-      try {
-        window.speechSynthesis.cancel();
-        const speechBox = document.getElementById('speech-box');
-        const pitchInput = document.getElementById('voice-pitch');
-        const rateInput = document.getElementById('voice-rate');
-        if (speechBox && speechBox.textContent) {
-          const utterance = new SpeechSynthesisUtterance(speechBox.textContent);
-          if (pitchInput) utterance.pitch = parseFloat(pitchInput.value) || 1.0;
-          if (rateInput) utterance.rate = parseFloat(rateInput.value) || 1.0;
-          // Workaround for iOS Safari silence bug on long strings or repeated invocations
-          window._lastUtterance = utterance;
-          window.speechSynthesis.speak(utterance);
-        }
-      } catch(e) {
-        console.warn('Speech synthesis error:', e);
-      }
-    }
-  }
-
-  function updateAvatarSource(url, save = true) {
-    if (!url) return;
-    const img = document.getElementById('suki-img');
-    if (img) img.src = url;
-    if (save) {
-      try { localStorage.setItem('suki_avatar', url); } catch(e) {}
-      triggerGlitch();
-    }
-  }
-
-  function applyTheme(themeName) {
-    document.body.className = '';
-    if (themeName && themeName !== 'default') {
-      document.body.classList.add(`theme-${themeName}`);
-    }
-    document.querySelectorAll('.theme-btn').forEach(b => {
-      if (b.dataset.theme === themeName) b.classList.add('active');
-      else b.classList.remove('active');
-    });
-    try { localStorage.setItem('suki_theme', themeName); } catch(e) {}
-  }
-
-  // Load saved settings safely
-  function loadSavedSettings() {
-    try {
-      const savedAvatar = localStorage.getItem('suki_avatar');
-      if (savedAvatar) updateAvatarSource(savedAvatar, false);
-      const savedTheme = localStorage.getItem('suki_theme');
-      if (savedTheme) applyTheme(savedTheme);
-      const savedPitch = localStorage.getItem('suki_pitch');
-      if (savedPitch) {
-        const pitchEl = document.getElementById('voice-pitch');
-        const pitchVal = document.getElementById('pitch-val');
-        if (pitchEl) pitchEl.value = savedPitch;
-        if (pitchVal) pitchVal.innerText = savedPitch;
-      }
-      const savedRate = localStorage.getItem('suki_rate');
-      if (savedRate) {
-        const rateEl = document.getElementById('voice-rate');
-        const rateVal = document.getElementById('rate-val');
-        if (rateEl) rateEl.value = savedRate;
-        if (rateVal) rateVal.innerText = savedRate;
-      }
-      const savedMode = localStorage.getItem('suki_mode');
-      if (savedMode) {
-        setMode(savedMode);
-      } else {
-        const savedPersona = localStorage.getItem('suki_persona');
-        if (savedPersona) {
-          const personaSelect = document.getElementById('persona-select');
-          const modeDisplay = document.getElementById('mode-display');
-          if (personaSelect) personaSelect.value = savedPersona;
-          if (modeDisplay) modeDisplay.textContent = savedPersona;
-        }
-      }
-      const savedMatrix = localStorage.getItem('suki_matrix');
-      if (savedMatrix) {
-        const matrixToggle = document.getElementById('matrix-toggle');
-        const matrixCanvas = document.getElementById('matrix-canvas');
-        if (matrixToggle) matrixToggle.value = savedMatrix;
-        if (matrixCanvas) matrixCanvas.style.opacity = savedMatrix === 'on' ? '0.25' : '0';
-      }
-    } catch (e) {
-      console.warn('LocalStorage access restricted:', e);
-    }
-  }
-
-  // DOM Event Listeners & Initializations
-  document.addEventListener('DOMContentLoaded', () => {
-    try {
-      loadSavedSettings();
-      const bindClick = (id, handler) => {
-        const el = document.getElementById(id);
-        if (el) el.addEventListener('click', handler);
+  <script src="./suki-audio.js"></script>
+  <script>
+    (() => {
+      'use strict';
+      const $ = (id) => document.getElementById(id);
+      const messages = [
+        'Nya! Suki is online and ready to help.',
+        'Tactical update: your next great idea is one small step away.',
+        'Kitty matrix online. Remember to take a stretch break too.',
+        'Energy core glowing! What would you like to build today?'
+      ];
+      let messageIndex = 0;
+      let matrixFrame = 0;
+      let matrixDrops = [];
+      const canvas = $('matrix-canvas');
+      const ctx = canvas.getContext('2d');
+      const dialog = $('settings-dialog');
+      const store = {
+        get(key) { try { return localStorage.getItem(key); } catch (_) { return null; } },
+        set(key, value) { try { localStorage.setItem(key, value); } catch (_) {} }
       };
-      // Modal Triggers
-      bindClick('btn-open-settings', () => {
-        playSafeBeep();
-        document.getElementById('settings-modal')?.classList.add('active');
-      });
-      bindClick('btn-close-settings', () => {
-        playSafeBeep();
-        document.getElementById('settings-modal')?.classList.remove('active');
-      });
-      // Settings Inputs
-      document.getElementById('avatar-preset-select')?.addEventListener('change', (e) => {
-        updateAvatarSource(e.target.value);
-        const customUrl = document.getElementById('custom-avatar-url');
-        if (customUrl) customUrl.value = '';
-      });
-      document.getElementById('custom-avatar-url')?.addEventListener('input', (e) => {
-        const val = e.target.value.trim();
-        if (val.length > 5) updateAvatarSource(val);
-      });
-      document.getElementById('local-avatar-file')?.addEventListener('change', (e) => {
-        const file = e.target.files?.[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = (event) => updateAvatarSource(event.target.result);
-          reader.readAsDataURL(file);
-        }
-      });
-      document.getElementById('persona-select')?.addEventListener('change', (e) => {
-        const val = e.target.value;
-        const modeDisplay = document.getElementById('mode-display');
-        if (modeDisplay) modeDisplay.textContent = val;
-        try { localStorage.setItem('suki_persona', val); } catch(err){}
-      });
-      document.getElementById('voice-pitch')?.addEventListener('input', (e) => {
-        const val = e.target.value;
-        const pitchVal = document.getElementById('pitch-val');
-        if (pitchVal) pitchVal.innerText = val;
-        try { localStorage.setItem('suki_pitch', val); } catch(err){}
-      });
-      document.getElementById('voice-rate')?.addEventListener('input', (e) => {
-        const val = e.target.value;
-        const rateVal = document.getElementById('rate-val');
-        if (rateVal) rateVal.innerText = val;
-        try { localStorage.setItem('suki_rate', val); } catch(err){}
-      });
-      document.querySelectorAll('.theme-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          playSafeBeep();
-          applyTheme(e.target.dataset.theme);
+      function beep() {
+        try { if (window.sound) window.sound.playBeep(); } catch (_) {}
+      }
+      function setMode(mode) {
+        mode = String(mode || 'CORE').toUpperCase();
+        $('mode-display').textContent = mode;
+        document.querySelectorAll('.mode-button').forEach((button) => {
+          const active = button.dataset.mode === mode;
+          button.classList.toggle('active', active);
+          button.setAttribute('aria-pressed', String(active));
         });
+        store.set('suki_mode', mode);
+        beep();
+      }
+      function updateClock() {
+        const now = new Date();
+        $('synapse-clock').textContent = `${String(now.getUTCHours()).padStart(2, '0')}:${String(now.getUTCMinutes()).padStart(2, '0')} UTC`;
+      }
+      $('btn-transmit').addEventListener('click', () => {
+        messageIndex = (messageIndex + 1) % messages.length;
+        $('speech-box').textContent = messages[messageIndex];
+        $('greeting').textContent = 'Transmission received!';
+        beep();
       });
-      document.getElementById('matrix-toggle')?.addEventListener('change', (e) => {
-        const val = e.target.value;
-        const canvasEl = document.getElementById('matrix-canvas');
-        if (canvasEl) canvasEl.style.opacity = val === 'on' ? '0.25' : '0';
-        try { localStorage.setItem('suki_matrix', val); } catch(err){}
+      $('btn-voice').addEventListener('click', () => {
+        if (!('speechSynthesis' in window) || !('SpeechSynthesisUtterance' in window)) {
+          $('greeting').textContent = 'Speech is not available in this browser.';
+          return;
+        }
+        try {
+          window.speechSynthesis.cancel();
+          const utterance = new SpeechSynthesisUtterance($('speech-box').textContent.trim());
+          utterance.pitch = Number($('voice-pitch').value) || 1;
+          utterance.rate = Number($('voice-rate').value) || 1;
+          utterance.onstart = () => { $('greeting').textContent = 'Speaking…'; };
+          utterance.onend = () => { $('greeting').textContent = 'Systems online!'; };
+          utterance.onerror = () => { $('greeting').textContent = 'Tap Speak to try again.'; };
+          window.speechSynthesis.speak(utterance);
+          beep();
+        } catch (_) { $('greeting').textContent = 'Tap Speak to try again.'; }
       });
-      bindClick('btn-save-settings', () => {
-        playSafeBeep();
-        document.getElementById('settings-modal')?.classList.remove('active');
-        speakSpeech();
+      document.querySelectorAll('.mode-button').forEach((button) => button.addEventListener('click', () => setMode(button.dataset.mode)));
+      $('open-settings').addEventListener('click', () => {
+        beep();
+        if (typeof dialog.showModal === 'function') dialog.showModal();
+        else dialog.setAttribute('open', '');
       });
-      // Control Action Bindings
-      bindClick('btn-asr', () => setMode('ASR'));
-      bindClick('btn-orb', () => setMode('Orb'));
-      bindClick('btn-core', () => setMode('Core'));
-      bindClick('btn-tactics', () => setMode('Tactics'));
-      bindClick('btn-matrix', triggerGlitch);
-      bindClick('btn-voice', speakSpeech);
-      bindClick('btn-transmit', cycleDialogue);
-      bindClick('energy-orb', () => {
-        playSafeBeep();
-        triggerGlitch();
-        const energyDisplay = document.getElementById('energy-display');
-        if (energyDisplay) energyDisplay.textContent = '[100% OVERDRIVE]';
+      document.querySelector('.close-button').addEventListener('click', () => {
+        if (typeof dialog.close === 'function') dialog.close(); else dialog.removeAttribute('open');
       });
-      // Canvas Matrix Engine (Viewport Sizing Fixes for Mobile Safari)
-      const canvas = document.getElementById('matrix-canvas');
-      if (canvas) {
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          let drops = [];
-          const chars = '0123456789ABCDEFSUKIBOT';
-          const fontSize = 12;
-          function resizeMatrixCanvas() {
-            const dpr = window.devicePixelRatio || 1;
-            const width = window.innerWidth;
-            const height = window.innerHeight;
-            canvas.width = width * dpr;
-            canvas.height = height * dpr;
-            canvas.style.width = width + 'px';
-            canvas.style.height = height + 'px';
-            ctx.scale(dpr, dpr);
-            const cols = Math.floor(width / fontSize);
-            drops = Array(cols).fill(1);
-          }
-          window.addEventListener('resize', resizeMatrixCanvas);
-          resizeMatrixCanvas();
-          let lastFrameTime = 0;
-          const fpsInterval = 33;
-          function drawMatrix(timestamp) {
-            requestAnimationFrame(drawMatrix);
-            const elapsed = timestamp - lastFrameTime;
-            if (elapsed < fpsInterval) return;
-            lastFrameTime = timestamp - (elapsed % fpsInterval);
-            ctx.fillStyle = 'rgba(3, 1, 8, 0.15)';
-            ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
-            ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--neon-purple').trim() || '#c038ff';
-            ctx.font = `${fontSize}px monospace`;
-            for (let i = 0; i < drops.length; i++) {
-              const text = chars.charAt(Math.floor(Math.random() * chars.length));
-              ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-              if (drops[i] * fontSize > window.innerHeight && Math.random() > 0.975) drops[i] = 0;
-              drops[i]++;
-            }
-          }
-          requestAnimationFrame(drawMatrix);
+      for (const [id, outputId, key] of [['voice-pitch', 'pitch-value', 'suki_pitch'], ['voice-rate', 'rate-value', 'suki_rate']]) {
+        const input = $(id);
+        const saved = store.get(key);
+        if (saved && Number.isFinite(Number(saved))) input.value = saved;
+        $(outputId).value = Number(input.value).toFixed(1);
+        input.addEventListener('input', () => {
+          $(outputId).value = Number(input.value).toFixed(1);
+          store.set(key, input.value);
+        });
+      }
+      const matrixToggle = $('matrix-toggle');
+      matrixToggle.checked = store.get('suki_matrix') === 'on';
+      function resizeMatrix() {
+        const ratio = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.round(window.innerWidth * ratio);
+        canvas.height = Math.round(window.innerHeight * ratio);
+        canvas.style.width = `${window.innerWidth}px`;
+        canvas.style.height = `${window.innerHeight}px`;
+        ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+        matrixDrops = Array(Math.ceil(window.innerWidth / 18)).fill(0);
+      }
+      function stopMatrix() {
+        if (matrixFrame) cancelAnimationFrame(matrixFrame);
+        matrixFrame = 0;
+      }
+      function drawMatrix() {
+        if (!matrixToggle.checked || document.hidden || !ctx) { matrixFrame = 0; return; }
+        ctx.fillStyle = 'rgba(10, 5, 20, .14)';
+        ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+        ctx.fillStyle = '#c084fc';
+        ctx.font = '12px monospace';
+        const chars = '0123456789SUKIBOT';
+        matrixDrops.forEach((drop, index) => {
+          ctx.fillText(chars[Math.floor(Math.random() * chars.length)], index * 18, drop * 18);
+          matrixDrops[index] = drop * 18 > window.innerHeight && Math.random() > .97 ? 0 : drop + 1;
+        });
+        matrixFrame = window.setTimeout(() => { matrixFrame = requestAnimationFrame(drawMatrix); }, 70);
+      }
+      function applyMatrix() {
+        stopMatrix();
+        canvas.classList.toggle('visible', matrixToggle.checked);
+        store.set('suki_matrix', matrixToggle.checked ? 'on' : 'off');
+        if (matrixToggle.checked && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          resizeMatrix();
+          matrixFrame = requestAnimationFrame(drawMatrix);
         }
       }
-    } catch (err) {
-      console.error('Critical initialization error caught:', err);
-    }
-  });
-
-  // Realtime UTC Clock Display
-  function updateClock() {
-    try {
-      const now = new Date();
-      const hours = String(now.getUTCHours()).padStart(2, '0');
-      const minutes = String(now.getUTCMinutes()).padStart(2, '0');
-      const seconds = String(now.getUTCSeconds()).padStart(2, '0');
-      const clockEl = document.getElementById('synapse-clock');
-      if (clockEl) clockEl.textContent = `${hours}:${minutes}:${seconds} UTC`;
-    } catch(e) {}
-  }
-  setInterval(updateClock, 1000);
-  updateClock();
-</script>
+      matrixToggle.addEventListener('change', applyMatrix);
+      document.addEventListener('visibilitychange', () => { if (document.hidden) stopMatrix(); else applyMatrix(); });
+      window.addEventListener('resize', () => { if (matrixToggle.checked) { stopMatrix(); resizeMatrix(); matrixFrame = requestAnimationFrame(drawMatrix); } }, { passive: true });
+      const savedMode = store.get('suki_mode');
+      setMode(['ASR', 'ORB', 'CORE', 'TACTICS'].includes(savedMode) ? savedMode : 'CORE');
+      applyMatrix();
+      updateClock();
+      window.setInterval(updateClock, 15000);
+    })();
+  </script>
+</body>
+</html>
