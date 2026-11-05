@@ -1,71 +1,92 @@
-(function () {
+(() => {
+  'use strict';
+
+  if (typeof window === 'undefined') return;
+
   class CyberAudio {
     constructor() {
       this.ctx = null;
-      this.unlocked = false;
+      this.resumePromise = null;
     }
 
-    async unlock() {
-      if (typeof window === 'undefined') return;
+    getContext() {
       const AudioContext = window.AudioContext || window.webkitAudioContext;
-      if (!AudioContext) return;
+      if (!AudioContext) return null;
 
-      if (!this.ctx) this.ctx = new AudioContext();
-
-      if (this.ctx.state === 'suspended') {
-        try {
-          await this.ctx.resume();
-          this.unlocked = true;
-        } catch (_) {
-          this.unlocked = false;
+      try {
+        if (!this.ctx || this.ctx.state === 'closed') {
+          this.ctx = new AudioContext();
         }
-      } else if (this.ctx.state === 'running') {
-        this.unlocked = true;
+        return this.ctx;
+      } catch (_) {
+        // Audio may be unavailable or blocked by the browser or device.
+        return null;
       }
     }
 
+    async unlock() {
+      const context = this.getContext();
+      if (!context) return false;
+      if (context.state === 'running') return true;
+      if (context.state === 'closed') return false;
+      if (this.resumePromise) return this.resumePromise;
+
+      this.resumePromise = (async () => {
+        try {
+          await context.resume();
+          return context.state === 'running';
+        } catch (_) {
+          return false;
+        } finally {
+          this.resumePromise = null;
+        }
+      })();
+
+      return this.resumePromise;
+    }
+
     async playBeep() {
-      if (typeof window === 'undefined') return;
+      const isUnlocked = await this.unlock();
+      const context = this.ctx;
+      if (!isUnlocked || !context || context.state !== 'running') return;
+
+      let oscillator;
+      let gain;
 
       try {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContext) return;
+        const now = context.currentTime;
+        const duration = 0.09;
+        oscillator = context.createOscillator();
+        gain = context.createGain();
 
-        if (!this.ctx) this.ctx = new AudioContext();
-        if (this.ctx.state === 'suspended') await this.ctx.resume();
-        if (this.ctx.state !== 'running') return;
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(1400, now);
+        oscillator.frequency.exponentialRampToValueAtTime(400, now + duration);
 
-        const now = this.ctx.currentTime;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
+        // Use a short attack and exponential release to avoid clicks.
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(0.055, now + 0.008);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
 
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(1400, now);
-        osc.frequency.exponentialRampToValueAtTime(400, now + 0.08);
-
-        gain.gain.setValueAtTime(0.12, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
-
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-
-        osc.onended = () => {
-          osc.disconnect();
+        oscillator.connect(gain);
+        gain.connect(context.destination);
+        oscillator.onended = () => {
+          oscillator.disconnect();
           gain.disconnect();
         };
 
-        osc.start(now);
-        osc.stop(now + 0.08);
+        oscillator.start(now);
+        oscillator.stop(now + duration);
       } catch (_) {
-        // Audio fails silently on iPhone when blocked by browser policy.
+        // Fail silently when audio playback is unsupported or interrupted.
+        try { oscillator?.disconnect(); } catch (_) {}
+        try { gain?.disconnect(); } catch (_) {}
       }
     }
   }
 
   window.sound = new CyberAudio();
   window.addEventListener('pointerdown', () => {
-    if (window.sound && typeof window.sound.unlock === 'function') {
-      window.sound.unlock();
-    }
+    window.sound.unlock();
   }, { passive: true, once: true });
 })();
