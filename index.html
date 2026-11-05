@@ -37,35 +37,7 @@
     </section>
 
     <section class="panel companion" aria-label="SukiBot status">
-      <div class="avatar" id="suki-avatar" role="img" aria-label="Cute anime girl companion">
-        <svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <defs>
-            <linearGradient id="hair-grad" x1="0" x2="1" y1="0" y2="1">
-              <stop offset="0%" stop-color="#f7c3ff"/>
-              <stop offset="34%" stop-color="#d08cff"/>
-              <stop offset="68%" stop-color="#7c3aed"/>
-              <stop offset="100%" stop-color="#120b1b"/>
-            </linearGradient>
-            <linearGradient id="dress-grad" x1="0" x2="1" y1="0" y2="1">
-              <stop offset="0%" stop-color="#7ee7ff"/>
-              <stop offset="100%" stop-color="#5b7cff"/>
-            </linearGradient>
-          </defs>
-          <path d="M36 40c0-18 13-31 31-31 19 0 31 13 31 31v11c0 17-5 29-14 38l-6 6-10 8-10-8-6-6c-9-9-14-21-14-38V40Z" fill="url(#hair-grad)"/>
-          <path d="M52 39 42 2l18 14 9 22-10 6-9-11Zm36 0 10-37-18 14-9 22 10 6 9-11Z" fill="#1a1023" opacity=".88"/>
-          <path d="M46 42c0-13 10-22 22-22 12 0 23 9 23 22v10c0 13-10 23-23 23-12 0-22-10-22-23V42Z" fill="#fef3ff"/>
-          <circle cx="58" cy="52" r="3" fill="#1b1024"/>
-          <circle cx="81" cy="52" r="3" fill="#1b1024"/>
-          <path d="M62 65c4 5 12 5 16 0" fill="none" stroke="#1b1024" stroke-width="3" stroke-linecap="round"/>
-          <path d="M57 82c7 7 19 7 26 0" fill="none" stroke="#f5b0db" stroke-width="3" stroke-linecap="round"/>
-          <path d="M42 86c11-6 20-8 30-8s19 2 30 8v31H42V86Z" fill="url(#dress-grad)"/>
-          <path d="M60 86c2 8 7 18 18 18 10 0 15-10 18-18" fill="none" stroke="#d7faff" stroke-width="3" stroke-linecap="round" opacity=".9"/>
-          <path d="M74 98 68 129M66 98l-6 31" stroke="#a9f0ff" stroke-width="3" stroke-linecap="round" opacity=".8"/>
-          <circle cx="28" cy="36" r="4" fill="#d9a3ff" opacity=".8"/>
-          <circle cx="112" cy="34" r="5" fill="#7ee7ff" opacity=".75"/>
-          <circle cx="117" cy="88" r="3" fill="#f9a8d4" opacity=".8"/>
-        </svg>
-      </div>
+      <canvas id="suki-avatar-canvas" class="avatar" role="img" aria-label="Suki, your animated companion. Tap or move over her to guide her; use the arrow keys when focused." tabindex="0"></canvas>
       <div><p class="eyebrow">SUKI / <span id="mode-display">CORE</span></p><h2 id="greeting">Systems online!</h2><p class="muted">A friendly little console for your day.</p></div>
     </section>
 
@@ -104,6 +76,8 @@
   </dialog>
 
   <script src="./suki-audio.js"></script>
+  <script src="./suki-renderer.js"></script>
+  <script src="./suki-walk.js"></script>
   <script>
     (() => {
       'use strict';
