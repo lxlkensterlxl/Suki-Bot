@@ -1,6 +1,6 @@
 {
-  "name": "Suki Bot",
-  "short_name": "SukiBot",
+  "name": "suki bot",
+  "short_name": "sukibot",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
