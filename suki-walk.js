@@ -8,11 +8,23 @@
   const motionQuery = window.matchMedia?.('(prefers-reduced-motion: reduce)');
   let stopRenderer = () => {};
 
-  // Keep the avatar canvas sized independently of external CSS so its renderer
-  // never mistakes the browser's default 300x150 canvas size for the HUD size.
   canvas.style.width ||= '96px';
   canvas.style.height ||= '96px';
   canvas.style.display = 'block';
+
+  // Use for the 2D fallback. Three.js manages its own drawing buffer through
+  // renderer.setPixelRatio() and renderer.setSize().
+  function resizeCanvasToDisplaySize(targetCanvas) {
+    const dpr = window.devicePixelRatio || 1;
+    const displayWidth = Math.floor(targetCanvas.clientWidth * dpr);
+    const displayHeight = Math.floor(targetCanvas.clientHeight * dpr);
+    if (targetCanvas.width !== displayWidth || targetCanvas.height !== displayHeight) {
+      targetCanvas.width = displayWidth;
+      targetCanvas.height = displayHeight;
+      return true;
+    }
+    return false;
+  }
 
   function loadThree() {
     if (window.THREE) return Promise.resolve(window.THREE);
@@ -35,8 +47,8 @@
   }
 
   function startFallback(previousCanvas) {
-    // WebGL and 2D contexts cannot share a canvas. Replace it if WebGL creation
-    // was attempted and failed before requesting the 2D context.
+    // Canvas contexts cannot be switched from WebGL to 2D; use a fresh element
+    // if WebGL initialization was attempted and failed.
     const targetCanvas = freshCanvas(previousCanvas);
     const context = targetCanvas.getContext('2d');
     if (!context) return;
@@ -56,10 +68,8 @@
       context.fillRect(0, 0, width, height);
 
       const unit = Math.min(width, height) / 4.2;
-      const x = width / 2 + Math.sin(phase) * width * 0.08;
-      const y = height / 2 + Math.sin(phase * 2) * 1.5;
       context.save();
-      context.translate(x, y);
+      context.translate(width / 2 + Math.sin(phase) * width * 0.08, height / 2 + Math.sin(phase * 2) * 1.5);
       context.shadowColor = '#bd00ff';
       context.shadowBlur = 8;
       context.fillStyle = '#f4d7ff';
@@ -94,12 +104,12 @@
 
     function resize() {
       const rect = targetCanvas.getBoundingClientRect();
-      width = Math.max(1, rect.width || 96);
-      height = Math.max(1, rect.height || 96);
-      const ratio = Math.min(window.devicePixelRatio || 1, 2);
-      targetCanvas.width = Math.round(width * ratio);
-      targetCanvas.height = Math.round(height * ratio);
-      context.setTransform(ratio, 0, 0, ratio, 0, 0);
+      width = Math.max(1, rect.width || targetCanvas.clientWidth || 96);
+      height = Math.max(1, rect.height || targetCanvas.clientHeight || 96);
+      resizeCanvasToDisplaySize(targetCanvas);
+      // Reset the 2D transform after resizing the backing store. Use the actual
+      // rounded backing-to-CSS ratio to avoid fractional DPR scaling drift.
+      context.setTransform(targetCanvas.width / width, 0, 0, targetCanvas.height / height, 0, 0);
       draw();
     }
 
@@ -138,12 +148,7 @@
   }
 
   function startThree(targetCanvas, THREE) {
-    let renderer;
-    try {
-      renderer = new THREE.WebGLRenderer({ canvas: targetCanvas, alpha: true, antialias: true, powerPreference: 'low-power' });
-    } catch (error) {
-      throw new Error(`WebGL renderer could not be created: ${error.message}`);
-    }
+    const renderer = new THREE.WebGLRenderer({ canvas: targetCanvas, alpha: true, antialias: true, powerPreference: 'low-power' });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setClearColor(0x000000, 0);
 
@@ -175,7 +180,6 @@
       return mesh;
     }
 
-    // Compact chibi bust, framed to fit the 96px HUD avatar.
     add(new THREE.SphereGeometry(0.7, 24, 20), skin, 0, 0.28, 0, 1, 1.08, 0.8);
     add(new THREE.SphereGeometry(0.74, 24, 16, 0, Math.PI * 2, 0, Math.PI * 0.55), hair, 0, 0.52, -0.02, 1.05, 1.1, 0.95);
     add(new THREE.ConeGeometry(0.18, 0.55, 12), hair, -0.53, 0.96, 0).rotation.z = 0.2;
@@ -207,8 +211,8 @@
 
     function resize() {
       const rect = targetCanvas.getBoundingClientRect();
-      const width = Math.max(1, rect.width || 96);
-      const height = Math.max(1, rect.height || 96);
+      const width = Math.max(1, rect.width || targetCanvas.clientWidth || 96);
+      const height = Math.max(1, rect.height || targetCanvas.clientHeight || 96);
       renderer.setSize(width, height, false);
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
@@ -269,7 +273,13 @@
 
   loadThree()
     .then((THREE) => {
-      if (canvas.isConnected) startThree(canvas, THREE);
+      if (!canvas.isConnected) return;
+      try {
+        startThree(canvas, THREE);
+      } catch (error) {
+        console.warn('[SukiBot] Could not initialize 3D avatar; using 2D fallback.', error);
+        startFallback(canvas);
+      }
     })
     .catch((error) => {
       console.warn('[SukiBot] 3D avatar unavailable; drawing 2D fallback.', error);
