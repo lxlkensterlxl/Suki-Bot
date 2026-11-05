@@ -16,7 +16,6 @@
   let dpr = 1;
   let raf = 0;
   let lastTime = 0;
-  let lastBlink = 0;
   let destroyed = false;
 
   const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
@@ -102,15 +101,37 @@
     }
   }
 
+  // A soft, shader-like cyan/violet aura pulses around Suki without changing the page background.
+  function drawAura(time) {
+    const pulse = reduceMotion.matches ? 0.35 : (Math.sin(time * 2.4) + 1) * 0.5;
+    const radius = 40 + pulse * 10;
+    const aura = ctx.createRadialGradient(suki.x, suki.y, 5, suki.x, suki.y, radius);
+    aura.addColorStop(0, `rgba(103, 232, 249, ${0.08 + pulse * 0.06})`);
+    aura.addColorStop(0.55, `rgba(192, 132, 252, ${0.07 + pulse * 0.05})`);
+    aura.addColorStop(1, 'rgba(192, 132, 252, 0)');
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.fillStyle = aura;
+    ctx.beginPath();
+    ctx.ellipse(suki.x, suki.y + 3, radius * 0.78, radius, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
   function drawSuki(time, walking) {
     const stride = walking ? Math.sin(suki.step) : 0;
     const bounce = walking ? Math.abs(Math.sin(suki.step)) * 4 : Math.sin(time * 1.7) * 1.5;
+    const pulse = reduceMotion.matches ? 0.35 : (Math.sin(time * 2.4) + 1) * 0.5;
     const x = suki.x;
     const y = suki.y + bounce;
 
     ctx.save();
     ctx.translate(x, y);
     ctx.scale(suki.facing, 1);
+    // Subtle colored light on the character gives the pulse a little depth.
+    ctx.shadowColor = pulse > 0.5 ? '#67e8f9' : '#c084fc';
+    ctx.shadowBlur = 7 + pulse * 7;
 
     // Ground shadow and soft character glow.
     ctx.save();
@@ -205,6 +226,7 @@
       suki.blink = (suki.blink + dt) % 7;
     }
     const walking = Math.hypot(suki.targetX - suki.x, suki.targetY - suki.y) > 1.5;
+    drawAura(time);
     drawSuki(time, walking);
   }
 
