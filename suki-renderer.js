@@ -1,4 +1,4 @@
-class SukiRenderer {
+class sukiRenderer {
   constructor(canvas, options = {}) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
