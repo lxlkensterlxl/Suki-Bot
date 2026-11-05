@@ -1,0 +1,13 @@
+{
+  "name": "sukibot",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "build": "tailwindcss -i ./tailwind.input.css -o ./tailwind.css --minify",
+    "dev": "tailwindcss -i ./tailwind.input.css -o ./tailwind.css --watch"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.1.0",
+    "tailwindcss": "^4.1.0"
+  }
+}

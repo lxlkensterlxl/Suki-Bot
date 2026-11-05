@@ -1,0 +1,7 @@
+@import "tailwindcss" theme, utilities;
+
+@theme {
+  --color-neon-purple: #bd00ff;
+  --color-neon-cyan: #67e8f9;
+  --color-suki-bg: #07040d;
+}
