@@ -16,7 +16,16 @@
   <canvas id="matrix-canvas" aria-hidden="true"></canvas>
   <main class="app-shell">
     <header class="topbar">
-      <div class="brand"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 3.5 19.2 12.8 28.5 16l-9.3 3.2L16 28.5l-3.2-9.3L3.5 16l9.3-3.2L16 3.5Z" fill="currentColor"/><circle cx="16" cy="16" r="3.1" fill="#120a2a"/><path d="m25.4 4.2.9 2.5 2.5.9-2.5.9-.9 2.5-.9-2.5-2.5-.9 2.5-.9.9-2.5Z" fill="#67e8f9"/></svg></span><span>SUKI<span class="brand-accent">BOT</span></span></div>
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M16 3.5 19.2 12.8 28.5 16l-9.3 3.2L16 28.5l-3.2-9.3L3.5 16l9.3-3.2L16 3.5Z" fill="currentColor"/>
+            <circle cx="16" cy="16" r="3.1" fill="#120a2a"/>
+            <path d="m25.4 4.2.9 2.5 2.5.9-2.5.9-.9 2.5-.9-2.5-2.5-.9 2.5-.9.9-2.5Z" fill="#67e8f9"/>
+          </svg>
+        </span>
+        <span>SUKI<span class="brand-accent">BOT</span></span>
+      </div>
       <span class="online"><i></i> READY</span>
       <button id="open-settings" class="icon-button" type="button" aria-label="Open settings">⚙</button>
     </header>
@@ -28,7 +37,35 @@
     </section>
 
     <section class="panel companion" aria-label="SukiBot status">
-      <div class="avatar" id="suki-avatar" role="img" aria-label="Illustrated fox companion"><svg viewBox="0 0 120 120" width="76" height="76" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><linearGradient id="fox-fur" x1="20" y1="10" x2="100" y2="110" gradientUnits="userSpaceOnUse"><stop stop-color="#f9a8d4"/><stop offset=".52" stop-color="#c084fc"/><stop offset="1" stop-color="#7c3aed"/></linearGradient><linearGradient id="fox-light" x1="60" y1="55" x2="60" y2="108" gradientUnits="userSpaceOnUse"><stop stop-color="#fff7ed"/><stop offset="1" stop-color="#fbcfe8"/></linearGradient></defs><path d="M20 17 45 34 60 28 75 34 100 17 94 58c-1 26-15 44-34 51C41 100 27 82 26 58l-6-41Z" fill="url(#fox-fur)" stroke="#f5d0fe" stroke-width="2.5" stroke-linejoin="round"/><path d="m29 29 15 11-13 9-2-20Zm62 0L76 40l13 9 2-20Z" fill="#31204b"/><path d="M37 61c4-5 10-5 14 0m18 0c4-5 10-5 14 0" fill="none" stroke="#241735" stroke-width="4" stroke-linecap="round"/><path d="M39 71c6 0 12 3 21 9 9-6 15-9 21-9-3 15-11 24-21 24S42 86 39 71Z" fill="url(#fox-light)"/><path d="M56 70h8l-4 5-4-5Z" fill="#51304f"/><path d="M57 80c2 2 4 2 6 0" fill="none" stroke="#a8558b" stroke-width="2" stroke-linecap="round"/><path d="m16 52-6 3m100-3 6 3" stroke="#67e8f9" stroke-width="2" stroke-linecap="round" opacity=".8"/><path d="m19 76-7 1m96-1 7 1" stroke="#f9a8d4" stroke-width="2" stroke-linecap="round" opacity=".75"/></svg></div>
+      <div class="avatar" id="suki-avatar" role="img" aria-label="Cute anime girl companion">
+        <svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs>
+            <linearGradient id="hair-grad" x1="0" x2="1" y1="0" y2="1">
+              <stop offset="0%" stop-color="#f7c3ff"/>
+              <stop offset="34%" stop-color="#d08cff"/>
+              <stop offset="68%" stop-color="#7c3aed"/>
+              <stop offset="100%" stop-color="#120b1b"/>
+            </linearGradient>
+            <linearGradient id="dress-grad" x1="0" x2="1" y1="0" y2="1">
+              <stop offset="0%" stop-color="#7ee7ff"/>
+              <stop offset="100%" stop-color="#5b7cff"/>
+            </linearGradient>
+          </defs>
+          <path d="M36 40c0-18 13-31 31-31 19 0 31 13 31 31v11c0 17-5 29-14 38l-6 6-10 8-10-8-6-6c-9-9-14-21-14-38V40Z" fill="url(#hair-grad)"/>
+          <path d="M52 39 42 2l18 14 9 22-10 6-9-11Zm36 0 10-37-18 14-9 22 10 6 9-11Z" fill="#1a1023" opacity=".88"/>
+          <path d="M46 42c0-13 10-22 22-22 12 0 23 9 23 22v10c0 13-10 23-23 23-12 0-22-10-22-23V42Z" fill="#fef3ff"/>
+          <circle cx="58" cy="52" r="3" fill="#1b1024"/>
+          <circle cx="81" cy="52" r="3" fill="#1b1024"/>
+          <path d="M62 65c4 5 12 5 16 0" fill="none" stroke="#1b1024" stroke-width="3" stroke-linecap="round"/>
+          <path d="M57 82c7 7 19 7 26 0" fill="none" stroke="#f5b0db" stroke-width="3" stroke-linecap="round"/>
+          <path d="M42 86c11-6 20-8 30-8s19 2 30 8v31H42V86Z" fill="url(#dress-grad)"/>
+          <path d="M60 86c2 8 7 18 18 18 10 0 15-10 18-18" fill="none" stroke="#d7faff" stroke-width="3" stroke-linecap="round" opacity=".9"/>
+          <path d="M74 98 68 129M66 98l-6 31" stroke="#a9f0ff" stroke-width="3" stroke-linecap="round" opacity=".8"/>
+          <circle cx="28" cy="36" r="4" fill="#d9a3ff" opacity=".8"/>
+          <circle cx="112" cy="34" r="5" fill="#7ee7ff" opacity=".75"/>
+          <circle cx="117" cy="88" r="3" fill="#f9a8d4" opacity=".8"/>
+        </svg>
+      </div>
       <div><p class="eyebrow">SUKI / <span id="mode-display">CORE</span></p><h2 id="greeting">Systems online!</h2><p class="muted">A friendly little console for your day.</p></div>
     </section>
 
