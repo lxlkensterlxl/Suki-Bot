@@ -1,4 +1,4 @@
-class SukiTouchController {
+class sukitouchcontroller {
   constructor(targetElement, callbacks = {}) {
     this.target = targetElement;
     this.callbacks = callbacks; // { onTap, onHold, onDrag, onSwipe }
