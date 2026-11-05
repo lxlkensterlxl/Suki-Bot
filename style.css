@@ -1,31 +1,16 @@
-/* Canvas used by Suki's roaming companion animation. */
-.suki-roam-canvas {
-  position: fixed;
-  z-index: 2;
-  inset: 0;
+
+/* Avatar canvas sizing and fallback-compatible display. */
+.avatar {
   display: block;
-  width: 100vw;
-  width: 100dvw;
-  height: 100vh;
-  height: 100dvh;
-  pointer-events: none;
-  background: transparent;
+  width: 96px;
+  height: 96px;
+  flex: 0 0 auto;
+  border-radius: 18px;
 }
 
-.avatar-badge {
-  color: var(--purple);
-  font-size: 2.6rem;
-}
-
-html[data-theme="light"] .mode-button,
-html[data-theme="light"] .button,
-html[data-theme="light"] .icon-button,
-html[data-theme="light"] .close-button {
-  box-shadow: inset 0 0 0 1px rgba(106, 67, 189, 0.1);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .suki-roam-canvas {
-    visibility: hidden;
+@media (max-width: 430px) {
+  .avatar {
+    width: 76px;
+    height: 76px;
   }
 }
