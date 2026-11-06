@@ -1,4 +1,4 @@
-<!doctype html>
+<doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="description" content="SukiBot companion console">
-  <title>SukiBot — Companion Console</title>
+  <title>SukiBot Companion Console</title>
   <link rel="manifest" href="./manifest.json">
   <link rel="apple-touch-icon" href="./icon-512.svg">
   <link rel="stylesheet" href="./tailwind.css">
@@ -28,36 +28,37 @@
         <span>SUKI<span class="text-neon-cyan">BOT</span></span>
       </div>
       <span class="inline-flex items-center gap-2 text-[0.72rem] font-extrabold tracking-[0.18em] text-neon-cyan max-[430px]:tracking-[0.12em]"><i class="inline-block h-2 w-2 rounded-full bg-[#80ffce] shadow-[0_0_12px_rgb(128_255_206_/_80%)]"></i> READY</span>
-      <button id="open-settings" class="grid h-9 w-9 shrink-0 place-items-center rounded-2xl border border-[var(--panel-border-soft)] bg-white/[0.03] text-[1.2rem] text-[var(--text-primary)] transition-colors duration-200" type="button" aria-label="Open settings">⚙</button>
+      <button id="open-settings" class="grid h-9 w-9 shrink-0 place-items-center rounded-2xl border border-[var(--panel-border-soft)] bg-white/[0.03] text-[1.2rem] text-[var(--text-primary)] transition-colors duration-200" type="button" aria-label="Open settings"></button>
     </header>
 
     <section class="grid gap-1.5 px-1">
-      <p class="m-0 text-[0.7rem] font-bold tracking-[0.2em] text-[var(--text-secondary)]">PERSONAL COMPANION // v2.6</p>
-      <h1 class="m-0 text-[clamp(2.05rem,6vw,3rem)] leading-[0.98] tracking-[-0.05em]">Hey there, <span class="text-neon-cyan">Senpai.</span></h1>
-      <p class="m-0 text-[0.95rem] text-[var(--text-secondary)]">Your neon companion is ready.</p>
+      <p class="m-0 text-[0.7rem] font-bold tracking-[0.2em] text-[var(--text-secondary)]">PERSONAL COMPANION // v26</p>
+      <h1 class="m-0 text-[clamp(2.05rem,6vw,3rem)] leading-[0.98] tracking-[-0.05em]">Hey there, <span class="text-neon-cyan">Senpai</span></h1>
+      <p class="m-0 text-[0.95rem] text-[var(--text-secondary)]">Your neon companion is ready</p>
     </section>
 
     <section class="grid grid-cols-[76px_minmax(0,1fr)] items-center gap-3 rounded-[20px] border border-[var(--panel-border)] bg-[var(--panel-surface)] p-3.5 shadow-[inset_0_0_12px_rgb(189_0_255_/_12%),0_0_18px_var(--glow)] backdrop-blur-xl transition-colors duration-200 min-[431px]:grid-cols-[96px_minmax(0,1fr)] max-[360px]:p-3" aria-label="SukiBot status">
       <canvas id="suki-avatar-canvas" class="block h-[76px] w-[76px] rounded-[18px] border border-[var(--panel-border-soft)] bg-[radial-gradient(circle_at_35%_30%,rgb(103_232_249_/_32%),rgb(27_20_38_/_40%)_42%,rgb(9_6_17_/_78%)_70%)] min-[431px]:h-24 min-[431px]:w-24" role="img" aria-label="Suki, your animated companion. Tap or move over her to guide her; use the arrow keys when focused." tabindex="0"></canvas>
-      <div class="min-w-0"><p class="m-0 text-[0.7rem] font-bold tracking-[0.2em] text-[var(--text-secondary)]">SUKI / <span id="mode-display">CORE</span></p><h2 id="greeting" class="m-0 text-[clamp(1.1rem,4vw,1.5rem)] tracking-[0.06em]">Systems online!</h2><p class="mt-1.5 mb-0 text-[0.87rem] text-[var(--text-secondary)]">A friendly little console for your day.</p></div>
+      <div class="min-w-0"><p class="m-0 text-[0.7rem] font-bold tracking-[0.2em] text-[var(--text-secondary)]">SUKI / <span id="mode-display">CORE</span></p><h2 id="greeting" class="m-0 text-[clamp(1.1rem,4vw,1.5rem)] tracking-[0.06em]">Systems online</h2><p class="mt-1.5 mb-0 text-[0.87rem] text-[var(--text-secondary)]">A friendly little console for your day</p></div>
     </section>
 
     <section class="rounded-[20px] border border-[var(--panel-border)] bg-[var(--panel-surface)] p-3.5 shadow-[inset_0_0_12px_rgb(189_0_255_/_12%),0_0_18px_var(--glow)] backdrop-blur-xl transition-colors duration-200 max-[360px]:p-3" aria-labelledby="transmission-title">
-      <div class="mb-2.5 flex items-center justify-between gap-2.5"><h2 id="transmission-title" class="m-0 text-[0.86rem] tracking-[0.18em]">TRANSMISSION</h2><span id="synapse-clock" class="text-[0.72rem] tracking-[0.08em] text-[var(--text-secondary)]">--:-- UTC</span></div>
-      <p id="speech-box" class="m-0 min-h-[3.2em] leading-6" aria-live="polite">Nya! Suki is online and ready to help.</p>
+      <div class="mb-2.5 flex items-center justify-between gap-2.5"><h2 id="transmission-title" class="m-0 text-[0.86rem] tracking-[0.18em]">TRANSMISSION</h2><span id="synapse-clock" class="text-[0.72rem] tracking-[0.08em] text-[var(--text-secondary)]">---- UTC</span></div>
+      <p id="speech-box" class="m-0 min-h-[3.2em] leading-6" aria-live="polite">Nya Suki is online and ready to help</p>
       <div class="mt-3 flex gap-2 max-[430px]:flex-col">
-        <button id="btn-transmit" class="min-h-[42px] flex-1 rounded-2xl border border-transparent bg-gradient-to-br from-[#d7a8ff] to-[#9e7dff] px-3 font-bold text-[#160c22]" type="button">↻ &nbsp;Transmit</button>
-        <button id="btn-voice" class="min-h-[42px] flex-1 rounded-2xl border border-[var(--panel-border-soft)] bg-white/[0.03] px-3 font-bold text-[var(--text-primary)] max-[430px]:w-full" type="button">♫ &nbsp;Speak</button>
+        <button id="btn-transmit" class="min-h-[42px] flex-1 rounded-2xl border border-transparent bg-gradient-to-br from-[#d7a8ff] to-[#9e7dff] px-3 font-bold text-[#160c22]" type="button"> 
+nbspTransmit</button>
+        <button id="btn-voice" class="min-h-[42px] flex-1 rounded-2xl border border-[var(--panel-border-soft)] bg-white/[0.03] px-3 font-bold text-[var(--text-primary)] max-[430px]:w-full" type="button"> nbspSpeak</button>
       </div>
     </section>
 
     <section class="rounded-[20px] border border-[var(--panel-border)] bg-[var(--panel-surface)] p-3.5 shadow-[inset_0_0_12px_rgb(189_0_255_/_12%),0_0_18px_var(--glow)] backdrop-blur-xl transition-colors duration-200 max-[360px]:p-3" aria-labelledby="modes-title">
       <div class="mb-2.5 flex items-center justify-between gap-2.5"><h2 id="modes-title" class="m-0 text-[0.86rem] tracking-[0.18em]">QUICK MODES</h2><span class="text-[0.72rem] tracking-[0.08em] text-[var(--text-secondary)]">Tap to switch</span></div>
       <div class="mt-2 grid grid-cols-2 gap-2">
-        <button class="mode-button min-h-[46px] rounded-2xl border border-[var(--panel-border-soft)] bg-white/[0.018] font-bold tracking-[0.08em] text-[var(--text-primary)]" type="button" data-mode="ASR" aria-pressed="false"><span>◉</span> ASR</button>
-        <button class="mode-button min-h-[46px] rounded-2xl border border-[var(--panel-border-soft)] bg-white/[0.018] font-bold tracking-[0.08em] text-[var(--text-primary)]" type="button" data-mode="ORB" aria-pressed="false"><span>◌</span> Orb</button>
-        <button class="mode-button mode-active min-h-[46px] rounded-2xl border border-[var(--panel-border-soft)] bg-white/[0.018] font-bold tracking-[0.08em] text-[var(--text-primary)]" type="button" data-mode="CORE" aria-pressed="true"><span>✧</span> Core</button>
-        <button class="mode-button min-h-[46px] rounded-2xl border border-[var(--panel-border-soft)] bg-white/[0.018] font-bold tracking-[0.08em] text-[var(--text-primary)]" type="button" data-mode="TACTICS" aria-pressed="false"><span>⌁</span> Tactics</button>
+        <button class="mode-button min-h-[46px] rounded-2xl border border-[var(--panel-border-soft)] bg-white/[0.018] font-bold tracking-[0.08em] text-[var(--text-primary)]" type="button" data-mode="ASR" aria-pressed="false"><span></span> ASR</button>
+        <button class="mode-button min-h-[46px] rounded-2xl border border-[var(--panel-border-soft)] bg-white/[0.018] font-bold tracking-[0.08em] text-[var(--text-primary)]" type="button" data-mode="ORB" aria-pressed="false"><span></span> Orb</button>
+        <button class="mode-button mode-active min-h-[46px] rounded-2xl border border-[var(--panel-border-soft)] bg-white/[0.018] font-bold tracking-[0.08em] text-[var(--text-primary)]" type="button" data-mode="CORE" aria-pressed="true"><span></span> Core</button>
+        <button class="mode-button min-h-[46px] rounded-2xl border border-[var(--panel-border-soft)] bg-white/[0.018] font-bold tracking-[0.08em] text-[var(--text-primary)]" type="button" data-mode="TACTICS" aria-pressed="false"><span></span> Tactics</button>
       </div>
     </section>
 
@@ -66,7 +67,7 @@
 
   <dialog id="settings-dialog" class="m-auto w-[min(calc(100vw-24px),420px)] rounded-[22px] border border-[var(--panel-border)] bg-[rgb(12_7_20_/_90%)] p-0 text-[var(--text-primary)] backdrop-blur-xl" aria-labelledby="settings-title">
     <form method="dialog" class="grid gap-3 p-3.5">
-      <div class="mb-2.5 flex items-center justify-between gap-2.5"><h2 id="settings-title" class="m-0 text-[0.86rem] tracking-[0.18em]">SETTINGS</h2><button class="close-button grid h-9 w-9 place-items-center rounded-2xl border border-[var(--panel-border-soft)] bg-white/[0.03] text-[1.2rem]" value="close" aria-label="Close settings">×</button></div>
+      <div class="mb-2.5 flex items-center justify-between gap-2.5"><h2 id="settings-title" class="m-0 text-[0.86rem] tracking-[0.18em]">SETTINGS</h2><button class="close-button grid h-9 w-9 place-items-center rounded-2xl border border-[var(--panel-border-soft)] bg-white/[0.03] text-[1.2rem]" value="close" aria-label="Close settings"></button></div>
       <label class="flex items-center justify-between gap-3 text-[0.88rem]" for="voice-pitch">Voice pitch <output id="pitch-value">1.0</output></label>
       <input class="w-full accent-neon-cyan" id="voice-pitch" type="range" min="0.5" max="2" step="0.1" value="1">
       <label class="flex items-center justify-between gap-3 text-[0.88rem]" for="voice-rate">Speaking speed <output id="rate-value">1.0</output></label>
@@ -81,56 +82,56 @@
   <script src="./suki-renderer.js"></script>
   <script src="./suki-walk.js"></script>
   <script>
-    (() => {
-      'use strict';
-      const $ = (id) => document.getElementById(id);
+    (() => 
+      use strict
+      const = (id) => documentgetElementById(id)
       const messages = [
-        'Nya! Suki is online and ready to help.',
-        'Tactical update: your next great idea is one small step away.',
-        'Kitty matrix online. Remember to take a stretch break too.',
-        'Energy core glowing! What would you like to build today?'
-      ];
-      let messageIndex = 0;
-      let matrixFrame = 0;
-      let matrixDrops = [];
-      const canvas = $('matrix-canvas');
-      const ctx = canvas.getContext('2d');
-      const dialog = $('settings-dialog');
-      const themeToggle = $('theme-toggle');
-      const store = {
-        get(key) { try { return localStorage.getItem(key); } catch (_) { return null; } },
-        set(key, value) { try { localStorage.setItem(key, value); } catch (_) {} }
-      };
+        Nya Suki is online and ready to help,
+        Tactical update your next great idea is one small step away,
+        Kitty matrix online Remember to take a stretch break too,
+        Energy core glowing What would you like to build today
+      
+      let messageIndex = 0
+      let matrixFrame = 0
+      let matrixDrops = []
+      const canvas = (matrix-canvas)
+      const ctx = canvasgetContext(2d)
+      const dialog = (settings-dialog)
+      const themeToggle = (theme-toggle)
+      const store = 
+        get(key)  try return localStoragegetItem(key) catch (_) return null 
+        set(key)  value) try localStoragesetItem(key value) catch (_) 
+      
 
-      function applyTheme(isLight) {
-        const theme = isLight ? 'light' : 'dark';
-        document.documentElement.dataset.theme = theme;
-        if (themeToggle) themeToggle.checked = isLight;
-        store.set('suki_theme', theme);
-      }
+      function applyTheme(isLight) 
+        const theme = isLight light dark
+        documentElementdatasettheme = theme
+        if (themeToggle) themeTogglechecked = isLight
+        store set(suki_theme theme)
+      
 
-      function beep() {
-        try { if (window.sound) window.sound.playBeep(); } catch (_) {}
-      }
-      function setMode(mode) {
-        mode = String(mode || 'CORE').toUpperCase();
-        $('mode-display').textContent = mode;
-        document.querySelectorAll('.mode-button').forEach((button) => {
-          const active = button.dataset.mode === mode;
-          button.classList.toggle('mode-active', active);
-          button.setAttribute('aria-pressed', String(active));
-        });
-        store.set('suki_mode', mode);
-        beep();
-      }
-      function updateClock() {
-        const now = new Date();
-        $('synapse-clock').textContent = `${String(now.getUTCHours()).padStart(2, '0')}:${String(now.getUTCMinutes()).padStart(2, '0')} UTC`;
-      }
-      $('btn-transmit').addEventListener('click', () => {
-        messageIndex = (messageIndex + 1) % messages.length;
+      function beep() 
+        try  if (windowsound) windowsoundplayBeep() catch (_)
+      
+      function setMode(mode) 
+        mode = String mode  CORE toUpperCase
+        (mode-display) textContent = mode
+        documentquerySelectorAll(mode-button) forEach(button) =
+          const active = buttondata set mode === mode
+          buttonclassListtoggle(mode-active active)
+          button setAttribute(aria-pressed String(active)
+        
+        store set(suki_mode mode)
+        beep()
+      
+      function updateClock() 
+        const now = new Date()
+        (synapse-clock)textContent = String(now getUTCHours())padStart(2 0) String(now getUTCMinutes padStart(2 0) UTC
+      
+      (btn-transmit)addEventListener(click) => 
+        messageIndex = (messageIndex + 1) messageslength
         $('speech-box').textContent = messages[messageIndex];
-        $('greeting').textContent = 'Transmission received!';
+        $(greeting) textContent = Transmission received!
         beep();
       });
       $('btn-voice').addEventListener('click', () => {
