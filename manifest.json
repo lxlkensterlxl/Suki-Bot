@@ -1,6 +1,6 @@
 {
-  "name": "SukiBot — Companion Console",
-  "short_name": "SukiBot",
+  "name": "sukiBot — Companion Console",
+  "short_name": "sukiBot",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
