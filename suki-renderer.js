@@ -432,6 +432,5 @@
   }
 
   window.SukiRenderer = SukiRenderer;
-  // Preserve the original public name for existing integrations.
   window.sukiRenderer = SukiRenderer;
 })();
