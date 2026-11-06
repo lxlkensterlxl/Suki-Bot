@@ -38,7 +38,7 @@
 
     init() {
       this.addListener('touchstart', (event) => this.handleTouchStart(event), { passive: true });
-      // A non-passive listener is needed only to cancel native scrolling while dragging.
+      // passive: false is required here so event.preventDefault() can block native scrolling while dragging
       this.addListener('touchmove', (event) => this.handleTouchMove(event), { passive: false });
       this.addListener('touchend', (event) => this.handleTouchEnd(event), { passive: true });
       this.addListener('touchcancel', () => this.resetTouch(), { passive: true });
@@ -52,7 +52,6 @@
     }
 
     handleTouchStart(event) {
-      // Treat multi-touch as cancellation rather than leaving an old hold timer alive.
       if (event.touches.length !== 1) {
         this.resetTouch();
         return;
@@ -126,7 +125,6 @@
       try {
         callback(payload);
       } catch (error) {
-        // A consumer callback should not leave gesture tracking in a broken state.
         window.setTimeout(() => { throw error; }, 0);
       }
     }
