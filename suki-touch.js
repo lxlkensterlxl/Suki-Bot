@@ -1,6 +1,8 @@
 (() => {
   'use strict';
 
+  if (typeof window === 'undefined') return;
+
   class SukiTouchController {
     constructor(targetElement, callbacks = {}, options = {}) {
       if (!targetElement || typeof targetElement.addEventListener !== 'function') {
@@ -153,7 +155,5 @@
     }
   }
 
-  if (typeof window !== 'undefined') {
-    window.SukiTouchController = SukiTouchController;
-  }
+  window.SukiTouchController = SukiTouchController;
 })();
