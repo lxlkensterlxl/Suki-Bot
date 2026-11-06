@@ -14,7 +14,9 @@
       if (!AudioContext) return null;
 
       try {
-        if (!this.ctx || this.ctx.state === 'closed') this.ctx = new AudioContext();
+        if (!this.ctx || this.ctx.state === 'closed') {
+          this.ctx = new AudioContext();
+        }
         return this.ctx;
       } catch (_) {
         return null;
@@ -74,9 +76,7 @@
     }
   }
 
-  // Use an installed English voice with a gentle, bright feminine quality when
-  // available. Browser voice inventories differ, so this is a preference, not
-  // an imitation of any particular actor or character.
+  // Choose an installed English voice with a gentle, bright feminine quality when available.
   function chooseSukiVoice() {
     if (!('speechSynthesis' in window)) return null;
     const voices = window.speechSynthesis.getVoices();
@@ -92,18 +92,17 @@
   function configureSukiSpeech() {
     if (!('speechSynthesis' in window) || !('SpeechSynthesisUtterance' in window)) return;
     window.speechSynthesis.getVoices();
-    window.speechSynthesis.addEventListener?.('voiceschanged', () => {
-      // Trigger voice inventory refresh; selection happens when Speak is tapped.
-      chooseSukiVoice();
-    });
+    if (typeof window.speechSynthesis.addEventListener === 'function') {
+      window.speechSynthesis.addEventListener('voiceschanged', () => {
+        chooseSukiVoice();
+      });
+    }
 
     const originalSpeak = window.speechSynthesis.speak.bind(window.speechSynthesis);
     window.speechSynthesis.speak = (utterance) => {
       if (utterance instanceof window.SpeechSynthesisUtterance) {
         const voice = chooseSukiVoice();
         if (voice) utterance.voice = voice;
-        // Keep the existing settings sliders useful, with only a modest warm,
-        // upbeat nudge; avoid extreme pitch/rate changes that sound artificial.
         utterance.pitch = Math.min(1.3, Math.max(0.8, (Number(utterance.pitch) || 1) * 1.04));
         utterance.rate = Math.min(1.05, Math.max(0.85, (Number(utterance.rate) || 1) * 0.96));
       }
@@ -113,6 +112,7 @@
 
   window.sound = new CyberAudio();
   configureSukiSpeech();
+  
   window.addEventListener('pointerdown', () => {
     window.sound.unlock();
   }, { passive: true, once: true });
