@@ -1,6 +1,8 @@
 (() => {
   'use strict';
 
+  if (typeof window === 'undefined') return;
+
   const canvas = document.getElementById('suki-avatar-canvas');
   if (!canvas) return;
 
@@ -12,8 +14,6 @@
   canvas.style.height ||= '96px';
   canvas.style.display = 'block';
 
-  // Use for the 2D fallback. Three.js manages its own drawing buffer through
-  // renderer.setPixelRatio() and renderer.setSize().
   function resizeCanvasToDisplaySize(targetCanvas) {
     const dpr = window.devicePixelRatio || 1;
     const displayWidth = Math.floor(targetCanvas.clientWidth * dpr);
@@ -47,8 +47,6 @@
   }
 
   function startFallback(previousCanvas) {
-    // Canvas contexts cannot be switched from WebGL to 2D; use a fresh element
-    // if WebGL initialization was attempted and failed.
     const targetCanvas = freshCanvas(previousCanvas);
     const context = targetCanvas.getContext('2d');
     if (!context) return;
@@ -107,8 +105,6 @@
       width = Math.max(1, rect.width || targetCanvas.clientWidth || 96);
       height = Math.max(1, rect.height || targetCanvas.clientHeight || 96);
       resizeCanvasToDisplaySize(targetCanvas);
-      // Reset the 2D transform after resizing the backing store. Use the actual
-      // rounded backing-to-CSS ratio to avoid fractional DPR scaling drift.
       context.setTransform(targetCanvas.width / width, 0, 0, targetCanvas.height / height, 0, 0);
       draw();
     }
