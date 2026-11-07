@@ -358,15 +358,25 @@
                     </select>
                 </div>
                 <div>
+                    <label class="block font-mono text-[10px] text-purple-300 mb-1">TTS VOICE SELECT</label>
+                    <select id="voice-select" class="w-full bg-black border border-purple-500/50 rounded-lg p-2 text-slate-200 font-mono text-xs">
+                        <option value="">Default System Voice</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-mono text-[10px] text-purple-300 mb-1">AUDIO VOLUME (<span id="volume-val-text">100%</span>)</label>
+                    <input type="range" id="speech-volume" min="0" max="1" step="0.05" value="1" class="w-full accent-cyan-400">
+                </div>
+                <div>
+                    <label class="block font-mono text-[10px] text-purple-300 mb-1">VOICE SYNTHESIS SPEED (<span id="speed-val-text">1.0x</span>)</label>
+                    <input type="range" id="speech-speed" min="0.5" max="2.0" step="0.1" value="1.0" class="w-full accent-pink-500">
+                </div>
+                <div>
                     <label class="block font-mono text-[10px] text-purple-300 mb-1">LLM MODEL SELECTION</label>
                     <select id="model-select" class="w-full bg-black border border-purple-500/50 rounded-lg p-2 text-slate-200 font-mono text-xs">
                         <option value="Llama-3-8B-Instruct-q4f32_1-MLC">Llama-3-8B-Instruct (Default)</option>
                         <option value="Phi-3-mini-4k-instruct-q4f32_1-MLC">Phi-3-mini-4k-instruct (Fast)</option>
                     </select>
-                </div>
-                <div>
-                    <label class="block font-mono text-[10px] text-purple-300 mb-1">VOICE SYNTHESIS SPEED</label>
-                    <input type="range" id="speech-speed" min="0.5" max="2.0" step="0.1" value="1.0" class="w-full accent-pink-500">
                 </div>
             </div>
             <div class="flex justify-end pt-2">
@@ -394,6 +404,47 @@
             avatarState.locomotionMode = mode;
             document.getElementById('motion-mode-text').innerText = mode.toUpperCase();
         }
+
+        // Voice Controls & Volume Config
+        let availableVoices = [];
+        let selectedVoice = null;
+        let speechVolume = 1.0;
+        let speechPitch = 1.1;
+
+        function populateVoiceList() {
+            if (!('speechSynthesis' in window)) return;
+            availableVoices = window.speechSynthesis.getVoices();
+            const voiceSelect = document.getElementById('voice-select');
+            voiceSelect.innerHTML = '<option value="">Default System Voice</option>';
+            
+            availableVoices.forEach((v, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = `${v.name} (${v.lang})`;
+                voiceSelect.appendChild(option);
+            });
+        }
+
+        if ('speechSynthesis' in window) {
+            populateVoiceList();
+            if (speechSynthesis.onvoiceschanged !== undefined) {
+                speechSynthesis.onvoiceschanged = populateVoiceList;
+            }
+        }
+
+        document.getElementById('voice-select').addEventListener('change', (e) => {
+            const val = e.target.value;
+            selectedVoice = val !== "" ? availableVoices[val] : null;
+        });
+
+        document.getElementById('speech-volume').addEventListener('input', (e) => {
+            speechVolume = parseFloat(e.target.value);
+            document.getElementById('volume-val-text').innerText = Math.round(speechVolume * 100) + '%';
+        });
+
+        document.getElementById('speech-speed').addEventListener('input', (e) => {
+            document.getElementById('speed-val-text').innerText = parseFloat(e.target.value).toFixed(1) + 'x';
+        });
 
         // Web Audio & Speech Setup
         let audioCtx;
@@ -517,12 +568,13 @@
             const walkCos = Math.cos(avatarState.walkPhase);
             const breath = Math.sin(time * 1.5) * 2;
             
-            // Center Base Coordinates
+            // Center Base Coordinates adjusted for canvas scaling
             const baseCenterX = width / 2 + avatarState.posX;
-            const baseCenterY = height / 2 + (avatarState.locomotionMode === 'floating' ? Math.sin(time * 2) * 8 : Math.abs(walkSin) * -4) + 10;
+            const baseCenterY = height / 2 + 10 + (avatarState.locomotionMode === 'floating' ? Math.sin(time * 2) * 8 : Math.abs(walkSin) * -4);
 
             ctx.save();
             ctx.translate(baseCenterX, baseCenterY);
+            ctx.scale(0.85, 0.85); // Scale down slightly so full body fits comfortably
 
             // Shadow / Aura Ground Ring
             ctx.beginPath();
@@ -737,4 +789,260 @@
             ctx.translate(0, headY);
 
             // Head Tilt Sway
-            ctx.
+            ctx.rotate(Math.sin(time * 0.8) * 0.03);
+
+            // Cyber Neko Ears
+            const leftEarTwitch = avatarState.earTwitch * 0.3;
+            ctx.fillStyle = '#1e143b';
+            ctx.beginPath();
+            ctx.moveTo(-25, -20);
+            ctx.lineTo(-45 - leftEarTwitch * 10, -65);
+            ctx.lineTo(-5, -35);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.fillStyle = '#ff2a8d';
+            ctx.beginPath();
+            ctx.moveTo(-23, -22);
+            ctx.lineTo(-38, -55);
+            ctx.lineTo(-10, -33);
+            ctx.closePath();
+            ctx.fill();
+
+            // Right Ear
+            ctx.fillStyle = '#1e143b';
+            ctx.beginPath();
+            ctx.moveTo(25, -20);
+            ctx.lineTo(45, -65);
+            ctx.lineTo(5, -35);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.fillStyle = '#00f0ff';
+            ctx.beginPath();
+            ctx.moveTo(23, -22);
+            ctx.lineTo(38, -55);
+            ctx.lineTo(10, -33);
+            ctx.closePath();
+            ctx.fill();
+
+            // Anime Hair (Back Layer)
+            ctx.fillStyle = '#15092b';
+            ctx.beginPath();
+            ctx.arc(0, -10, 36, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Face Shape
+            ctx.fillStyle = '#fde047'; // Base Tone Gradient Simulation
+            ctx.fillStyle = '#fce7f3';
+            ctx.beginPath();
+            ctx.moveTo(-26, -20);
+            ctx.quadraticCurveTo(-26, 15, 0, 30);
+            ctx.quadraticCurveTo(26, 15, 26, -20);
+            ctx.quadraticCurveTo(0, -30, -26, -20);
+            ctx.fill();
+
+            // Anime Hair Bangs (Front Layer)
+            ctx.fillStyle = '#2e1065';
+            ctx.beginPath();
+            ctx.moveTo(-28, -25);
+            ctx.quadraticCurveTo(-15, 0, -10, -10);
+            ctx.quadraticCurveTo(0, 10, 10, -10);
+            ctx.quadraticCurveTo(20, 5, 28, -25);
+            ctx.quadraticCurveTo(0, -42, -28, -25);
+            ctx.fill();
+            ctx.strokeStyle = '#bf5af2';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Cyber Eye Left
+            if (avatarState.eyeBlink > 0) {
+                ctx.fillStyle = '#00f0ff';
+                ctx.beginPath();
+                ctx.ellipse(-12, -4, 6, 9, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(-14, -6, 2, 0, Math.PI * 2);
+                ctx.fill();
+            } else {
+                ctx.strokeStyle = '#00f0ff';
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.moveTo(-18, -4);
+                ctx.lineTo(-6, -4);
+                ctx.stroke();
+            }
+
+            // Cyber Eye Right
+            if (avatarState.eyeBlink > 0) {
+                ctx.fillStyle = '#ff2a8d';
+                ctx.beginPath();
+                ctx.ellipse(12, -4, 6, 9, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(10, -6, 2, 0, Math.PI * 2);
+                ctx.fill();
+            } else {
+                ctx.strokeStyle = '#ff2a8d';
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.moveTo(6, -4);
+                ctx.lineTo(18, -4);
+                ctx.stroke();
+            }
+
+            // Viseme Lip-Sync Mouth
+            ctx.strokeStyle = '#ff2a8d';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            if (avatarState.isSpeaking) {
+                const mouthOpen = 3 + Math.sin(time * 25) * 5 * avatarState.speakingVolume;
+                ctx.ellipse(0, 14, 5, Math.max(2, mouthOpen), 0, 0, Math.PI * 2);
+                ctx.fillStyle = '#831843';
+                ctx.fill();
+            } else {
+                ctx.moveTo(-4, 14);
+                ctx.quadraticCurveTo(0, 17, 4, 14);
+            }
+            ctx.stroke();
+
+            ctx.restore(); // Restore Head
+            ctx.restore(); // Restore Base Body Transform
+
+            // Calculate FPS
+            frameCount++;
+            if (timestamp - lastTime >= 1000) {
+                document.getElementById('fps-counter').innerText = `FPS: ${frameCount}`;
+                frameCount = 0;
+                lastTime = timestamp;
+            }
+
+            requestAnimationFrame(renderScene);
+        }
+
+        requestAnimationFrame(renderScene);
+
+        // ----------------------------------------------------
+        // VOICE & DIALOGUE HANDLING
+        // ----------------------------------------------------
+        function speakText(text) {
+            if (isMuted || !('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel();
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            const speed = parseFloat(document.getElementById('speech-speed').value) || 1.0;
+            utterance.rate = speed;
+            utterance.volume = speechVolume;
+            utterance.pitch = speechPitch;
+            
+            if (selectedVoice) {
+                utterance.voice = selectedVoice;
+            }
+
+            utterance.onstart = () => {
+                avatarState.isSpeaking = true;
+                avatarState.speakingVolume = 1.0;
+                document.getElementById('avatar-state-text').innerText = 'TALKING';
+                document.getElementById('avatar-state-text').className = 'text-pink-400 font-bold animate-pulse';
+                document.getElementById('equalizer-container').classList.add('speaking-active');
+            };
+
+            utterance.onend = () => {
+                avatarState.isSpeaking = false;
+                avatarState.speakingVolume = 0;
+                document.getElementById('avatar-state-text').innerText = 'IDLE // READY';
+                document.getElementById('avatar-state-text').className = 'text-emerald-400';
+                document.getElementById('equalizer-container').classList.remove('speaking-active');
+            };
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function triggerSukiResponse(text) {
+            const dialogueBox = document.getElementById('dialogue-box');
+            dialogueBox.innerText = text;
+            
+            const chatFeed = document.getElementById('chat-feed');
+            const now = new Date().toTimeString().split(' ')[0];
+            const msgHtml = `
+                <div class="flex items-start gap-2 text-xs">
+                    <span class="font-mono text-pink-500 font-bold">&gt;</span>
+                    <div class="text-slate-300 font-rajdhani leading-relaxed">
+                        <span class="text-pink-400 font-mono text-[10px] block">SUKI_AI // ${now}</span>
+                        ${text}
+                    </div>
+                </div>
+            `;
+            chatFeed.insertAdjacentHTML('beforeend', msgHtml);
+            chatFeed.scrollTop = chatFeed.scrollHeight;
+
+            speakText(text);
+        }
+
+        // Send User Input Handling
+        function handleSend() {
+            const input = document.getElementById('user-input');
+            const val = input.value.trim();
+            if (!val) return;
+
+            const chatFeed = document.getElementById('chat-feed');
+            const now = new Date().toTimeString().split(' ')[0];
+            const userHtml = `
+                <div class="flex items-start gap-2 text-xs">
+                    <span class="font-mono text-cyan-400 font-bold">&gt;</span>
+                    <div class="text-slate-300 font-rajdhani leading-relaxed">
+                        <span class="text-cyan-400 font-mono text-[10px] block">USER // ${now}</span>
+                        ${val}
+                    </div>
+                </div>
+            `;
+            chatFeed.insertAdjacentHTML('beforeend', userHtml);
+            input.value = '';
+            chatFeed.scrollTop = chatFeed.scrollHeight;
+
+            // Simulated AI Response
+            setTimeout(() => {
+                triggerSukiResponse(`Acknowledged: "${val}". HUD systems processing request.`);
+            }, 600);
+        }
+
+        document.getElementById('send-btn').addEventListener('click', handleSend);
+        document.getElementById('user-input').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') handleSend();
+        });
+
+        // Speech Recognition Setup
+        const micBtn = document.getElementById('mic-btn');
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            recognition.onstart = () => {
+                micBtn.classList.add('mic-listening');
+            };
+
+            recognition.onend = () => {
+                micBtn.classList.remove('mic-listening');
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('user-input').value = transcript;
+                handleSend();
+            };
+
+            micBtn.addEventListener('click', () => {
+                try {
+                    recognition.start();
+                } catch (e) {
+                    recognition.stop();
+                }
+            });
+        }
+    </script>
+</body>
+</html>
