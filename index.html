@@ -1,344 +1,832 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Suki Conversational Assistant</title>
-  <style>
-    /* Suki conversational assistant styles */
-    .suki-ai {
-      width: min(100% - 32px, 560px);
-      margin: 18px auto 28px;
-      padding: 18px;
-      border: 1px solid rgb(192 132 252 / 28%);
-      border-radius: 20px;
-      color: #f7f1ff;
-      background: linear-gradient(145deg, rgb(38 25 57 / 96%), rgb(20 14 30 / 96%));
-      box-shadow: 0 14px 36px rgb(0 0 0 / 20%);
-      font-family: system-ui, -apple-system, sans-serif;
-    }
-
-    .suki-ai h2,
-    .suki-ai h3 {
-      margin: 0;
-    }
-
-    .suki-ai h2 {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      color: #f7f1ff;
-      font-size: 1.15rem;
-    }
-
-    .suki-settings-btn {
-      background: transparent;
-      border: 1px solid rgb(192 132 252 / 30%);
-      color: #d6a8ff;
-      border-radius: 8px;
-      padding: 4px 8px;
-      font-size: 0.75rem;
-      cursor: pointer;
-    }
-
-    .suki-settings-panel {
-      display: none;
-      margin: 10px 0;
-      padding: 10px;
-      background: rgb(0 0 0 / 25%);
-      border-radius: 10px;
-      border: 1px solid rgb(192 132 252 / 20%);
-    }
-
-    .suki-settings-panel.open {
-      display: block;
-    }
-
-    .suki-settings-panel input {
-      width: 100%;
-      padding: 8px;
-      border-radius: 8px;
-      border: 1px solid rgb(192 132 252 / 30%);
-      background: rgb(255 255 255 / 5%);
-      color: #fff;
-      font-size: 0.85rem;
-      box-sizing: border-box;
-      margin-top: 6px;
-    }
-
-    .suki-ai-intro,
-    .suki-ai-note,
-    #suki-chat-status {
-      color: #baaaca;
-      font-size: 0.84rem;
-      line-height: 1.5;
-    }
-
-    .suki-ai-intro {
-      margin: 7px 0 14px;
-    }
-
-    .suki-chat-log {
-      display: flex;
-      min-height: 86px;
-      max-height: 260px;
-      flex-direction: column;
-      gap: 9px;
-      overflow: auto;
-      padding: 12px;
-      border: 1px solid rgb(192 132 252 / 15%);
-      border-radius: 14px;
-      background: rgb(0 0 0 / 14%);
-      overscroll-behavior: contain;
-    }
-
-    .suki-chat-message {
-      max-width: 90%;
-      margin: 0;
-      padding: 9px 12px;
-      border-radius: 14px;
-      font-size: 0.9rem;
-      line-height: 1.5;
-      overflow-wrap: anywhere;
-      white-space: pre-wrap;
-    }
-
-    .suki-chat-message.suki {
-      align-self: flex-start;
-      border: 1px solid rgb(192 132 252 / 22%);
-      background: rgb(192 132 252 / 10%);
-    }
-
-    .suki-chat-message.you {
-      align-self: flex-end;
-      color: #160c22;
-      background: linear-gradient(105deg, #d6a8ff, #a879ff);
-    }
-
-    .suki-chat-form {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 8px;
-      margin-top: 10px;
-    }
-
-    .suki-chat-form textarea,
-    .suki-memory {
-      width: 100%;
-      min-height: 46px;
-      padding: 11px 12px;
-      border: 1px solid rgb(192 132 252 / 30%);
-      border-radius: 12px;
-      color: #f7f1ff;
-      background: rgb(255 255 255 / 4%);
-      font: inherit;
-      resize: vertical;
-      box-sizing: border-box;
-    }
-
-    .suki-chat-form textarea:focus-visible,
-    .suki-memory:focus-visible,
-    .suki-settings-panel input:focus-visible {
-      outline: 2px solid #67e8f9;
-      outline-offset: 2px;
-    }
-
-    .suki-chat-form button,
-    .suki-memory-actions button {
-      min-height: 44px;
-      padding: 0 14px;
-      border: 1px solid transparent;
-      border-radius: 12px;
-      color: #160c22;
-      background: linear-gradient(105deg, #d6a8ff, #a879ff);
-      font: inherit;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .suki-chat-form button:disabled {
-      cursor: wait;
-      opacity: 0.6;
-    }
-
-    #suki-chat-status {
-      min-height: 1.3em;
-      margin: 8px 0 12px;
-    }
-
-    .suki-ai-note {
-      margin: 12px 0 6px;
-      font-weight: 700;
-    }
-
-    .suki-memory {
-      min-height: 66px;
-      font-size: 0.85rem;
-    }
-
-    .suki-memory-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 8px;
-    }
-
-    .suki-memory-actions button:last-child {
-      border-color: rgb(192 132 252 / 32%);
-      color: #f7f1ff;
-      background: transparent;
-    }
-
-    @media (max-width: 420px) {
-      .suki-chat-form {
-        grid-template-columns: 1fr;
-      }
-
-      .suki-chat-form button {
-        width: 100%;
-      }
-    }
-  </style>
-</head>
-<body style="background: #0f0a18; margin: 0; padding: 20px;">
-
-  <div class="suki-ai">
-    <h2>
-      <span>Suki AI Assistant</span>
-      <button type="button" class="suki-settings-btn" id="suki-toggle-settings">API Key</button>
-    </h2>
-    
-    <div class="suki-settings-panel" id="suki-settings-panel">
-      <label for="suki-api-key" style="font-size: 0.78rem; color: #baaaca;">Gemini API Key:</label>
-      <input type="password" id="suki-api-key" placeholder="Paste your Gemini API key here...">
-    </div>
-
-    <p class="suki-ai-intro">Hello! I am Suki, your conversational assistant. How can I help you today?</p>
-    
-    <div class="suki-chat-log" id="suki-chat-log">
-      <div class="suki-chat-message suki">Hi there! Ask me anything or configure my memory below.</div>
-    </div>
-
-    <div id="suki-chat-status">Ready</div>
-
-    <form class="suki-chat-form" id="suki-chat-form">
-      <textarea id="suki-input" placeholder="Type a message to Suki..." rows="1" required></textarea>
-      <button type="submit" id="suki-submit">Send</button>
-    </form>
-
-    <div class="suki-ai-note">Assistant Memory / Context</div>
-    <textarea class="suki-memory" id="suki-memory" placeholder="Add custom instructions or background memory for Suki here..."></textarea>
-    
-    <div class="suki-memory-actions">
-      <button type="button" id="suki-save-memory">Save Memory</button>
-      <button type="button" id="suki-clear-memory">Clear</button>
-    </div>
-  </div>
-
-  <script>
-    const chatLog = document.getElementById('suki-chat-log');
-    const chatForm = document.getElementById('suki-chat-form');
-    const inputField = document.getElementById('suki-input');
-    const statusField = document.getElementById('suki-chat-status');
-    const memoryField = document.getElementById('suki-memory');
-    const saveMemoryBtn = document.getElementById('suki-save-memory');
-    const clearMemoryBtn = document.getElementById('suki-clear-memory');
-    const apiKeyField = document.getElementById('suki-api-key');
-    const toggleSettingsBtn = document.getElementById('suki-toggle-settings');
-    const settingsPanel = document.getElementById('suki-settings-panel');
-
-    // Conversation history for multi-turn chat
-    let conversationHistory = [];
-
-    // Load saved settings & memory from localStorage
-    if (localStorage.getItem('suki_memory')) {
-      memoryField.value = localStorage.getItem('suki_memory');
-    }
-    if (localStorage.getItem('suki_gemini_key')) {
-      apiKeyField.value = localStorage.getItem('suki_gemini_key');
-    }
-
-    toggleSettingsBtn.addEventListener('click', () => {
-      settingsPanel.classList.toggle('open');
-    });
-
-    apiKeyField.addEventListener('input', () => {
-      localStorage.setItem('suki_gemini_key', apiKeyField.value.trim());
-    });
-
-    saveMemoryBtn.addEventListener('click', () => {
-      localStorage.setItem('suki_memory', memoryField.value);
-      statusField.textContent = 'Memory saved successfully!';
-      setTimeout(() => { statusField.textContent = 'Ready'; }, 2000);
-    });
-
-    clearMemoryBtn.addEventListener('click', () => {
-      memoryField.value = '';
-      localStorage.removeItem('suki_memory');
-      statusField.textContent = 'Memory cleared.';
-      setTimeout(() => { statusField.textContent = 'Ready'; }, 2000);
-    });
-
-    chatForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const text = inputField.value.trim();
-      if (!text) return;
-
-      const apiKey = apiKeyField.value.trim();
-      if (!apiKey) {
-        settingsPanel.classList.add('open');
-        statusField.textContent = 'Please enter your Gemini API key above.';
-        apiKeyField.focus();
-        return;
-      }
-
-      // Append user message
-      appendMessage(text, 'you');
-      conversationHistory.push({ role: 'user', parts: [{ text: text }] });
-      inputField.value = '';
-      statusField.textContent = 'Suki is thinking...';
-
-      try {
-        const systemInstructionContent = memoryField.value.trim();
-        const payload = {
-          contents: conversationHistory
-        };
-
-        if (systemInstructionContent) {
-          payload.systemInstruction = {
-            parts: [{ text: systemInstructionContent }]
-          };
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Suki Companion AI</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cyberDark: '#07050e',
+                        cyberPanel: '#120b24',
+                        cyberPurple: '#a855f7',
+                        cyberPink: '#ec4899',
+                        cyberCyan: '#06b6d4',
+                    },
+                    fontFamily: {
+                        orbitron: ['Orbitron', 'sans-serif'],
+                        rajdhani: ['Rajdhani', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            background-color: #030207;
+            color: #e2e8f0;
+            font-family: 'Rajdhani', sans-serif;
+            user-select: none;
+            overflow-x: hidden;
         }
 
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+        /* Custom Cyber Scrollbar */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(18, 11, 36, 0.5);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #a855f7;
+            border-radius: 4px;
+        }
+
+        .glass-panel {
+            background: rgba(18, 11, 36, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+        }
+
+        /* Scanline Overlay */
+        .scanlines {
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0, 0, 0, 0.4) 50%,
+                rgba(0, 0, 0, 0.4)
+            );
+            background-size: 100% 4px;
+        }
+
+        /* Microphone Recording Pulse */
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.8); }
+            70% { box-shadow: 0 0 0 16px rgba(236, 72, 153, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(236, 72, 153, 0); }
+        }
+        .mic-listening {
+            animation: pulseGlow 1.4s infinite;
+        }
+
+        /* Custom Scrollbar suppression */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-0 sm:p-4 bg-slate-950">
+
+    <!-- iPhone Screen Frame Container -->
+    <div class="relative w-full max-w-[410px] h-[100vh] sm:h-[840px] bg-black sm:rounded-[48px] p-2.5 sm:p-3 shadow-[0_0_50px_rgba(168,85,247,0.35)] border-0 sm:border-4 border-slate-800 flex flex-col overflow-hidden">
+        
+        <!-- Dynamic Island / Top Notch -->
+        <div class="absolute top-3 left-1/2 -translate-x-1/2 w-28 sm:w-32 h-5 sm:h-6 bg-black rounded-full z-50 flex items-center justify-between px-3 border border-slate-800">
+            <div class="w-2.5 h-2.5 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center">
+                <div class="w-1 h-1 rounded-full bg-blue-900/80"></div>
+            </div>
+            <div class="w-1.5 h-1.5 rounded-full bg-purple-900/60"></div>
+        </div>
+
+        <!-- Inner Screen -->
+        <div class="relative w-full h-full bg-cyberDark rounded-[32px] sm:rounded-[38px] flex flex-col overflow-hidden border border-purple-900/50">
+            
+            <!-- Scanlines Layer -->
+            <div class="absolute inset-0 scanlines pointer-events-none z-40 opacity-25"></div>
+
+            <!-- Header / Status Bar -->
+            <div class="w-full pt-2.5 sm:pt-3 pb-1 px-5 flex justify-between items-center text-[10px] font-orbitron text-slate-300 z-30 tracking-wider">
+                <span id="clock-display">10:23</span>
+                <div class="flex items-center space-x-1.5">
+                    <i class="fa-solid fa-signal text-[9px]"></i>
+                    <span>5G</span>
+                    <i class="fa-solid fa-battery-full text-purple-400 text-[10px]"></i>
+                </div>
+            </div>
+
+            <!-- Suki Companion Navigation Header -->
+            <div class="px-4 py-2 flex items-center justify-between z-30 border-b border-purple-900/40 bg-cyberPanel/90">
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span class="font-orbitron text-xs text-purple-300 font-bold tracking-wide">SUKI // AI CORE v2.5</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button id="clear-btn" class="text-xs text-slate-400 hover:text-pink-400 transition" title="Clear Chat Log">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                    <button id="mute-btn" class="text-xs text-purple-400 hover:text-white transition" title="Toggle Voice Synth">
+                        <i id="mute-icon" class="fa-solid fa-volume-high"></i>
+                    </button>
+                    <button id="config-btn" class="text-xs text-cyan-400 hover:text-white transition" title="Settings & API Config">
+                        <i class="fa-solid fa-gear"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ANIMATED STAGE / CANVASES (SUKI STAGE) -->
+            <div class="relative w-full h-64 bg-slate-950 flex-none border-b border-purple-500/30 overflow-hidden">
+                <canvas id="sukiCanvas" class="w-full h-full block cursor-pointer"></canvas>
+
+                <!-- Stage UI Badge Overlay -->
+                <div class="absolute top-2 left-3 right-3 flex justify-between items-center pointer-events-none">
+                    <div class="glass-panel px-2.5 py-1 rounded-full text-[9px] font-orbitron text-cyan-300 flex items-center gap-1.5 border border-cyan-500/30">
+                        <i class="fa-solid fa-microchip text-cyan-400"></i>
+                        <span id="mode-badge">WALKING MODE</span>
+                    </div>
+                    <button id="toggle-anim-btn" class="pointer-events-auto glass-panel px-2.5 py-1 rounded-full text-[9px] font-orbitron text-purple-300 hover:text-white border border-purple-500/40 hover:bg-purple-900/50 transition">
+                        <i class="fa-solid fa-person-walking mr-1"></i> Switch Mode
+                    </button>
+                </div>
+
+                <!-- Voice Visualizer Wave -->
+                <div id="speaking-visualizer" class="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1 px-3 py-1 glass-panel rounded-full border border-pink-500/50 opacity-0 transition-opacity duration-300 pointer-events-none">
+                    <div class="w-1 h-3 bg-pink-500 animate-pulse"></div>
+                    <div class="w-1 h-5 bg-purple-400 animate-pulse" style="animation-delay: 0.1s;"></div>
+                    <div class="w-1 h-2 bg-cyan-400 animate-pulse" style="animation-delay: 0.2s;"></div>
+                    <div class="w-1 h-6 bg-pink-400 animate-pulse" style="animation-delay: 0.15s;"></div>
+                    <span class="text-[9px] font-orbitron text-pink-300 ml-1">VOICE TRANSMITTING</span>
+                </div>
+            </div>
+
+            <!-- QUICK COMMAND CHIPS -->
+            <div class="px-3 py-2 bg-slate-950/90 border-b border-purple-900/30 flex gap-2 overflow-x-auto no-scrollbar z-30">
+                <button class="chip glass-panel px-3 py-1 rounded-full text-[11px] text-purple-200 hover:text-white hover:border-purple-400 transition whitespace-nowrap flex items-center gap-1" data-cmd="Introduce yourself and your AI capabilities.">
+                    <i class="fa-solid fa-sparkles text-purple-400"></i> Introduce
+                </button>
+                <button class="chip glass-panel px-3 py-1 rounded-full text-[11px] text-cyan-200 hover:text-white hover:border-cyan-400 transition whitespace-nowrap flex items-center gap-1" data-cmd="Run a full system status diagnostic scan.">
+                    <i class="fa-solid fa-terminal text-cyan-400"></i> Scan Status
+                </button>
+                <button class="chip glass-panel px-3 py-1 rounded-full text-[11px] text-pink-200 hover:text-white hover:border-pink-400 transition whitespace-nowrap flex items-center gap-1" data-cmd="Tell me a quick cyberpunk mini-story.">
+                    <i class="fa-solid fa-book-skull text-pink-400"></i> Mini Story
+                </button>
+            </div>
+
+            <!-- CHAT INTERFACE LOG -->
+            <div id="chat-container" class="flex-1 p-3 overflow-y-auto space-y-3 z-20 text-xs">
+                <!-- Suki Welcome Message -->
+                <div class="flex gap-2 max-w-[90%]">
+                    <div class="w-7 h-7 rounded-full bg-purple-900/80 border border-purple-400 flex items-center justify-center flex-none text-purple-300 text-[10px] font-bold font-orbitron">
+                        SK
+                    </div>
+                    <div class="glass-panel p-2.5 rounded-2xl rounded-tl-none text-slate-200 leading-relaxed border border-purple-500/30">
+                        <p class="font-bold text-[9px] text-purple-300 font-orbitron mb-0.5">SUKIBOT</p>
+                        Neural link established! I am Suki—your cyberpunk AI companion. Tap the microphone to talk or type below!
+                    </div>
+                </div>
+            </div>
+
+            <!-- INPUT BAR & SPEECH RECOGNITION MIC BUTTON -->
+            <div class="p-2.5 glass-panel border-t border-purple-500/30 flex flex-col gap-1.5 z-30">
+                <form id="input-form" class="flex items-center gap-2">
+                    <button type="button" id="mic-button" class="w-9 h-9 rounded-full bg-purple-900/70 hover:bg-purple-800 border border-purple-500/60 flex items-center justify-center text-purple-300 hover:text-white transition flex-none" title="Speech Input">
+                        <i id="mic-icon" class="fa-solid fa-microphone text-xs"></i>
+                    </button>
+                    
+                    <input type="text" id="chat-input" placeholder="Message Suki..." autocomplete="off" class="flex-1 bg-slate-900/90 border border-purple-900 focus:border-purple-400 rounded-full px-3.5 py-2 text-xs text-slate-100 placeholder-slate-500 outline-none transition" />
+
+                    <button type="submit" class="w-9 h-9 rounded-full bg-purple-600 hover:bg-purple-500 text-white flex items-center justify-center transition flex-none shadow-[0_0_10px_rgba(168,85,247,0.5)]">
+                        <i class="fa-solid fa-paper-plane text-xs"></i>
+                    </button>
+                </form>
+
+                <div id="listening-indicator" class="hidden text-center text-[9px] text-cyan-300 font-orbitron animate-pulse">
+                    <i class="fa-solid fa-wave-square mr-1"></i> Listening for speech...
+                </div>
+            </div>
+
+            <!-- Bottom Device Home Indicator Bar -->
+            <div class="w-full py-1 bg-cyberDark flex justify-center items-center z-30">
+                <div class="w-24 h-1 bg-slate-700/80 rounded-full"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- SETTINGS & CONFIG MODAL -->
+    <div id="config-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-xs rounded-2xl p-4 border border-purple-500/40 space-y-3">
+            <div class="flex justify-between items-center border-b border-purple-900/50 pb-2">
+                <h3 class="font-orbitron text-xs font-bold text-purple-300">
+                    <i class="fa-solid fa-sliders text-cyan-400 mr-1"></i> SUKI CONFIG
+                </h3>
+                <button id="close-config" class="text-slate-400 hover:text-white text-sm"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="space-y-2.5 text-xs">
+                <div>
+                    <label class="block text-slate-300 font-semibold mb-1">Gemini API Key (Optional)</label>
+                    <input type="password" id="gemini-key-input" placeholder="Enter API Key for live AI responses..." class="w-full bg-slate-900 border border-purple-900 rounded-lg p-2 text-slate-200 text-xs outline-none focus:border-purple-400">
+                    <p class="text-[9px] text-slate-400 mt-1">Leave empty to use built-in Suki companion logic.</p>
+                </div>
+
+                <div>
+                    <label class="block text-slate-300 font-semibold mb-1">Voice Selection</label>
+                    <select id="voice-dropdown" class="w-full bg-slate-900 border border-purple-900 rounded-lg p-2 text-slate-200 text-xs outline-none focus:border-purple-400">
+                        <option value="">Default System Voice</option>
+                    </select>
+                </div>
+            </div>
+
+            <button id="save-config" class="w-full py-2 bg-purple-600 hover:bg-purple-500 font-orbitron text-xs font-bold rounded-xl text-white transition shadow-md">
+                SAVE & APPLY
+            </button>
+        </div>
+    </div>
+
+    <!-- MAIN COMPANION SCRIPT -->
+    <script>
+        // --- WEB AUDIO SYNTHESIZER ---
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+
+        function playSound(type) {
+            try {
+                if (!audioCtx) audioCtx = new AudioContext();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+
+                if (type === 'beep') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(800, now);
+                    osc.frequency.exponentialRampToValueAtTime(400, now + 0.08);
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
+                    osc.start(now);
+                    osc.stop(now + 0.08);
+                } else if (type === 'talk') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(320 + Math.random() * 180, now);
+                    gain.gain.setValueAtTime(0.04, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.05);
+                    osc.start(now);
+                    osc.stop(now + 0.05);
+                } else if (type === 'chip') {
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(500, now);
+                    osc.frequency.exponentialRampToValueAtTime(1000, now + 0.06);
+                    gain.gain.setValueAtTime(0.06, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.06);
+                    osc.start(now);
+                    osc.stop(now + 0.06);
+                }
+            } catch(e) {}
+        }
+
+        // --- APP STATE ---
+        let isMuted = false;
+        let isSpeaking = false;
+        let isListening = false;
+        let geminiApiKey = localStorage.getItem('suki_gemini_key') || "";
+        let animState = "WALKING";
+        let sukiX = 60;
+        let sukiY = 190;
+        let sukiDir = 1;
+        let sukiSpeed = 0.85;
+        let frameCount = 0;
+        let selectedVoice = null;
+
+        // --- CANVAS ANIMATION ENGINE ---
+        const canvas = document.getElementById('sukiCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function drawSuki(x, y, dir, frame, state) {
+            ctx.save();
+            ctx.translate(x, y);
+
+            if (dir === -1) {
+                ctx.scale(-1, 1);
+            }
+
+            const bob = state === "WALKING" ? Math.sin(frame * 0.2) * 3 : Math.sin(frame * 0.08) * 1.5;
+            const legSwing = state === "WALKING" ? Math.sin(frame * 0.2) * 10 : 0;
+
+            // Shadow
+            ctx.beginPath();
+            ctx.ellipse(0, 16, 22, 5, 0, 0, Math.PI * 2);
+            ctx.fillStyle = "rgba(168, 85, 247, 0.25)";
+            ctx.fill();
+
+            // Legs & Boots
+            ctx.strokeStyle = "#334155";
+            ctx.lineWidth = 4;
+            ctx.lineCap = "round";
+
+            ctx.beginPath();
+            ctx.moveTo(-5, -8);
+            ctx.lineTo(-5 - legSwing * 0.4, 11);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(5, -8);
+            ctx.lineTo(5 + legSwing * 0.4, 11);
+            ctx.stroke();
+
+            // Boots Pink Accents
+            ctx.fillStyle = "#ec4899";
+            ctx.fillRect(-7 - legSwing * 0.4, 8, 5, 4);
+            ctx.fillRect(3 + legSwing * 0.4, 8, 5, 4);
+
+            // Torso & Cyber Suit
+            ctx.save();
+            ctx.translate(0, bob);
+
+            ctx.fillStyle = "#1e1b4b";
+            ctx.beginPath();
+            ctx.roundRect(-9, -30, 18, 22, 5);
+            ctx.fill();
+            ctx.strokeStyle = "#a855f7";
+            ctx.lineWidth = 1.2;
+            ctx.stroke();
+
+            // Pink Straps
+            ctx.fillStyle = "#ec4899";
+            ctx.fillRect(-4, -25, 8, 2);
+
+            // Back Arm
+            ctx.strokeStyle = "#475569";
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(-9, -26);
+            ctx.lineTo(-14, -14);
+            ctx.stroke();
+
+            // Front Arm holding Orb
+            ctx.strokeStyle = "#94a3b8";
+            ctx.beginPath();
+            ctx.moveTo(7, -26);
+            ctx.lineTo(15, -20);
+            ctx.stroke();
+
+            // Glowing Purple Energy Orb
+            const orbPulse = isSpeaking ? 1 + Math.sin(frame * 0.35) * 0.3 : 1 + Math.sin(frame * 0.1) * 0.1;
+            const orbX = 20;
+            const orbY = -22;
+
+            const orbGrad = ctx.createRadialGradient(orbX, orbY, 2, orbX, orbY, 13 * orbPulse);
+            orbGrad.addColorStop(0, "rgba(236, 72, 153, 0.95)");
+            orbGrad.addColorStop(0.5, "rgba(168, 85, 247, 0.6)");
+            orbGrad.addColorStop(1, "rgba(168, 85, 247, 0)");
+
+            ctx.fillStyle = orbGrad;
+            ctx.beginPath();
+            ctx.arc(orbX, orbY, 14 * orbPulse, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = "#f472b6";
+            ctx.beginPath();
+            ctx.arc(orbX, orbY, 4.5 * orbPulse, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Head & Skin
+            ctx.fillStyle = "#fed7aa";
+            ctx.beginPath();
+            ctx.arc(0, -40, 10, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Eyes & Cyber Markings
+            ctx.fillStyle = "#a855f7";
+            ctx.fillRect(2, -42, 2.5, 2.5);
+            ctx.fillRect(-4.5, -42, 2.5, 2.5);
+
+            ctx.strokeStyle = "#ec4899";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(3, -44);
+            ctx.lineTo(3, -38);
+            ctx.stroke();
+
+            // Cat Ears
+            ctx.fillStyle = "#0f172a";
+            ctx.beginPath();
+            ctx.moveTo(-8, -47);
+            ctx.lineTo(-13, -59);
+            ctx.lineTo(-2, -49);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.moveTo(2, -49);
+            ctx.lineTo(11, -59);
+            ctx.lineTo(8, -47);
+            ctx.fill();
+
+            // Inner Ear Neon Pink
+            ctx.fillStyle = "#ec4899";
+            ctx.beginPath();
+            ctx.moveTo(-7, -48);
+            ctx.lineTo(-10, -55);
+            ctx.lineTo(-4, -49);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.moveTo(3, -49);
+            ctx.lineTo(8, -55);
+            ctx.lineTo(6, -48);
+            ctx.fill();
+
+            // Purple Braided Hair
+            ctx.fillStyle = "#9333ea";
+            ctx.beginPath();
+            ctx.arc(0, -43, 11, Math.PI, Math.PI * 2);
+            ctx.fill();
+
+            // Braids Animation
+            const braidSway = Math.sin(frame * 0.15) * 2;
+            ctx.fillStyle = "#c084fc";
+            
+            // Left Braid
+            ctx.beginPath();
+            ctx.roundRect(-13, -40, 4.5, 22 + braidSway, 2.5);
+            ctx.fill();
+
+            // Right Braid
+            ctx.beginPath();
+            ctx.roundRect(8.5, -40, 4.5, 22 - braidSway, 2.5);
+            ctx.fill();
+
+            // Hair Highlights
+            ctx.fillStyle = "#f472b6";
+            ctx.fillRect(-13, -34, 4.5, 2.5);
+            ctx.fillRect(8.5, -34, 4.5, 2.5);
+
+            ctx.restore();
+            ctx.restore();
+        }
+
+        function drawStage() {
+            const w = canvas.width;
+            const h = canvas.height;
+
+            // Background Grid Lines
+            ctx.strokeStyle = "rgba(168, 85, 247, 0.12)";
+            ctx.lineWidth = 1;
+            for (let i = 0; i < w; i += 20) {
+                ctx.beginPath();
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i, h);
+                ctx.stroke();
+            }
+
+            // Platform Base
+            const platY = 200;
+            ctx.fillStyle = "rgba(15, 23, 42, 0.95)";
+            ctx.beginPath();
+            ctx.roundRect(15, platY, w - 30, 18, 8);
+            ctx.fill();
+
+            ctx.strokeStyle = "#a855f7";
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            // LED Nodes
+            ctx.fillStyle = "#06b6d4";
+            ctx.beginPath();
+            ctx.arc(30, platY + 9, 2.5, 0, Math.PI * 2);
+            ctx.arc(w - 30, platY + 9, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function animLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawStage();
+
+            if (animState === "WALKING") {
+                sukiX += sukiSpeed * sukiDir;
+                const minX = 45;
+                const maxX = canvas.width - 45;
+
+                if (sukiX > maxX) {
+                    sukiX = maxX;
+                    sukiDir = -1;
+                } else if (sukiX < minX) {
+                    sukiX = minX;
+                    sukiDir = 1;
+                }
+            }
+
+            frameCount++;
+            drawSuki(sukiX, sukiY, sukiDir, frameCount, animState);
+
+            requestAnimationFrame(animLoop);
+        }
+        animLoop();
+
+        function toggleAnim() {
+            playSound('chip');
+            if (animState === "WALKING") {
+                animState = "IDLE";
+                document.getElementById('mode-badge').innerText = "IDLE MODE";
+            } else {
+                animState = "WALKING";
+                document.getElementById('mode-badge').innerText = "WALKING MODE";
+            }
+        }
+        canvas.addEventListener('click', toggleAnim);
+        document.getElementById('toggle-anim-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleAnim();
         });
 
-        const data = await response.json();
+        // --- SPEECH SYNTHESIS ENGINE ---
+        const synth = window.speechSynthesis;
 
-        if (!response.ok) {
-          throw new Error(data.error?.message || 'API request failed');
+        function loadVoices() {
+            if (!synth) return;
+            const voices = synth.getVoices();
+            const dropdown = document.getElementById('voice-dropdown');
+            dropdown.innerHTML = '<option value="">Default System Voice</option>';
+
+            voices.forEach((v, index) => {
+                const opt = document.createElement('option');
+                opt.value = index;
+                opt.textContent = `${v.name} (${v.lang})`;
+                if (v.name.includes('Female') || v.name.includes('Samantha') || v.name.includes('Zira') || v.name.includes('Google US English')) {
+                    opt.selected = true;
+                    selectedVoice = v;
+                }
+                dropdown.appendChild(opt);
+            });
+        }
+        if (synth) {
+            synth.onvoiceschanged = loadVoices;
+            loadVoices();
         }
 
-        const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response generated.';
-        appendMessage(reply, 'suki');
-        conversationHistory.push({ role: 'model', parts: [{ text: reply }] });
-        statusField.textContent = 'Ready';
-      } catch (error) {
-        appendMessage(`Error: ${error.message}`, 'suki');
-        statusField.textContent = 'Error connecting to brain.';
-      }
-    });
+        function speak(text) {
+            if (isMuted || !synth) return;
+            synth.cancel();
 
-    function appendMessage(text, sender) {
-      const msg = document.createElement('div');
-      msg.className = `suki-chat-message ${sender}`;
-      msg.textContent = text;
-      chatLog.appendChild(msg);
-      chatLog.scrollTop = chatLog.scrollHeight;
-    }
-  </script>
+            const cleanText = text.replace(/[*_#~`]/g, '');
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+
+            if (selectedVoice) utterance.voice = selectedVoice;
+            utterance.pitch = 1.15;
+            utterance.rate = 1.0;
+
+            const vis = document.getElementById('speaking-visualizer');
+
+            utterance.onstart = () => {
+                isSpeaking = true;
+                vis.classList.remove('opacity-0');
+            };
+            utterance.onend = () => {
+                isSpeaking = false;
+                vis.classList.add('opacity-0');
+            };
+            utterance.onerror = () => {
+                isSpeaking = false;
+                vis.classList.add('opacity-0');
+            };
+
+            synth.speak(utterance);
+        }
+
+        // --- SPEECH RECOGNITION (MIC INPUT) ---
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const micBtn = document.getElementById('mic-button');
+        const listeningInd = document.getElementById('listening-indicator');
+        let recognition = null;
+
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = () => {
+                isListening = true;
+                playSound('beep');
+                micBtn.classList.add('bg-pink-600', 'mic-listening');
+                listeningInd.classList.remove('hidden');
+            };
+
+            recognition.onend = () => {
+                isListening = false;
+                micBtn.classList.remove('bg-pink-600', 'mic-listening');
+                listeningInd.classList.add('hidden');
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                if (transcript.trim()) {
+                    document.getElementById('chat-input').value = transcript;
+                    handleSend(transcript);
+                }
+            };
+
+            micBtn.addEventListener('click', () => {
+                if (isListening) {
+                    recognition.stop();
+                } else {
+                    recognition.start();
+                }
+            });
+        } else {
+            micBtn.title = "Speech Recognition unavailable in browser";
+            micBtn.classList.add('opacity-40', 'cursor-not-allowed');
+        }
+
+        // --- AI LOGIC CORE ---
+        const SUKI_SYSTEM_PROMPT = `You are SukiBot, a witty cyberpunk AI companion with an anime aesthetic. You have purple braided hair, cat ears, and hold a glowing purple orb. Keep responses brief, friendly, and under 3 sentences.`;
+
+        async function getSukiResponse(promptText) {
+            if (geminiApiKey) {
+                try {
+                    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${geminiApiKey}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{ parts: [{ text: promptText }] }],
+                            systemInstruction: { parts: [{ text: SUKI_SYSTEM_PROMPT }] }
+                        })
+                    });
+                    const data = await res.json();
+                    if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
+                        return data.candidates[0].content.parts[0].text;
+                    }
+                } catch (e) {
+                    console.warn("Gemini API fallback to local companion logic.", e);
+                }
+            }
+
+            // Local Cyberpunk Companion Response Logic
+            const text = promptText.toLowerCase();
+            if (text.includes('intro') || text.includes('who are you')) {
+                return "I'm SukiBot! Your cyberpunk AI companion. Powered by neural cores, cat-ear sensors, and a glowing energy orb!";
+            } else if (text.includes('diagnostic') || text.includes('status') || text.includes('scan')) {
+                return "Running neural diagnostics... Core memory online. Orb frequency stable. All systems nominal, Netrunner!";
+            } else if (text.includes('story')) {
+                return "Rain slicked Sector 9's neon streets as we bypassed the security node. 'Orb ready,' I whispered as the grid unlocked...";
+            } else if (text.includes('hello') || text.includes('hi')) {
+                return "Greetings, Netrunner! Neural link active. What project are we hacking into today?";
+            } else {
+                const replies = [
+                    "Neural query logged! Synchronized and standing by for input.",
+                    "Fascinating idea! My core processing matrix is calculating options.",
+                    "Link confirmed! Ready for your next command, Netrunner."
+                ];
+                return replies[Math.floor(Math.random() * replies.length)];
+            }
+        }
+
+        // --- CHAT INTERFACE LOGIC ---
+        const chatContainer = document.getElementById('chat-container');
+        const inputForm = document.getElementById('input-form');
+        const chatInput = document.getElementById('chat-input');
+
+        function appendMessage(sender, text) {
+            const isUser = sender === 'user';
+            const msg = document.createElement('div');
+            msg.className = `flex gap-2 ${isUser ? 'justify-end' : 'max-w-[90%]'}`;
+
+            if (isUser) {
+                msg.innerHTML = `
+                    <div class="bg-purple-600 text-white p-2.5 rounded-2xl rounded-tr-none leading-relaxed max-w-[85%]">
+                        ${escapeText(text)}
+                    </div>
+                `;
+            } else {
+                msg.innerHTML = `
+                    <div class="w-7 h-7 rounded-full bg-purple-900/80 border border-purple-400 flex items-center justify-center flex-none text-purple-300 text-[10px] font-bold font-orbitron">
+                        SK
+                    </div>
+                    <div class="glass-panel p-2.5 rounded-2xl rounded-tl-none border border-purple-500/30 text-slate-200 leading-relaxed">
+                        <p class="font-bold text-[9px] text-purple-300 font-orbitron mb-0.5">SUKIBOT</p>
+                        ${escapeText(text)}
+                    </div>
+                `;
+            }
+
+            chatContainer.appendChild(msg);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function escapeText(str) {
+            return str.replace(/[&<>"']/g, (m) => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+            })[m]);
+        }
+
+        async function handleSend(text) {
+            if (!text.trim()) return;
+
+            playSound('talk');
+            appendMessage('user', text);
+            chatInput.value = '';
+
+            // Typing Indicator
+            const typing = document.createElement('div');
+            typing.id = 'typing';
+            typing.className = 'flex gap-2 max-w-[90%]';
+            typing.innerHTML = `
+                <div class="w-7 h-7 rounded-full bg-purple-900/80 border border-purple-400 flex items-center justify-center text-purple-300 text-[10px] font-bold font-orbitron">SK</div>
+                <div class="glass-panel p-2.5 rounded-2xl rounded-tl-none text-purple-300 font-orbitron flex items-center gap-1.5 border border-purple-500/30">
+                    <i class="fa-solid fa-spinner animate-spin"></i> Suki processing...
+                </div>
+            `;
+            chatContainer.appendChild(typing);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            const response = await getSukiResponse(text);
+
+            const typeEl = document.getElementById('typing');
+            if (typeEl) typeEl.remove();
+
+            appendMessage('suki', response);
+            speak(response);
+        }
+
+        inputForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            handleSend(chatInput.value);
+        });
+
+        // Quick Chip Commands
+        document.querySelectorAll('.chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                playSound('chip');
+                handleSend(chip.getAttribute('data-cmd'));
+            });
+        });
+
+        // Header Action Listeners
+        document.getElementById('clear-btn').addEventListener('click', () => {
+            playSound('beep');
+            chatContainer.innerHTML = '';
+            appendMessage('suki', 'Log cleared. Standing by for new commands!');
+        });
+
+        document.getElementById('mute-btn').addEventListener('click', () => {
+            isMuted = !isMuted;
+            const icon = document.getElementById('mute-icon');
+            if (isMuted) {
+                icon.className = 'fa-solid fa-volume-xmark text-slate-500';
+                if (synth) synth.cancel();
+            } else {
+                icon.className = 'fa-solid fa-volume-high text-purple-400';
+            }
+            playSound('beep');
+        });
+
+        // Configuration Modal Controls
+        const modal = document.getElementById('config-modal');
+        const keyInput = document.getElementById('gemini-key-input');
+        if (geminiApiKey) keyInput.value = geminiApiKey;
+
+        document.getElementById('config-btn').addEventListener('click', () => {
+            playSound('beep');
+            modal.classList.remove('hidden');
+        });
+        document.getElementById('close-config').addEventListener('click', () => modal.classList.add('hidden'));
+        document.getElementById('save-config').addEventListener('click', () => {
+            playSound('beep');
+            geminiApiKey = keyInput.value.trim();
+            localStorage.setItem('suki_gemini_key', geminiApiKey);
+
+            const voiceIdx = document.getElementById('voice-dropdown').value;
+            if (voiceIdx !== "" && synth) {
+                selectedVoice = synth.getVoices()[voiceIdx];
+            }
+            modal.classList.add('hidden');
+        });
+
+        // Live Dynamic Clock
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock-display').innerText = 
+                `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+    </script>
 </body>
 </html>
