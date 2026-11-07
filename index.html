@@ -1,10 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script src="suki-renderer.css" ></script> <!-- If loaded dynamically or via JS -->
-<script src="suki-audio.js"></script>
-<script src="suki-walker.js"></script>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -380,7 +376,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT WITH FULLY REPAIRED AUDIO & VOICE ENGINE -->
+    <!-- SCRIPT ENGINE -->
     <script>
         // Clock updater
         setInterval(() => {
@@ -443,7 +439,7 @@
             document.getElementById('pitch-val-text').innerText = parseFloat(e.target.value).toFixed(2) + 'x';
         });
 
-        // Robust Web Audio Context Setup (Ensures 100% iOS & Browser Compatibility)
+        // Robust Web Audio Context Setup
         let audioCtx = null;
         let isMuted = false;
 
@@ -460,7 +456,6 @@
             return audioCtx;
         }
 
-        // Play Cyber Sci-Fi UI Click Sound
         function playCyberClickSound() {
             if (isMuted) return;
             try {
@@ -487,7 +482,6 @@
             }
         }
 
-        // Unlock audio on initial user interaction for mobile browsers
         function unlockAudio() {
             getAudioContext();
             window.removeEventListener('touchstart', unlockAudio);
@@ -496,7 +490,6 @@
         window.addEventListener('touchstart', unlockAudio, { once: true });
         window.addEventListener('click', unlockAudio, { once: true });
 
-        // Toggle Mute Audio Button
         document.getElementById('toggle-audio-btn').addEventListener('click', () => {
             isMuted = !isMuted;
             const icon = document.getElementById('audio-icon');
@@ -509,12 +502,10 @@
             }
         });
 
-        // Trigger Suki Response (Dialogue + Speech Synthesis + Equalizer Bounce)
         function triggerSukiResponse(text) {
             document.getElementById('dialogue-box').innerText = text;
             playCyberClickSound();
 
-            // Activate Equalizer Visual Bounce
             const eqContainer = document.getElementById('equalizer-container');
             eqContainer.classList.add('speaking-active');
             window.isAvatarSpeaking = true;
@@ -538,7 +529,6 @@
 
                 window.speechSynthesis.speak(utterance);
                 
-                // Fallback timeout in case utterance events fail on mobile Safari
                 setTimeout(() => {
                     eqContainer.classList.remove('speaking-active');
                     window.isAvatarSpeaking = false;
@@ -551,7 +541,6 @@
             }
         }
 
-        // Interactive Avatar Click
         document.getElementById('avatar-container').addEventListener('click', () => {
             triggerSukiResponse("Neural link confirmed! Plasma katana and cyber-armor systems fully online.");
         });
@@ -574,7 +563,7 @@
             triggerSukiResponse(`Executing command: "${val}". All combat parameters optimal.`);
         }
 
-        // Speech Recognition (Microphone Button Integration)
+        // Speech Recognition Setup
         const micBtn = document.getElementById('mic-btn');
         let recognition = null;
         let isListening = false;
@@ -627,9 +616,10 @@
             }
         });
 
-        // HIGH-FIDELITY CYBER-NINJA CANVAS AVATAR ENGINE (ROBUST DPR SCALING FOR IPHONE 17)
+        // HIGH-FIDELITY CYBER-NINJA CANVAS AVATAR ENGINE
         function initSukiAvatarEngine() {
             const canvas = document.getElementById('suki-avatar-canvas');
+            if (!canvas) return;
             const ctx = canvas.getContext('2d');
             let frameCount = 0;
             let lastTime = performance.now();
@@ -637,6 +627,7 @@
 
             function resizeCanvas() {
                 const parent = canvas.parentElement;
+                if (!parent) return;
                 const width = parent.clientWidth;
                 const height = parent.clientHeight;
                 const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -657,6 +648,15 @@
                 const height = canvas.parentElement.clientHeight;
                 ctx.clearRect(0, 0, width, height);
 
+                // FPS Counter Update
+                frameCount++;
+                if (timestamp - lastTime >= 1000) {
+                    const fpsEl = document.getElementById('fps-counter');
+                    if (fpsEl) fpsEl.innerText = `FPS: ${frameCount}`;
+                    frameCount = 0;
+                    lastTime = timestamp;
+                }
+
                 const time = timestamp * 0.003;
                 const hoverOffset = Math.sin(time * 1.5) * 6;
                 const breathOffset = Math.sin(time * 2) * 2;
@@ -666,7 +666,7 @@
                 ctx.save();
                 ctx.translate(cx, cy);
 
-                // 1. CYBER ENERGY AURA / HOLOGRAM BASE
+                // 1. CYBER ENERGY AURA
                 const gradient = ctx.createRadialGradient(0, 0, 10, 0, 0, 110);
                 gradient.addColorStop(0, 'rgba(168, 85, 247, 0.25)');
                 gradient.addColorStop(0.7, 'rgba(236, 72, 153, 0.1)');
@@ -704,7 +704,7 @@
                 ctx.lineWidth = 2;
                 ctx.stroke();
 
-                // Chest Core Reactor / LED
+                // Chest Reactor
                 ctx.beginPath();
                 ctx.arc(0, 42, 7, 0, Math.PI * 2);
                 ctx.fillStyle = '#ff2a8d';
@@ -740,7 +740,7 @@
                 ctx.lineWidth = 2;
                 ctx.stroke();
 
-                // Cyber Visor / Glowing Anime Eyes
+                // Cyber Visor / Glowing Eyes
                 ctx.fillStyle = '#00f0ff';
                 ctx.shadowColor = '#00f0ff';
                 ctx.shadowBlur = 12;
@@ -759,7 +759,7 @@
                 ctx.lineTo(20, -13);
                 ctx.stroke();
 
-                // Cute Anime Mouth
+                // Anime Mouth
                 ctx.strokeStyle = '#db2777';
                 ctx.lineWidth = 2;
                 ctx.beginPath();
@@ -825,4 +825,23 @@
                 ctx.beginPath();
                 ctx.moveTo(-32, -22);
                 ctx.quadraticCurveTo(-22, -38, 0, -42);
-                ctx.quadraticCurveTo(-15, -30, -25, -12);
+                ctx.quadraticCurveTo(22, -38, 32, -22);
+                ctx.quadraticCurveTo(38, -5, 30, 15);
+                ctx.quadraticCurveTo(0, 8, -30, 15);
+                ctx.quadraticCurveTo(-38, -5, -32, -22);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+
+                ctx.restore();
+                ctx.restore();
+
+                requestAnimationFrame(renderAvatar);
+            }
+
+            requestAnimationFrame(renderAvatar);
+        }
+
+        window.addEventListener('load', initSukiAvatarEngine);
+    </script>
+</body>
+</html>
