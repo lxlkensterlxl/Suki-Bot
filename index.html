@@ -248,4 +248,274 @@
                         01100011 01111001 01100011 01100101 01110011
                     </div>
 
-                    <!-- Interactive 2D
+                    <!-- Interactive Avatar Canvas -->
+                    <div class="absolute inset-0 flex items-center justify-center z-10">
+                        <canvas id="avatar-canvas" class="w-full h-full object-contain"></canvas>
+                    </div>
+
+                    <!-- Top Avatar Stats Overlay -->
+                    <div class="relative z-20 p-2.5 flex justify-between items-start pointer-events-none">
+                        <div class="bg-black/70 border border-purple-500/40 px-2 py-1 rounded text-[9px] font-mono text-cyan-300 backdrop-blur-sm">
+                            <div>AVATAR: <span class="text-pink-400">SUKI-V3</span></div>
+                            <div>STATE: <span id="avatar-state-text" class="text-emerald-400">IDLE // READY</span></div>
+                        </div>
+                        <div class="bg-black/70 border border-pink-500/40 px-2 py-1 rounded text-[9px] font-mono text-pink-300 text-right backdrop-blur-sm">
+                            <div>MODEL: <span class="text-cyan-400">WEB-LLM LOCAL</span></div>
+                            <div id="fps-counter" class="text-emerald-400">FPS: 60</div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Equalizer & Dialogue HUD Box -->
+                    <div class="relative z-20 p-2.5 bg-black/80 border-t border-purple-500/40 backdrop-blur-md flex flex-col gap-1.5">
+                        <div class="flex items-center justify-between text-[10px] font-mono">
+                            <span id="dialogue-speaker" class="text-pink-400 font-bold tracking-wider">&gt; SUKI_AI:</span>
+                            <div id="equalizer-container" class="flex gap-1 items-end h-3">
+                                <span class="w-1 bg-cyan-400 equalizer-bar"></span>
+                                <span class="w-1 bg-pink-500 equalizer-bar" style="animation-delay: 0.1s"></span>
+                                <span class="w-1 bg-purple-500 equalizer-bar" style="animation-delay: 0.2s"></span>
+                                <span class="w-1 bg-cyan-400 equalizer-bar" style="animation-delay: 0.3s"></span>
+                            </div>
+                        </div>
+                        <div id="dialogue-box" class="text-xs font-rajdhani text-slate-200 tracking-wide min-h-[32px] max-h-[48px] overflow-y-auto">
+                            Initializing neural connection... Welcome back, Operator. Ready for tactical input.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SYSTEM METRICS & STATUS PANEL -->
+                <div class="grid grid-cols-3 gap-2">
+                    <div class="hud-card rounded-lg p-2 text-center cyber-corner">
+                        <div class="text-[9px] font-mono text-purple-400">VRAM / RAM</div>
+                        <div id="vram-status" class="text-xs font-orbitron font-bold text-cyan-300 mt-0.5">LOCAL READY</div>
+                    </div>
+                    <div class="hud-card rounded-lg p-2 text-center cyber-corner">
+                        <div class="text-[9px] font-mono text-purple-400">ENGINE STATUS</div>
+                        <div id="engine-status" class="text-xs font-orbitron font-bold text-emerald-400 mt-0.5">STANDBY</div>
+                    </div>
+                    <div class="hud-card rounded-lg p-2 text-center cyber-corner">
+                        <div class="text-[9px] font-mono text-purple-400">LATENCY</div>
+                        <div id="latency-status" class="text-xs font-orbitron font-bold text-pink-400 mt-0.5">-- ms</div>
+                    </div>
+                </div>
+
+                <!-- CHAT LOG / CONVERSATION FEED -->
+                <div id="chat-feed" class="hud-card rounded-xl p-3 space-y-2.5 max-h-48 overflow-y-auto cyber-corner">
+                    <div class="flex items-start gap-2 text-xs">
+                        <span class="font-mono text-pink-500 font-bold">&gt;</span>
+                        <div class="text-slate-300 font-rajdhani leading-relaxed">
+                            <span class="text-cyan-400 font-mono text-[10px] block">SYSTEM // 00:00:00</span>
+                            SukiBot fully loaded. Speak or type your request below.
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- INTERACTIVE INPUT FOOTER -->
+            <div class="p-2.5 bg-black/90 border-t border-pink-500/40 z-30 flex flex-col gap-2">
+                <div class="flex items-center gap-2">
+                    <button id="mic-btn" title="Toggle Voice Recognition" class="w-10 h-10 rounded-xl bg-purple-950/80 border border-pink-500/50 flex items-center justify-center text-pink-400 hover:bg-pink-600/20 transition-all">
+                        <i class="fa-solid fa-microphone text-sm"></i>
+                    </button>
+                    
+                    <div class="relative flex-1">
+                        <input type="text" id="user-input" placeholder="Enter command or query..." class="w-full bg-purple-950/30 border border-purple-500/40 rounded-xl px-3 py-2 text-xs font-rajdhani text-slate-100 placeholder-purple-400/50 focus:outline-none focus:border-cyan-400 transition-all">
+                    </div>
+
+                    <button id="send-btn" title="Send Message" class="w-10 h-10 rounded-xl bg-gradient-to-r from-pink-600 to-purple-600 border border-pink-400/60 flex items-center justify-center text-white hover:brightness-110 transition-all shadow-[0_0_10px_rgba(255,42,141,0.4)]">
+                        <i class="fa-solid fa-paper-plane text-xs"></i>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- SETTINGS MODAL -->
+    <div id="settings-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="hud-card w-full max-w-sm rounded-2xl p-5 border border-pink-500/60 cyber-corner space-y-4">
+            <div class="flex justify-between items-center border-b border-purple-500/40 pb-2">
+                <h3 class="font-orbitron font-bold text-sm text-cyan-400 tracking-wider">HUD CONFIGURATION</h3>
+                <button onclick="closeSettingsModal()" class="text-pink-400 hover:text-pink-300"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="space-y-3 text-xs font-rajdhani">
+                <div>
+                    <label class="block font-mono text-[10px] text-purple-300 mb-1">LLM MODEL SELECTION</label>
+                    <select id="model-select" class="w-full bg-black border border-purple-500/50 rounded-lg p-2 text-slate-200 font-mono text-xs">
+                        <option value="Llama-3-8B-Instruct-q4f32_1-MLC">Llama-3-8B-Instruct (Default)</option>
+                        <option value="Phi-3-mini-4k-instruct-q4f32_1-MLC">Phi-3-mini-4k-instruct (Fast)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-mono text-[10px] text-purple-300 mb-1">VOICE SYNTHESIS SPEED</label>
+                    <input type="range" id="speech-speed" min="0.5" max="2.0" step="0.1" value="1.0" class="w-full accent-pink-500">
+                </div>
+            </div>
+            <div class="flex justify-end pt-2">
+                <button onclick="closeSettingsModal()" class="px-4 py-1.5 bg-pink-600 hover:bg-pink-500 text-white rounded-lg font-orbitron text-xs shadow-[0_0_10px_rgba(255,42,141,0.4)]">SAVE & CLOSE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN APP SCRIPT -->
+    <script>
+        // Clock updater
+        setInterval(() => {
+            const now = new Date();
+            const timeString = now.toTimeString().split(' ')[0].substring(0, 5);
+            document.getElementById('clock-display').innerText = timeString;
+        }, 1000);
+
+        // Modal Controls
+        function openSettingsModal() {
+            document.getElementById('settings-modal').classList.remove('hidden');
+        }
+        function closeSettingsModal() {
+            document.getElementById('settings-modal').classList.add('hidden');
+        }
+
+        // Canvas Avatar & Animation Loop
+        const canvas = document.getElementById('avatar-canvas');
+        const ctx = canvas.getContext('2d');
+        let frameCount = 0;
+        let lastTime = performance.now();
+        let isSpeaking = false;
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function drawAvatar() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            const time = Date.now() * 0.003;
+
+            // Cybernetic Glow Ring
+            ctx.beginPath();
+            ctx.arc(cx, cy - 10, 75 + Math.sin(time) * 3, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(0, 240, 255, 0.25)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Anime Head Outline (Cybernetic Style)
+            ctx.fillStyle = '#150d2a';
+            ctx.strokeStyle = '#ff2a8d';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.arc(cx, cy - 10, 55, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            // Eyes
+            const eyeOffset = 18;
+            const blink = Math.sin(Date.now() * 0.002) > 0.95 ? 2 : 10;
+            
+            // Left Eye
+            ctx.fillStyle = '#00f0ff';
+            ctx.fillRect(cx - eyeOffset - 8, cy - 22, 16, blink);
+            // Right Eye
+            ctx.fillRect(cx + eyeOffset - 8, cy - 22, 16, blink);
+
+            // Mouth / Viseme Animation
+            ctx.strokeStyle = '#ff2a8d';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            if (isSpeaking) {
+                const mouthOpen = 4 + Math.sin(Date.now() * 0.02) * 6;
+                ctx.ellipse(cx, cy + 15, 8, mouthOpen, 0, 0, Math.PI * 2);
+                ctx.fillStyle = '#ff2a8d';
+                ctx.fill();
+            } else {
+                ctx.arc(cx, cy + 12, 10, 0, Math.PI);
+            }
+            ctx.stroke();
+
+            // FPS Calculation
+            frameCount++;
+            const now = performance.now();
+            if (now - lastTime >= 1000) {
+                document.getElementById('fps-counter').innerText = `FPS: ${frameCount}`;
+                frameCount = 0;
+                lastTime = now;
+            }
+
+            requestAnimationFrame(drawAvatar);
+        }
+        requestAnimationFrame(drawAvatar);
+
+        // Simulation triggers for testing dialogue & audio reaction
+        function triggerSukiResponse(text) {
+            document.getElementById('dialogue-box').innerText = text;
+            isSpeaking = true;
+            document.getElementById('equalizer-container').classList.add('speaking-active');
+            
+            // Add to chat feed
+            const feed = document.getElementById('chat-feed');
+            feed.innerHTML += `
+                <div class="flex items-start gap-2 text-xs">
+                    <span class="font-mono text-cyan-400 font-bold">&gt;</span>
+                    <div class="text-slate-300 font-rajdhani leading-relaxed">
+                        <span class="text-pink-400 font-mono text-[10px] block">SUKI // RESPONSE</span>
+                        ${text}
+                    </div>
+                </div>
+            `;
+            feed.scrollTop = feed.scrollHeight;
+
+            setTimeout(() => {
+                isSpeaking = false;
+                document.getElementById('equalizer-container').classList.remove('speaking-active');
+            }, 3500);
+        }
+
+        // Event Listeners for input
+        document.getElementById('send-btn').addEventListener('click', () => {
+            const input = document.getElementById('user-input');
+            if (!input.value.trim()) return;
+            
+            const val = input.value;
+            input.value = '';
+            
+            // Log user message
+            const feed = document.getElementById('chat-feed');
+            feed.innerHTML += `
+                <div class="flex items-start gap-2 text-xs">
+                    <span class="font-mono text-emerald-400 font-bold">&gt;</span>
+                    <div class="text-slate-300 font-rajdhani leading-relaxed">
+                        <span class="text-cyan-400 font-mono text-[10px] block">OPERATOR</span>
+                        ${val}
+                    </div>
+                </div>
+            `;
+            feed.scrollTop = feed.scrollHeight;
+
+            // Simulate AI reply
+            setTimeout(() => {
+                triggerSukiResponse(`Analyzing query: "${val}". Neural web parameters stable. All systems nominal.`);
+            }, 600);
+        });
+
+        document.getElementById('user-input').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') document.getElementById('send-btn').click();
+        });
+
+        // Microphone Button toggle state
+        let micActive = false;
+        document.getElementById('mic-btn').addEventListener('click', () => {
+            micActive = !micActive;
+            const btn = document.getElementById('mic-btn');
+            if (micActive) {
+                btn.classList.add('mic-listening');
+                triggerSukiResponse("Audio recording active. Speak your command...");
+            } else {
+                btn.classList.remove('mic-listening');
+            }
+        });
+    </script>
+</body>
+</html>
