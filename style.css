@@ -1,16 +1,47 @@
-
-/* Avatar canvas sizing and fallback-compatible display. */
-.avatar {
-  display: block;
-  width: 96px;
-  height: 96px;
-  flex: 0 0 auto;
-  border-radius: 18px;
+#suki-walker {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    width: 100px;
+    height: 100px;
+    z-index: 9999;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.2s ease;
+    filter: drop-shadow(0 0 10px rgba(189, 0, 255, 0.7));
 }
 
-@media (max-width: 430px) {
-  .avatar {
-    width: 76px;
-    height: 76px;
-  }
+#suki-walker img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 2px solid #bd00ff;
+    object-fit: cover;
+    animation: suki-bob 2s ease-in-out infinite;
+}
+
+/* Floating / Walking Bobbing Effect */
+@keyframes suki-bob {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-8px) rotate(2deg); }
+}
+
+/* Speech Bubble for Suki's Quips */
+#suki-speech {
+    position: fixed;
+    bottom: 130px;
+    left: 20px;
+    background: rgba(15, 5, 25, 0.9);
+    border: 1px solid #bd00ff;
+    color: #f3e7ff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-family: monospace;
+    font-size: 12px;
+    max-width: 180px;
+    z-index: 10000;
+    box-shadow: 0 0 12px rgba(189, 0, 255, 0.4);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
 }
