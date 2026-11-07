@@ -504,11 +504,45 @@
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
+        function triggerSukiResponse(text) {
+            document.getElementById('dialogue-box').innerText = text;
+            if (!isMuted && 'speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.volume = speechVolume;
+                utterance.rate = parseFloat(document.getElementById('speech-speed').value);
+                utterance.pitch = 1.2;
+                if (selectedVoice) utterance.voice = selectedVoice;
+                
+                utterance.onstart = () => { avatarState.isSpeaking = true; };
+                utterance.onend = () => { avatarState.isSpeaking = false; };
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
         // Canvas Click Listener for Interactive Gesture
         canvas.addEventListener('click', () => {
             avatarState.earTwitch = 1.0;
             triggerSukiResponse("Ninja sensor triggered! Cybernetic suit and katana fully powered up.");
         });
+
+        document.getElementById('send-btn').addEventListener('click', handleUserSubmit);
+        document.getElementById('user-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleUserSubmit();
+        });
+
+        function handleUserSubmit() {
+            const input = document.getElementById('user-input');
+            const val = input.value.trim();
+            if (!val) return;
+
+            const feed = document.getElementById('chat-feed');
+            feed.innerHTML += `<div class="flex items-start gap-2 text-xs"><span class="font-mono text-cyan-400 font-bold">&gt;</span><div class="text-slate-200 font-rajdhani leading-relaxed">${val}</div></div>`;
+            feed.scrollTop = feed.scrollHeight;
+            input.value = '';
+
+            triggerSukiResponse(`Processing command: "${val}". Systems operating at peak efficiency.`);
+        }
 
         // Helper function to draw a 6-pointed purple ninja star (Shuriken)
         function drawShuriken(cx, cy, radius, angle) {
@@ -528,7 +562,6 @@
             }
             ctx.closePath();
 
-            // Metallic/Neon Fill & Glow
             const shurikenGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, radius);
             shurikenGrad.addColorStop(0, '#ffffff');
             shurikenGrad.addColorStop(0.3, '#ec4899');
@@ -541,7 +574,6 @@
             ctx.lineWidth = 1.2;
             ctx.stroke();
 
-            // Center Ring Hole
             ctx.beginPath();
             ctx.arc(0, 0, radius * 0.18, 0, Math.PI * 2);
             ctx.fillStyle = '#06030c';
@@ -564,10 +596,8 @@
             const dt = 0.016;
             const time = timestamp * 0.002;
 
-            // Spin Shuriken
             avatarState.shurikenSpin += 0.15;
 
-            // Update Locomotion Matrix
             if (avatarState.locomotionMode === 'pacing') {
                 avatarState.walkPhase += 0.065;
                 avatarState.posX += avatarState.direction * 0.45;
@@ -579,7 +609,6 @@
                 avatarState.walkPhase += 0.02;
             }
 
-            // Blink & Ear Logic
             avatarState.blinkTimer += dt;
             if (avatarState.blinkTimer > 3.5) {
                 avatarState.eyeBlink = 0;
@@ -594,27 +623,21 @@
 
             avatarState.tailPhase += 0.04;
 
-            // Procedural Posture Transforms
             const walkSin = Math.sin(avatarState.walkPhase);
-            const breath = Math.sin(time * 1.5) * 2;
-            
-            // Base Center Coordinates
             const baseCenterX = width / 2 + avatarState.posX;
-            const baseCenterY = height / 2 + 15 + (avatarState.locomotionMode === 'floating' ? Math.sin(time * 2) * 8 : Math.abs(walkSin) * -4);
+            const baseCenterY = height / 2 + 25 + (avatarState.locomotionMode === 'floating' ? Math.sin(time * 2) * 8 : Math.abs(walkSin) * -4);
 
             ctx.save();
             ctx.translate(baseCenterX, baseCenterY);
-            ctx.scale(0.85, 0.85); // Scale to fit full body comfortably
+            ctx.scale(0.85, 0.85);
 
-            // Ground Shadow / Glow Ring
+            // Ground Shadow
             ctx.beginPath();
-            ctx.ellipse(0, 135, 48 + Math.sin(time) * 3, 10, 0, 0, Math.PI * 2);
+            ctx.ellipse(0, 115, 48 + Math.sin(time) * 3, 10, 0, 0, Math.PI * 2);
             ctx.fillStyle = 'rgba(168, 85, 247, 0.2)';
             ctx.fill();
 
-            // --------------------------------------------------
             // 1. NEKO CYBER TAIL
-            // --------------------------------------------------
             ctx.beginPath();
             ctx.moveTo(-10, 40);
             const tailX1 = -40 + Math.sin(avatarState.tailPhase) * 20;
@@ -626,12 +649,148 @@
             ctx.lineWidth = 9;
             ctx.lineCap = 'round';
             ctx.stroke();
-            
-            // Inner Cyan Circuit Line
             ctx.strokeStyle = '#00f0ff';
             ctx.lineWidth = 2;
             ctx.stroke();
 
-            // --------------------------------------------------
-            // 2. LEGS & TACTICAL CARGO PANTS
-            // ------------------------------------------------
+            // 2. LEGS
+            const legOffset = walkSin * 12;
+            ctx.fillStyle = '#0e081c';
+            ctx.strokeStyle = '#ff2a8d';
+            ctx.lineWidth = 2;
+
+            // Left Leg
+            ctx.beginPath();
+            ctx.roundRect(-14, 50, 12, 55 + legOffset, 6);
+            ctx.fill();
+            ctx.stroke();
+
+            // Right Leg
+            ctx.beginPath();
+            ctx.roundRect(2, 50, 12, 55 - legOffset, 6);
+            ctx.fill();
+            ctx.stroke();
+
+            // 3. CYBER TORSO & JACKET
+            ctx.beginPath();
+            ctx.roundRect(-22, -10, 44, 64, 10);
+            const torsoGrad = ctx.createLinearGradient(-22, -10, 22, 54);
+            torsoGrad.addColorStop(0, '#150d2a');
+            torsoGrad.addColorStop(1, '#07050e');
+            ctx.fillStyle = torsoGrad;
+            ctx.fill();
+            ctx.strokeStyle = '#00f0ff';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            // Neon Chest Core Emblem
+            ctx.beginPath();
+            ctx.arc(0, 12, 6, 0, Math.PI * 2);
+            ctx.fillStyle = avatarState.isSpeaking ? '#00f0ff' : '#ff2a8d';
+            ctx.fill();
+            ctx.shadowColor = '#ff2a8d';
+            ctx.shadowBlur = 10;
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            // 4. HEAD & FACE
+            ctx.beginPath();
+            ctx.arc(0, -42, 28, 0, Math.PI * 2);
+            const faceGrad = ctx.createRadialGradient(0, -45, 5, 0, -42, 28);
+            faceGrad.addColorStop(0, '#fbcfe8');
+            faceGrad.addColorStop(1, '#f472b6');
+            ctx.fillStyle = faceGrad;
+            ctx.fill();
+            ctx.strokeStyle = '#bf5af2';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Neko Ears
+            const earTwitchAngle = avatarState.earTwitch * 0.2;
+            ctx.save();
+            ctx.translate(-20, -62);
+            ctx.rotate(-0.2 - earTwitchAngle);
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(-12, -22);
+            ctx.lineTo(8, -12);
+            ctx.closePath();
+            ctx.fillStyle = '#a855f7';
+            ctx.fill();
+            ctx.strokeStyle = '#00f0ff';
+            ctx.stroke();
+            ctx.restore();
+
+            ctx.save();
+            ctx.translate(20, -62);
+            ctx.rotate(0.2 + earTwitchAngle);
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(12, -22);
+            ctx.lineTo(-8, -12);
+            ctx.closePath();
+            ctx.fillStyle = '#a855f7';
+            ctx.fill();
+            ctx.strokeStyle = '#00f0ff';
+            ctx.stroke();
+            ctx.restore();
+
+            // Eyes
+            if (avatarState.eyeBlink > 0) {
+                ctx.fillStyle = '#07050e';
+                ctx.beginPath();
+                ctx.arc(-9, -44, 4.5, 0, Math.PI * 2);
+                ctx.arc(9, -44, 4.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Cyan Iris glow
+                ctx.fillStyle = '#00f0ff';
+                ctx.beginPath();
+                ctx.arc(-9, -45, 2, 0, Math.PI * 2);
+                ctx.arc(9, -45, 2, 0, Math.PI * 2);
+                ctx.fill();
+            } else {
+                ctx.strokeStyle = '#07050e';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(-13, -44); ctx.lineTo(-5, -44);
+                ctx.moveTo(5, -44); ctx.lineTo(13, -44);
+                ctx.stroke();
+            }
+
+            // Mouth (Animates when speaking)
+            ctx.strokeStyle = '#701a75';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            if (avatarState.isSpeaking) {
+                ctx.arc(0, -32, 4, 0, Math.PI);
+                ctx.fillStyle = '#ff2a8d';
+                ctx.fill();
+            } else {
+                ctx.moveTo(-3, -32);
+                ctx.lineTo(3, -32);
+            }
+            ctx.stroke();
+
+            // 5. FLOATING SHURIKEN AURA
+            drawShuriken(48, -12, 18, avatarState.shurikenSpin);
+
+            ctx.restore();
+
+            // FPS Counter
+            frameCount++;
+            const now = performance.now();
+            if (now - lastTime >= 1000) {
+                document.getElementById('fps-counter').innerText = `FPS: ${frameCount}`;
+                frameCount = 0;
+                lastTime = now;
+            }
+
+            requestAnimationFrame(renderScene);
+        }
+
+        // Kick off render loop
+        requestAnimationFrame(renderScene);
+    </script>
+</body>
+</html>
