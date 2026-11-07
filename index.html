@@ -249,7 +249,7 @@
                         SUKI_SYSTEM_v4.8 // AUDIO_ENGINE_FIXED<br>
                         NEKO_EARS: ONLINE // TACTICAL_ARMOR: SYNCED<br>
                         PLASMA_KATANA: CHARGED // WEB_AUDIO: ACTIVE<br>
-                        01100011 01111001 01100011 01100101 01110011 01110011
+                        01100011 01111001 01100063 01100101 01110011 01110011
                     </div>
 
                     <!-- Primary High-Fidelity Cyber-Ninja Avatar Canvas Container -->
@@ -365,6 +365,10 @@
                     <label class="block font-mono text-[10px] text-purple-300 mb-1">VOICE SYNTHESIS SPEED (<span id="speed-val-text">1.0x</span>)</label>
                     <input type="range" id="speech-speed" min="0.5" max="2.0" step="0.1" value="1.0" class="w-full accent-pink-500">
                 </div>
+                <div>
+                    <label class="block font-mono text-[10px] text-purple-300 mb-1">VOICE PITCH (<span id="pitch-val-text">1.25x</span>)</label>
+                    <input type="range" id="speech-pitch" min="0.5" max="2.0" step="0.1" value="1.25" class="w-full accent-purple-400">
+                </div>
             </div>
             <div class="flex justify-end pt-2">
                 <button onclick="closeSettingsModal()" class="px-4 py-1.5 bg-pink-600 hover:bg-pink-500 text-white rounded-lg font-orbitron text-xs shadow-[0_0_10px_rgba(255,42,141,0.4)]">SAVE & CLOSE</button>
@@ -429,6 +433,10 @@
 
         document.getElementById('speech-speed').addEventListener('input', (e) => {
             document.getElementById('speed-val-text').innerText = parseFloat(e.target.value).toFixed(1) + 'x';
+        });
+
+        document.getElementById('speech-pitch').addEventListener('input', (e) => {
+            document.getElementById('pitch-val-text').innerText = parseFloat(e.target.value).toFixed(2) + 'x';
         });
 
         // Robust Web Audio Context Setup (Ensures 100% iOS & Browser Compatibility)
@@ -512,7 +520,7 @@
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.volume = speechVolume;
                 utterance.rate = parseFloat(document.getElementById('speech-speed').value);
-                utterance.pitch = 1.25;
+                utterance.pitch = parseFloat(document.getElementById('speech-pitch').value);
                 if (selectedVoice) utterance.voice = selectedVoice;
                 
                 utterance.onend = () => {
@@ -814,103 +822,3 @@
                 ctx.moveTo(-32, -22);
                 ctx.quadraticCurveTo(-22, -38, 0, -42);
                 ctx.quadraticCurveTo(-15, -30, -25, -12);
-                ctx.closePath();
-                ctx.fill();
-                ctx.beginPath();
-                ctx.moveTo(32, -22);
-                ctx.quadraticCurveTo(22, -38, 0, -42);
-                ctx.quadraticCurveTo(15, -30, 25, -12);
-                ctx.closePath();
-                ctx.fill();
-                ctx.shadowBlur = 0;
-
-                const sway = Math.sin(time * 3) * 5;
-                ctx.strokeStyle = '#9333ea';
-                ctx.lineWidth = 8;
-                ctx.lineCap = 'round';
-                ctx.beginPath();
-                ctx.moveTo(-28, -15);
-                ctx.quadraticCurveTo(-45 + sway, 15, -35 + sway * 1.5, 45);
-                ctx.stroke();
-                ctx.beginPath();
-                ctx.moveTo(28, -15);
-                ctx.quadraticCurveTo(45 + sway, 15, 35 + sway * 1.5, 45);
-                ctx.stroke();
-
-                ctx.restore();
-
-                // 6. PLASMA KATANA
-                ctx.save();
-                ctx.translate(45, 10 + breathOffset);
-                ctx.rotate(-0.4 + Math.sin(time * 2) * 0.05);
-                
-                ctx.fillStyle = '#0f172a';
-                ctx.fillRect(-3, 0, 6, 22);
-                ctx.strokeStyle = '#00f0ff';
-                ctx.lineWidth = 1.5;
-                ctx.strokeRect(-3, 0, 6, 22);
-
-                ctx.fillStyle = '#ff2a8d';
-                ctx.fillRect(-10, -2, 20, 4);
-
-                ctx.shadowColor = '#00f0ff';
-                ctx.shadowBlur = 18;
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 4;
-                ctx.beginPath();
-                ctx.moveTo(0, -4);
-                ctx.lineTo(0, -85);
-                ctx.stroke();
-
-                ctx.strokeStyle = '#00f0ff';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(0, -4);
-                ctx.lineTo(0, -85);
-                ctx.stroke();
-                ctx.shadowBlur = 0;
-
-                ctx.restore();
-
-                // 7. FLOATING SHURIKEN
-                ctx.save();
-                const shurikenAngle = time * 4;
-                ctx.translate(-65, -10 + Math.cos(time * 2) * 12);
-                ctx.rotate(shurikenAngle);
-                
-                ctx.shadowColor = '#ff2a8d';
-                ctx.shadowBlur = 10;
-                ctx.fillStyle = '#ff2a8d';
-                ctx.beginPath();
-                for (let i = 0; i < 4; i++) {
-                    ctx.rotate(Math.PI / 2);
-                    ctx.lineTo(0, -12);
-                    ctx.lineTo(3, -3);
-                    ctx.lineTo(12, 0);
-                    ctx.lineTo(3, 3);
-                }
-                ctx.closePath();
-                ctx.fill();
-                ctx.shadowBlur = 0;
-                ctx.restore();
-
-                ctx.restore();
-
-                frameCount++;
-                if (performance.now() - lastTime >= 1000) {
-                    document.getElementById('fps-counter').innerText = `FPS: ${frameCount}`;
-                    frameCount = 0;
-                    lastTime = performance.now();
-                }
-                requestAnimationFrame(renderAvatar);
-            }
-            requestAnimationFrame(renderAvatar);
-        }
-
-        // Initialize avatar engine on window load
-        window.addEventListener('load', () => {
-            initSukiAvatarEngine();
-        });
-    </script>
-</body>
-</html>
