@@ -742,3 +742,45 @@
     </script>
 </body>
 </html>
+// Global engine state tracking
+window.sukiEngine = null;
+let isModelLoading = false;
+
+// Initialize Local WebGPU Model with loading status
+async function initAIModel() {
+    const PRIMARY_MODEL = "Llama-3.2-1B-Instruct-q4f16_1-MLC";
+
+    if (!navigator.gpu) {
+        console.warn("WebGPU not supported in this browser context.");
+        appendChatMessage('Suki', 'Warning: WebGPU not available in this browser/device. Running in fallback HUD mode.');
+        return;
+    }
+
+    try {
+        isModelLoading = true;
+        appendChatMessage('Suki', 'Initializing local neural core (Llama-3.2-1B)... Please wait.');
+        
+        // Create engine with an init progress callback
+        window.sukiEngine = await window.CreateMLCEngine(
+            PRIMARY_MODEL,
+            {
+                initProgressCallback: (progress) => {
+                    console.log(progress.text);
+                }
+            }
+        );
+        
+        appendChatMessage('Suki', 'Neural core online! Local LLM successfully linked.');
+    } catch (error) {
+        console.warn("Local engine load failed:", error);
+        appendChatMessage('Suki', 'Local model load failed. Falling back to tactical protocol responses.');
+        window.sukiEngine = null;
+    } finally {
+        isModelLoading = false;
+    }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    initAIModel();
+});
+
