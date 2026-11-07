@@ -1,244 +1,54 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Suki Conversational Assistant</title>
-  <style>
-    /* Suki conversational assistant styles */
-    .suki-ai {
-      width: min(100% - 32px, 560px);
-      margin: 18px auto 28px;
-      padding: 18px;
-      border: 1px solid rgb(192 132 252 / 28%);
-      border-radius: 20px;
-      color: #f7f1ff;
-      background: linear-gradient(145deg, rgb(38 25 57 / 96%), rgb(20 14 30 / 96%));
-      box-shadow: 0 14px 36px rgb(0 0 0 / 20%);
-      font-family: system-ui, -apple-system, sans-serif;
-    }
+/* SukiBot AI Companion Interface Styles */
 
-    .suki-ai h2,
-    .suki-ai h3 {
-      margin: 0;
-    }
+.suki-chat-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    font-family: monospace, sans-serif;
+    color: #f3e8ff;
+}
 
-    .suki-ai h2 {
-      color: #f7f1ff;
-      font-size: 1.15rem;
-    }
+/* Chat Message Bubbles */
+.suki-msg, .user-msg {
+    max-width: 80%;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    line-height: 1.4;
+    word-break: break-word;
+}
 
-    .suki-ai-intro,
-    .suki-ai-note,
-    #suki-chat-status {
-      color: #baaaca;
-      font-size: 0.84rem;
-      line-height: 1.5;
-    }
+.suki-msg {
+    background: rgba(45, 10, 60, 0.85);
+    border: 1px solid rgba(255, 95, 210, 0.5);
+    box-shadow: 0 0 10px rgba(255, 95, 210, 0.2);
+    align-self: flex-start;
+}
 
-    .suki-ai-intro {
-      margin: 7px 0 14px;
-    }
+.user-msg {
+    background: rgba(80, 20, 110, 0.9);
+    border: 1px solid rgba(168, 85, 247, 0.6);
+    align-self: flex-end;
+}
 
-    .suki-chat-log {
-      display: flex;
-      min-height: 86px;
-      max-height: 260px;
-      flex-direction: column;
-      gap: 9px;
-      overflow: auto;
-      padding: 12px;
-      border: 1px solid rgb(192 132 252 / 15%);
-      border-radius: 14px;
-      background: rgb(0 0 0 / 14%);
-      overscroll-behavior: contain;
-    }
+/* Cyberpunk Glitch & Typing Effects */
+@keyframes sukiGlowPulse {
+    0% { filter: drop-shadow(0 0 10px rgba(255, 95, 210, 0.3)); }
+    50% { filter: drop-shadow(0 0 20px rgba(255, 95, 210, 0.7)); }
+    100% { filter: drop-shadow(0 0 10px rgba(255, 95, 210, 0.3)); }
+}
 
-    .suki-chat-message {
-      max-width: 90%;
-      margin: 0;
-      padding: 9px 12px;
-      border-radius: 14px;
-      font-size: 0.9rem;
-      line-height: 1.5;
-      overflow-wrap: anywhere;
-      white-space: pre-wrap;
-    }
+.suki-active-glow {
+    animation: sukiGlowPulse 2s infinite ease-in-out;
+}
 
-    .suki-chat-message.suki {
-      align-self: flex-start;
-      border: 1px solid rgb(192 132 252 / 22%);
-      background: rgb(192 132 252 / 10%);
-    }
-
-    .suki-chat-message.you {
-      align-self: flex-end;
-      color: #160c22;
-      background: linear-gradient(105deg, #d6a8ff, #a879ff);
-    }
-
-    .suki-chat-form {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 8px;
-      margin-top: 10px;
-    }
-
-    .suki-chat-form textarea,
-    .suki-memory {
-      width: 100%;
-      min-height: 46px;
-      padding: 11px 12px;
-      border: 1px solid rgb(192 132 252 / 30%);
-      border-radius: 12px;
-      color: #f7f1ff;
-      background: rgb(255 255 255 / 4%);
-      font: inherit;
-      resize: vertical;
-      box-sizing: border-box;
-    }
-
-    .suki-chat-form textarea:focus-visible,
-    .suki-memory:focus-visible {
-      outline: 2px solid #67e8f9;
-      outline-offset: 2px;
-    }
-
-    .suki-chat-form button,
-    .suki-memory-actions button {
-      min-height: 44px;
-      padding: 0 14px;
-      border: 1px solid transparent;
-      border-radius: 12px;
-      color: #160c22;
-      background: linear-gradient(105deg, #d6a8ff, #a879ff);
-      font: inherit;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .suki-chat-form button:disabled {
-      cursor: wait;
-      opacity: 0.6;
-    }
-
-    #suki-chat-status {
-      min-height: 1.3em;
-      margin: 8px 0 12px;
-    }
-
-    .suki-ai-note {
-      margin: 12px 0 6px;
-      font-weight: 700;
-    }
-
-    .suki-memory {
-      min-height: 66px;
-      font-size: 0.85rem;
-    }
-
-    .suki-memory-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 8px;
-    }
-
-    .suki-memory-actions button:last-child {
-      border-color: rgb(192 132 252 / 32%);
-      color: #f7f1ff;
-      background: transparent;
-    }
-
-    @media (max-width: 420px) {
-      .suki-chat-form {
-        grid-template-columns: 1fr;
-      }
-
-      .suki-chat-form button {
-        width: 100%;
-      }
-    }
-  </style>
-</head>
-<body style="background: #0f0a18; margin: 0; padding: 20px;">
-
-  <div class="suki-ai">
-    <h2>Suki AI Assistant</h2>
-    <p class="suki-ai-intro">Hello! I am Suki, your conversational assistant. How can I help you today?</p>
-    
-    <div class="suki-chat-log" id="suki-chat-log">
-      <div class="suki-chat-message suki">Hi there! Ask me anything or configure my memory below.</div>
-    </div>
-
-    <div id="suki-chat-status">Ready</div>
-
-    <form class="suki-chat-form" id="suki-chat-form">
-      <textarea id="suki-input" placeholder="Type a message to Suki..." rows="1" required></textarea>
-      <button type="submit" id="suki-submit">Send</button>
-    </form>
-
-    <div class="suki-ai-note">Assistant Memory / Context</div>
-    <textarea class="suki-memory" id="suki-memory" placeholder="Add custom instructions or background memory for Suki here..."></textarea>
-    
-    <div class="suki-memory-actions">
-      <button type="button" id="suki-save-memory">Save Memory</button>
-      <button type="button" id="suki-clear-memory">Clear</button>
-    </div>
-  </div>
-
-  <script>
-    const chatLog = document.getElementById('suki-chat-log');
-    const chatForm = document.getElementById('suki-chat-form');
-    const inputField = document.getElementById('suki-input');
-    const statusField = document.getElementById('suki-chat-status');
-    const memoryField = document.getElementById('suki-memory');
-    const saveMemoryBtn = document.getElementById('suki-save-memory');
-    const clearMemoryBtn = document.getElementById('suki-clear-memory');
-
-    // Load saved memory if available
-    if (localStorage.getItem('suki_memory')) {
-      memoryField.value = localStorage.getItem('suki_memory');
-    }
-
-    saveMemoryBtn.addEventListener('click', () => {
-      localStorage.setItem('suki_memory', memoryField.value);
-      statusField.textContent = 'Memory saved successfully!';
-      setTimeout(() => { statusField.textContent = 'Ready'; }, 2000);
-    });
-
-    clearMemoryBtn.addEventListener('click', () => {
-      memoryField.value = '';
-      localStorage.removeItem('suki_memory');
-      statusField.textContent = 'Memory cleared.';
-      setTimeout(() => { statusField.textContent = 'Ready'; }, 2000);
-    });
-
-    chatForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const text = inputField.value.trim();
-      if (!text) return;
-
-      // Append user message
-      appendMessage(text, 'you');
-      inputField.value = '';
-      statusField.textContent = 'Suki is thinking...';
-
-      // Simulate response (replace this fetch block with your actual AI backend endpoint if needed)
-      setTimeout(() => {
-        const reply = `I received your message: "${text}". How else can I assist you?`;
-        appendMessage(reply, 'suki');
-        statusField.textContent = 'Ready';
-      }, 1000);
-    });
-
-    function appendMessage(text, sender) {
-      const msg = document.createElement('div');
-      msg.className = `suki-chat-message ${sender}`;
-      msg.textContent = text;
-      chatLog.appendChild(msg);
-      chatLog.scrollTop = chatLog.scrollHeight;
-    }
-  </script>
-</body>
-</html>
+/* Status Indicator Dot */
+.suki-status-dot {
+    width: 8px;
+    height: 8px;
+    background-color: #22c55e;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #22c55e;
+    display: inline-block;
+}
