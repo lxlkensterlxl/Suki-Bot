@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SukiBot // CYBER HUD</title>
+    <title>SukiBot // CYBER HUD & ANIME AVATAR ENGINE</title>
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -59,8 +59,8 @@
         }
 
         ::-webkit-scrollbar {
-            width: 3px;
-            height: 3px;
+            width: 4px;
+            height: 4px;
         }
         ::-webkit-scrollbar-track {
             background: rgba(14, 8, 28, 0.8);
@@ -106,6 +106,7 @@
             animation: pulseGlow 1.4s infinite;
             background-color: #ff2a8d !important;
             color: #ffffff !important;
+            border-color: #00f0ff !important;
         }
 
         .no-scrollbar::-webkit-scrollbar {
@@ -128,6 +129,7 @@
             height: 8px;
             border-top: 2px solid #00f0ff;
             border-left: 2px solid #00f0ff;
+            z-index: 25;
         }
         .cyber-corner::after {
             content: '';
@@ -138,10 +140,16 @@
             height: 8px;
             border-bottom: 2px solid #ff2a8d;
             border-right: 2px solid #ff2a8d;
+            z-index: 25;
         }
 
         .equalizer-bar {
-            animation: bounce 0.8s ease-in-out infinite alternate;
+            height: 20%;
+            transition: height 0.08s ease-out;
+        }
+        
+        .speaking-active .equalizer-bar {
+            animation: bounce 0.4s ease-in-out infinite alternate;
         }
         @keyframes bounce {
             0% { height: 15%; }
@@ -152,14 +160,14 @@
 <body class="min-h-screen flex items-center justify-center p-0 sm:p-4 bg-slate-950">
 
     <!-- iPhone Screen Frame Container -->
-    <div class="relative w-full max-w-[410px] h-[100vh] sm:h-[860px] bg-black sm:rounded-[48px] p-2.5 sm:p-3 shadow-[0_0_60px_rgba(255,42,141,0.3)] border-0 sm:border-4 border-slate-900 flex flex-col overflow-hidden">
+    <div class="relative w-full max-w-[420px] h-[100vh] sm:h-[890px] bg-black sm:rounded-[48px] p-2 sm:p-3 shadow-[0_0_60px_rgba(255,42,141,0.3)] border-0 sm:border-4 border-slate-900 flex flex-col overflow-hidden">
         
         <!-- Dynamic Island / Top Notch -->
         <div class="absolute top-3 left-1/2 -translate-x-1/2 w-28 sm:w-32 h-5 sm:h-6 bg-black rounded-full z-50 flex items-center justify-between px-3 border border-slate-800">
             <div class="w-2.5 h-2.5 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center">
-                <div class="w-1 h-1 rounded-full bg-cyan-500/80"></div>
+                <div id="notch-dot" class="w-1 h-1 rounded-full bg-cyan-500/80"></div>
             </div>
-            <div class="w-1.5 h-1.5 rounded-full bg-purple-600/60"></div>
+            <div id="notch-speaker" class="w-2 h-1 rounded-full bg-purple-600/60"></div>
         </div>
 
         <!-- Inner Screen -->
@@ -171,11 +179,11 @@
 
             <!-- Status Bar Header -->
             <div class="w-full pt-2.5 sm:pt-3 pb-1 px-5 flex justify-between items-center text-[11px] font-mono text-slate-300 z-30 tracking-wider">
-                <span id="clock-display" class="font-bold">7:52</span>
+                <span id="clock-display" class="font-bold">00:00</span>
                 <div class="flex items-center space-x-1.5 text-[10px]">
-                    <i class="fa-solid fa-signal"></i>
+                    <i class="fa-solid fa-wifi text-cyan-400"></i>
                     <span class="font-bold">5G</span>
-                    <i class="fa-solid fa-battery-full text-cyan-400"></i>
+                    <i class="fa-solid fa-battery-full text-pink-500"></i>
                 </div>
             </div>
 
@@ -207,152 +215,1114 @@
             </div>
 
             <!-- URL SUB-HEADER BAR -->
-            <div class="px-3 py-1 flex items-center justify-center gap-1.5 bg-black/60 border-b border-purple-900/40 z-30 text-[10px] font-mono text-purple-300/80">
-                <i class="fa-solid fa-link text-[8px] text-pink-400"></i>
-                <span id="url-text" class="tracking-wider">lxikensterlxl.github.io</span>
+            <div class="px-3 py-1 flex items-center justify-between bg-black/60 border-b border-purple-900/40 z-30 text-[10px] font-mono text-purple-300/80">
+                <div class="flex items-center gap-1">
+                    <i class="fa-solid fa-link text-[8px] text-pink-400"></i>
+                    <span id="url-text" class="tracking-wider text-[9px]">lxikensterlxl.github.io</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button id="toggle-audio-btn" title="Mute/Unmute Audio" class="text-pink-400 hover:text-pink-300">
+                        <i id="audio-icon" class="fa-solid fa-volume-high"></i>
+                    </button>
+                    <button id="settings-modal-btn" title="Voice & Visual Settings" class="text-cyan-400 hover:text-cyan-300">
+                        <i class="fa-solid fa-gear"></i>
+                    </button>
+                </div>
             </div>
 
             <!-- MAIN HUD CONTAINER (SCROLLABLE) -->
-            <div class="flex-1 overflow-y-auto z-20 p-2.5 space-y-2.5 no-scrollbar">
+            <div class="flex-1 overflow-y-auto z-20 p-2.5 space-y-2 no-scrollbar">
 
-                <!-- CYBER ANIME STAGE DISPLAY -->
-                <div class="relative w-full h-60 bg-gradient-to-b from-purple-950/40 to-slate-950 rounded-xl border border-pink-500/40 overflow-hidden cyber-corner shadow-[0_0_15px_rgba(168,85,247,0.2)]">
+                <!-- CYBER ANIME STAGE DISPLAY WITH CANVAS AVATAR -->
+                <div class="relative w-full h-64 bg-gradient-to-b from-purple-950/60 via-slate-950 to-purple-950/40 rounded-xl border border-pink-500/40 overflow-hidden cyber-corner shadow-[0_0_15px_rgba(168,85,247,0.2)] flex flex-col justify-between">
                     
                     <!-- Background Code Grid Effect -->
                     <div class="absolute inset-0 opacity-15 font-mono text-[8px] text-cyan-400 overflow-hidden pointer-events-none p-2 leading-tight">
-                        SUKI_SYSTEM_v2.6 // KITSUNE_NEURAL_UPLINK<br>
+                        SUKI_SYSTEM_v3.0 // NEURAL_SPEECH_SYNC<br>
                         01001001 01001110 01001001 01010100<br>
-                        CONNECTED TO CORE LLM (WEBGPU)<br>
-                        TACTICAL_KITSUNE_MATRIX: ACTIVE<br>
-                        ASR_MODULE: WHISPER PRO V3 [ONLINE]<br>
-                        ORB_ENERGY: 100% [STABLE]<br>
-                        01100011 01111001 0110001b 01100101 01110011
+                        CONNECTED TO LIVE SPEECH ENGINE & WEBGPU<br>
+                        TACTICAL_KITSUNE_AVATAR: ACTIVE<br>
+                        LIP_SYNC_VISEME_MATRIX: ONLINE<br>
+                        AVATAR_AUDIO_REACTIVE: 100% [TALKING]<br>
+                        01100011 01111001 01100101 01100101 01110011
                     </div>
 
-                    <!-- Anime Companion Canvas -->
-                    <canvas id="sukiCanvas" class="w-full h-full block cursor-pointer relative z-10"></canvas>
+                    <!-- Interactive 2D Anime Avatar Canvas -->
+                    <canvas id="sukiCanvas" class="w-full h-full block cursor-pointer relative z-10" title="Click avatar to trigger expression!"></canvas>
 
-                    <!-- Tactical Orb Floating Badge (Left) -->
-                    <div class="absolute top-12 left-3 z-20 flex flex-col items-center">
-                        <div class="w-10 h-10 rounded-full bg-purple-900/60 border border-cyan-400/80 flex items-center justify-center shadow-[0_0_10px_#00f0ff] animate-pulse">
-                            <i class="fa-solid fa-compact-disc text-cyan-300 text-base animate-spin" style="animation-duration: 6s;"></i>
+                    <!-- Tactical Orb Floating Badge (Top Left) -->
+                    <div class="absolute top-2 left-2 z-20 flex flex-col items-center">
+                        <div id="orb-container" class="w-9 h-9 rounded-full bg-purple-900/60 border border-cyan-400/80 flex items-center justify-center shadow-[0_0_10px_#00f0ff] animate-pulse cursor-pointer">
+                            <i class="fa-solid fa-compact-disc text-cyan-300 text-sm animate-spin" style="animation-duration: 5s;"></i>
+                        </div>
+                        <span class="text-[7px] font-mono text-cyan-300 mt-0.5">ORB: 100%</span>
+                    </div>
+
+                    <!-- Voice Wave Indicator (Top Right) -->
+                    <div class="absolute top-2 right-2 z-20 flex items-center gap-1 bg-black/60 px-2 py-0.5 rounded-full border border-pink-500/40">
+                        <span id="speech-state-badge" class="text-[8px] font-mono text-pink-400 font-bold">IDLE</span>
+                        <div id="equalizer" class="h-3 flex items-end gap-0.5">
+                            <div class="equalizer-bar w-0.5 bg-cyan-400"></div>
+                            <div class="equalizer-bar w-0.5 bg-pink-500"></div>
+                            <div class="equalizer-bar w-0.5 bg-purple-400"></div>
+                            <div class="equalizer-bar w-0.5 bg-cyan-400"></div>
                         </div>
                     </div>
 
                     <!-- META DATA OVERLAY BOX -->
-                    <div class="absolute bottom-2 left-2 z-20 w-[64%] hud-card p-2 rounded-lg border border-purple-500/50 text-[9px] font-mono leading-tight flex items-start gap-2">
+                    <div class="absolute bottom-2 left-2 z-20 w-[64%] hud-card p-1.5 rounded-lg border border-purple-500/50 text-[9px] font-mono leading-tight flex items-center gap-2">
                         <div class="relative flex-none">
-                            <img id="avatar-img" src="suki-avatar.jpg" alt="Suki Avatar" class="w-10 h-10 rounded-lg border border-pink-500/80 object-cover shadow-[0_0_8px_rgba(255,42,141,0.5)]" onerror="this.src='https://api.dicebear.com/7.x/bottts/svg?seed=Suki';" />
-                            <span class="absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 border border-black"></span>
+                            <img id="avatar-img" src="suki-avatar.jpg" alt="Suki Avatar" class="w-9 h-9 rounded-lg border border-pink-500/80 object-cover shadow-[0_0_8px_rgba(255,42,141,0.5)]" onerror="this.src='https://api.dicebear.com/7.x/bottts/svg?seed=Suki';" />
+                            <span id="avatar-status-dot" class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border border-black"></span>
                         </div>
                         <div class="flex-1 min-w-0">
-                            <div class="font-orbitron font-bold text-slate-100 mb-0.5 border-b border-purple-800/60 pb-0.5 text-[10px]">Meta Data</div>
-                            <div class="text-purple-300 truncate"><span class="text-slate-400">LLM // CORE:</span> Llama-3.2-1B</div>
-                            <div class="text-purple-300 truncate"><span class="text-slate-400">PERSONA:</span> Kitsune v2.6</div>
-                            <div class="text-purple-300 mb-0.5 truncate"><span class="text-slate-400">STATUS:</span> <span id="model-status-text" class="text-cyan-400 font-bold">[Initializing...]</span></div>
-                            
-                            <div class="flex items-center gap-1.5 mt-1 pt-1 border-t border-purple-900/50">
-                                <span class="bg-purple-900/80 text-purple-200 px-1 py-0.5 rounded text-[7px] flex items-center gap-1 border border-purple-500/40">
-                                    <i class="fa-solid fa-user-ninja text-cyan-400"></i> lxikensterlxl
-                                </span>
-                                <button id="git-btn" class="text-slate-300 hover:text-white transition">
-                                    <i class="fa-brands fa-github text-xs"></i>
-                                </button>
+                            <div class="font-orbitron font-bold text-slate-100 mb-0.5 border-b border-purple-800/60 pb-0.5 text-[9px] flex justify-between">
+                                <span>Meta Data</span>
+                                <span id="emotion-tag" class="text-pink-400 text-[8px]">EXPR: HAPPY</span>
                             </div>
+                            <div class="text-purple-300 truncate text-[8px]"><span class="text-slate-400">LLM CORE:</span> <span id="active-llm-name">Llama-3.2 (WebGPU / Fallback)</span></div>
+                            <div class="text-purple-300 truncate text-[8px]"><span class="text-slate-400">VOICE TTS:</span> <span id="voice-name-tag" class="text-cyan-300">WebSpeech Dynamic</span></div>
+                            <div class="text-purple-300 truncate text-[8px]"><span class="text-slate-400">STATUS:</span> <span id="model-status-text" class="text-emerald-400 font-bold">[Speech Engine Ready]</span></div>
                         </div>
                     </div>
 
-                    <!-- Commits Badge & Equalizer (Right Bottom) -->
-                    <div class="absolute bottom-2 right-2 z-20 flex flex-col items-end gap-1.5">
-                        <div class="hud-card px-2 py-0.5 rounded-full text-[9px] font-orbitron text-purple-200 border border-pink-500/50 flex items-center gap-1 shadow-[0_0_8px_rgba(255,42,141,0.3)]">
+                    <!-- Expression & Commits Badge (Right Bottom) -->
+                    <div class="absolute bottom-2 right-2 z-20 flex flex-col items-end gap-1">
+                        <div id="commits-badge" class="hud-card px-2 py-0.5 rounded-full text-[8px] font-orbitron text-purple-200 border border-pink-500/50 flex items-center gap-1 shadow-[0_0_8px_rgba(255,42,141,0.3)]">
                             <i class="fa-solid fa-clock-rotate-left text-pink-400 text-[8px]"></i>
-                            <span>13 Commits</span>
+                            <span>14 Commits</span>
                         </div>
-                        
-                        <!-- Equalizer Visualizer -->
-                        <div id="equalizer" class="h-5 flex items-end gap-0.5 px-1 py-0.5 glass-panel rounded border border-cyan-500/40">
-                            <div class="equalizer-bar w-0.5 bg-cyan-400" style="animation-delay: 0.1s;"></div>
-                            <div class="equalizer-bar w-0.5 bg-pink-500" style="animation-delay: 0.3s;"></div>
-                            <div class="equalizer-bar w-0.5 bg-purple-400" style="animation-delay: 0.2s;"></div>
-                            <div class="equalizer-bar w-0.5 bg-cyan-400" style="animation-delay: 0.4s;"></div>
-                            <div class="equalizer-bar w-0.5 bg-pink-400" style="animation-delay: 0.15s;"></div>
-                            <div class="equalizer-bar w-0.5 bg-purple-500" style="animation-delay: 0.35s;"></div>
+                        <div class="flex gap-1">
+                            <button onclick="setSukiExpression('happy')" class="px-1.5 py-0.5 bg-pink-950/80 hover:bg-pink-800 border border-pink-500/50 rounded text-[7px] text-pink-300 font-mono">Happy</button>
+                            <button onclick="setSukiExpression('surprised')" class="px-1.5 py-0.5 bg-cyan-950/80 hover:bg-cyan-800 border border-cyan-500/50 rounded text-[7px] text-cyan-300 font-mono">Surprised</button>
+                            <button onclick="setSukiExpression('blush')" class="px-1.5 py-0.5 bg-purple-950/80 hover:bg-purple-800 border border-purple-500/50 rounded text-[7px] text-purple-300 font-mono">Blush</button>
                         </div>
+                    </div>
+                </div>
+
+                <!-- WebLLM Model Loading Progress Bar -->
+                <div id="llm-loader-container" class="hud-card p-1.5 rounded-lg border border-cyan-500/40 text-[9px] font-mono space-y-1">
+                    <div class="flex justify-between items-center text-cyan-300">
+                        <span id="llm-load-label"><i class="fa-solid fa-brain text-pink-400 mr-1"></i>WebLLM Status: Initializing local AI engine...</span>
+                        <span id="llm-load-percent" class="font-bold text-pink-400">0%</span>
+                    </div>
+                    <div class="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden border border-purple-800">
+                        <div id="llm-progress-bar" class="bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-400 h-full w-0 transition-all duration-300"></div>
                     </div>
                 </div>
 
                 <!-- TACTICAL CONTROL GRID BUTTONS (6-PACK) -->
                 <div class="grid grid-cols-6 gap-1 z-30">
-                    <button class="chip hud-card p-1 rounded-lg flex flex-col items-center justify-center text-center border border-pink-500/40 hover:border-pink-400 transition" data-cmd="Report ASR state.">
+                    <button class="chip hud-card p-1 rounded-lg flex flex-col items-center justify-center text-center border border-pink-500/40 hover:border-pink-400 transition hover:scale-105 active:scale-95" data-cmd="Report ASR microphone state and voice recognition readiness.">
                         <i class="fa-solid fa-bolt text-pink-400 text-[10px]"></i>
                         <span class="font-orbitron text-[8px] font-bold text-slate-200 mt-0.5">ASR:</span>
                         <span class="font-mono text-[7px] text-emerald-400">Active</span>
                     </button>
 
-                    <button class="chip hud-card p-1 rounded-lg flex flex-col items-center justify-center text-center border border-purple-500/40 hover:border-purple-400 transition" data-cmd="Check Energy Orb diagnostics.">
+                    <button class="chip hud-card p-1 rounded-lg flex flex-col items-center justify-center text-center border border-purple-500/40 hover:border-purple-400 transition hover:scale-105 active:scale-95" data-cmd="Check Energy Orb diagnostics and kitsune mana levels.">
                         <i class="fa-solid fa-crystal-ball text-purple-400 text-[10px]"></i>
                         <span class="font-orbitron text-[8px] font-bold text-slate-200 mt-0.5">Orb:</span>
                         <span class="font-mono text-[7px] text-emerald-400">Active</span>
                     </button>
 
-                    <button class="chip hud-card p-1 rounded-lg flex flex-col items-center justify-center text-center border border-cyan-500/40 hover:border-cyan-400 transition" data-cmd="Display core neural model specs.">
+                    <button class="chip hud-card p-1 rounded-lg flex flex-col items-center justify-center text-center border border-cyan-500/40 hover:border-cyan-400 transition hover:scale-105 active:scale-95" data-cmd="Display core neural model specs and hardware acceleration status.">
                         <i class="fa-solid fa-microchip text-cyan-400 text-[10px]"></i>
                         <span class="font-orbitron text-[8px] font-bold text-slate-200 mt-0.5">Core:</span>
                         <span class="font-mono text-[7px] text-cyan-300">Llama-1B</span>
                     </button>
 
-                    <button class="chip hud-card p-1 rounded-lg flex flex-col items-center justify-center text-center border border-pink-500/40 hover:border-pink-400 transition" data-cmd="Switch to Tactical Kitsune mode.">
+                    <button class="chip hud-card p-1 rounded-lg flex flex-col items-center justify-center text-center border border-pink-500/40 hover:border-pink-400 transition hover:scale-105 active:scale-95" data-cmd="Switch to Tactical Kitsune combat mode and scan defense protocols.">
                         <i class="fa-solid fa-shield-halved text-pink-400 text-[10px]"></i>
                         <span class="font-orbitron text-[8px] font-bold text-slate-200 mt-0.5">Tactics</span>
                     </button>
 
-                    <button class="chip hud-card p-1 rounded-lg flex flex-col items-center justify-center text-center border border-purple-500/40 hover:border-purple-400 transition" data-cmd="Execute matrix telemetry scan.">
+                    <button class="chip hud-card p-1 rounded-lg flex flex-col items-center justify-center text-center border border-purple-500/40 hover:border-purple-400 transition hover:scale-105 active:scale-95" data-cmd="Execute cyber matrix telemetry scan across local subnets.">
                         <i class="fa-solid fa-network-wired text-purple-400 text-[10px]"></i>
                         <span class="font-orbitron text-[8px] font-bold text-slate-200 mt-0.5">Matrix</span>
                     </button>
 
-                    <button class="chip hud-card p-1 rounded-lg flex flex-col items-center justify-center text-center border border-cyan-500/40 hover:border-cyan-400 transition" data-cmd="Establish full data stream uplink link.">
+                    <button class="chip hud-card p-1 rounded-lg flex flex-col items-center justify-center text-center border border-cyan-500/40 hover:border-cyan-400 transition hover:scale-105 active:scale-95" data-cmd="Establish full voice and data stream uplink link with user.">
                         <i class="fa-solid fa-feather text-cyan-400 text-[10px]"></i>
                         <span class="font-orbitron text-[8px] font-bold text-slate-200 mt-0.5">Link</span>
                     </button>
                 </div>
 
                 <!-- CHAT LOG CONTAINER -->
-                <div id="chat-container" class="hud-card p-2.5 rounded-xl border border-pink-500/40 space-y-2.5 min-h-[140px] max-h-[180px] overflow-y-auto text-xs no-scrollbar">
+                <div id="chat-container" class="hud-card p-2 rounded-xl border border-pink-500/40 space-y-2 min-h-[130px] max-h-[160px] overflow-y-auto text-xs no-scrollbar">
                     
                     <!-- INITIAL HUD SUKI MESSAGE -->
-                    <div class="hud-card p-2.5 rounded-lg border border-pink-500/40 bg-purple-950/40">
+                    <div class="hud-card p-2 rounded-lg border border-pink-500/40 bg-purple-950/40">
                         <div class="flex justify-between items-center mb-1">
-                            <span class="font-orbitron font-bold text-[10px] text-pink-400 tracking-wider">Kitty Cat Ears</span>
-                            <span class="text-[8px] font-mono text-purple-300/70">HUD // ACTIVE</span>
+                            <span class="font-orbitron font-bold text-[10px] text-pink-400 tracking-wider">Kitty Cat Ears (Suki)</span>
+                            <span class="text-[8px] font-mono text-purple-300/70">HUD // VOICE ACTIVE</span>
                         </div>
                         <p class="text-[11px] font-mono text-purple-100 leading-snug">
-                            <strong class="text-pink-400 font-orbitron">SUKI NEON VIOLET //</strong> Nya! Systems online, Senpai! Local WebGPU model initializing for direct kitsune-tactical uplink. Shall we breach the datastream or configure personality matrix first?
+                            <strong class="text-pink-400 font-orbitron">SUKI NEON VIOLET //</strong> Nya! Systems online, Senpai! My animated avatar, dynamic lip-sync, and WebSpeech audio synthesis are fully synchronized! Try typing or tapping the mic button below to talk to me!
                         </p>
                         <div class="flex justify-end mt-1.5">
-                            <button id="transmit-btn" class="px-2 py-0.5 rounded bg-purple-900/80 hover:bg-pink-600 text-pink-300 hover:text-white border border-pink-500/40 text-[9px] font-orbitron flex items-center gap-1 transition">
-                                <i class="fa-solid fa-bullhorn text-[8px]"></i> Transmit
+                            <button class="transmit-msg-btn px-2 py-0.5 rounded bg-purple-900/80 hover:bg-pink-600 text-pink-300 hover:text-white border border-pink-500/40 text-[9px] font-orbitron flex items-center gap-1 transition">
+                                <i class="fa-solid fa-bullhorn text-[8px]"></i> Speak Message
                             </button>
                         </div>
                     </div>
 
                 </div>
 
+                <!-- CHAT INPUT & MIC CONTROL BAR -->
+                <div class="hud-card p-1.5 rounded-xl border border-purple-500/40 flex items-center gap-1.5 bg-black/60">
+                    <button id="mic-btn" class="w-9 h-9 rounded-lg bg-purple-900/60 border border-pink-500/60 text-pink-400 hover:text-white flex items-center justify-center text-sm transition flex-none" title="Hold/Click to Talk (Web Speech ASR)">
+                        <i class="fa-solid fa-microphone"></i>
+                    </button>
+                    <input id="chat-input" type="text" placeholder="Type a message or command for Suki..." class="flex-1 bg-purple-950/40 border border-purple-800/60 rounded-lg px-2.5 py-1.5 text-[11px] font-mono text-purple-100 placeholder-purple-400/50 focus:outline-none focus:border-pink-500 transition">
+                    <button id="send-btn" class="w-9 h-9 rounded-lg bg-pink-600 hover:bg-pink-500 border border-pink-400 text-white flex items-center justify-center text-sm transition flex-none">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </div>
+
                 <!-- BOTTOM DOCK THUMBNAILS (MOBILE DECK) -->
-                <div class="flex items-center justify-between gap-1 px-1 py-1 glass-panel rounded-xl border border-purple-900/50">
-                    <div class="w-8 h-8 rounded-md bg-purple-900/40 border border-pink-500/40 flex items-center justify-center text-pink-400 text-xs cursor-pointer hover:border-pink-300">
-                        <i class="fa-solid fa-user-astronaut"></i>
+                <div class="flex items-center justify-between gap-1 px-1 py-1 glass-panel rounded-xl border border-purple-900/50 bg-black/40">
+                    <div onclick="triggerSukiGreeting()" class="w-8 h-8 rounded-md bg-purple-900/40 border border-pink-500/40 flex items-center justify-center text-pink-400 text-xs cursor-pointer hover:border-pink-300 transition" title="Greet Senpai">
+                        <i class="fa-solid fa-hand-wave"></i>
                     </div>
-                    <div class="w-8 h-8 rounded-md bg-purple-900/40 border border-purple-500/40 flex items-center justify-center text-purple-300 text-xs cursor-pointer hover:border-purple-300">
-                        <i class="fa-solid fa-gamepad"></i>
+                    <div onclick="setSukiExpression('happy')" class="w-8 h-8 rounded-md bg-purple-900/40 border border-purple-500/40 flex items-center justify-center text-purple-300 text-xs cursor-pointer hover:border-purple-300 transition" title="Happy Mode">
+                        <i class="fa-solid fa-face-smile-beam"></i>
                     </div>
-                    <div class="w-8 h-8 rounded-md bg-purple-900/40 border border-cyan-500/40 flex items-center justify-center text-cyan-300 text-xs cursor-pointer hover:border-cyan-300">
+                    <div onclick="setSukiExpression('tactical')" class="w-8 h-8 rounded-md bg-purple-900/40 border border-cyan-500/40 flex items-center justify-center text-cyan-300 text-xs cursor-pointer hover:border-cyan-300 transition" title="Tactical Scan">
+                        <i class="fa-solid fa-crosshairs"></i>
+                    </div>
+                    <div onclick="setSukiExpression('blush')" class="w-8 h-8 rounded-md bg-purple-900/60 border border-pink-500/60 flex items-center justify-center text-pink-300 text-xs cursor-pointer hover:border-pink-300 transition" title="Blush Mode">
+                        <i class="fa-solid fa-heart"></i>
+                    </div>
+                    <div onclick="clearChatLog()" class="w-8 h-8 rounded-md bg-purple-900/40 border border-purple-500/40 flex items-center justify-center text-purple-300 text-xs cursor-pointer hover:border-purple-300 transition" title="Clear Chat">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </div>
+                    <div onclick="openSettingsModal()" class="w-8 h-8 rounded-md bg-purple-900/40 border border-cyan-500/40 flex items-center justify-center text-cyan-300 text-xs cursor-pointer hover:border-cyan-300 transition" title="Settings">
                         <i class="fa-solid fa-sliders"></i>
                     </div>
-                    <div class="w-8 h-8 rounded-md bg-purple-900/60 border border-pink-500/60 flex items-center justify-center text-pink-300 text-xs cursor-pointer hover:border-pink-300">
-                        <i class="fa-solid fa-eye"></i>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- SETTINGS & VOICE CONTROL MODAL -->
+    <div id="settings-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="w-full max-w-sm hud-card rounded-2xl border border-pink-500/60 p-4 space-y-4">
+            <div class="flex justify-between items-center border-b border-purple-800 pb-2">
+                <h3 class="font-orbitron text-xs font-bold text-pink-400 tracking-wider flex items-center gap-1.5">
+                    <i class="fa-solid fa-sliders text-cyan-400"></i> SUKI VOICE & AVATAR SETTINGS
+                </h3>
+                <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3 font-mono text-[11px]">
+                <div>
+                    <label class="text-purple-300 block mb-1">Speech Engine Voice:</label>
+                    <select id="voice-select" class="w-full bg-purple-950 border border-purple-700 rounded p-1.5 text-xs text-cyan-300 focus:outline-none focus:border-pink-500"></select>
+                </div>
+
+                <div>
+                    <div class="flex justify-between text-purple-300 mb-1">
+                        <span>Voice Pitch (Frequency):</span>
+                        <span id="pitch-val" class="text-pink-400">1.2</span>
                     </div>
-                    <div class="w-8 h-8 rounded-md bg-purple-900/40 border border-purple-500/40 flex items-center justify-center text-purple-300 text-xs cursor-pointer hover:border-purple-300">
-                        <i class="fa-solid fa-bars-staggered"></i>
+                    <input id="pitch-slider" type="range" min="0.5" max="2" step="0.1" value="1.2" class="w-full accent-pink-500">
+                </div>
+
+                <div>
+                    <div class="flex justify-between text-purple-300 mb-1">
+                        <span>Voice Rate (Speed):</span>
+                        <span id="rate-val" class="text-cyan-400">1.0</span>
                     </div>
-                    <div class="w-8 h-8 rounded-md bg-purple-900/40 border border-cyan-500/40 flex items-center justify-center text-cyan-300 text-xs cursor-pointer hover:border-cyan-30
+                    <input id="rate-slider" type="range" min="0.5" max="1.8" step="0.1" value="1.0" class="w-full accent-cyan-400">
+                </div>
+
+                <div>
+                    <div class="flex justify-between text-purple-300 mb-1">
+                        <span>Volume:</span>
+                        <span id="vol-val" class="text-emerald-400">1.0</span>
+                    </div>
+                    <input id="vol-slider" type="range" min="0" max="1" step="0.1" value="1.0" class="w-full accent-emerald-400">
+                </div>
+
+                <div class="pt-2 border-t border-purple-900/60 flex justify-between items-center">
+                    <span class="text-slate-300">Avatar Eye Glow Pulsing:</span>
+                    <input id="eye-glow-toggle" type="checkbox" checked class="accent-pink-500 w-4 h-4">
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-2">
+                <button onclick="closeSettingsModal()" class="px-3 py-1 bg-pink-600 hover:bg-pink-500 text-white font-orbitron text-[10px] rounded-lg">
+                    Save & Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT ENGINE & AVATAR CONTROLLER -->
+    <script>
+        // ==========================================
+        // SYSTEM STATE & GLOBAL VARIABLES
+        // ==========================================
+        const state = {
+            isAudioMuted: false,
+            isSpeaking: false,
+            isListening: false,
+            currentExpression: 'happy', // happy, surprised, blush, tactical, thinking
+            mouthAperture: 0, // 0 (closed) to 1 (open)
+            mouthWidthFactor: 1.0,
+            blinkTimer: 0,
+            isBlinking: false,
+            eyeTargetX: 0,
+            eyeTargetY: 0,
+            eyeCurrentX: 0,
+            eyeCurrentY: 0,
+            headSway: 0,
+            hairSway: 0,
+            time: 0,
+            llmEngine: null,
+            llmLoaded: false,
+            selectedVoice: null,
+            pitch: 1.2,
+            rate: 1.0,
+            volume: 1.0,
+            audioGlowEnabled: true
+        };
+
+        // DOM Element Cache
+        const canvas = document.getElementById('sukiCanvas');
+        const ctx = canvas.getContext('2d');
+        const chatContainer = document.getElementById('chat-container');
+        const chatInput = document.getElementById('chat-input');
+        const sendBtn = document.getElementById('send-btn');
+        const micBtn = document.getElementById('mic-btn');
+        const clockDisplay = document.getElementById('clock-display');
+        const equalizer = document.getElementById('equalizer');
+        const speechStateBadge = document.getElementById('speech-state-badge');
+        const emotionTag = document.getElementById('emotion-tag');
+        const voiceSelect = document.getElementById('voice-select');
+
+        // ==========================================
+        // CLOCK & TIME UPDATER
+        // ==========================================
+        function updateClock() {
+            const now = new Date();
+            const hrs = String(now.getHours()).padStart(2, '0');
+            const mins = String(now.getMinutes()).padStart(2, '0');
+            clockDisplay.textContent = `${hrs}:${mins}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // ==========================================
+        // CANVAS ANIMATED ANIME AVATAR ENGINE
+        // ==========================================
+        function resizeCanvas() {
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * window.devicePixelRatio || rect.width;
+            canvas.height = rect.height * window.devicePixelRatio || rect.height;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Canvas Click -> Cycle Expression
+        canvas.addEventListener('click', (e) => {
+            const exprs = ['happy', 'surprised', 'blush', 'tactical', 'thinking'];
+            const nextIdx = (exprs.indexOf(state.currentExpression) + 1) % exprs.length;
+            setSukiExpression(exprs[nextIdx]);
+            speakText(`Expression set to ${exprs[nextIdx]} mode! Nya!`);
+        });
+
+        // Track Mouse Move for Eye Gaze Tracking
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const cx = rect.width / 2;
+            const cy = rect.height / 2;
+            state.eyeTargetX = (e.clientX - rect.left - cx) / cx; // -1 to 1
+            state.eyeTargetY = (e.clientY - rect.top - cy) / cy;   // -1 to 1
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            state.eyeTargetX = 0;
+            state.eyeTargetY = 0;
+        });
+
+        function setSukiExpression(expr) {
+            state.currentExpression = expr;
+            emotionTag.textContent = `EXPR: ${expr.toUpperCase()}`;
+        }
+
+        // Animated Render Loop
+        function renderAvatarFrame() {
+            state.time += 0.03;
+            const width = canvas.width;
+            const height = canvas.height;
+            const scale = Math.min(width, height) / 280;
+
+            // Clear Screen
+            ctx.clearRect(0, 0, width, height);
+
+            ctx.save();
+            ctx.translate(width / 2, height / 2 + 15 * scale);
+
+            // Natural Floating & Swaying Math
+            const floatY = Math.sin(state.time * 1.5) * (4 * scale);
+            state.headSway = Math.sin(state.time * 0.8) * 0.04;
+            state.hairSway = Math.cos(state.time * 1.2) * (3 * scale);
+
+            ctx.translate(0, floatY);
+            ctx.rotate(state.headSway);
+
+            // Eye Tracking Smooth Interpolation
+            state.eyeCurrentX += (state.eyeTargetX - state.eyeCurrentX) * 0.1;
+            state.eyeCurrentY += (state.eyeTargetY - state.eyeCurrentY) * 0.1;
+
+            // Blinking System Logic
+            state.blinkTimer += 0.03;
+            if (state.blinkTimer > 3.5 + Math.random() * 2) {
+                state.isBlinking = true;
+                state.blinkTimer = 0;
+            }
+            if (state.isBlinking && state.blinkTimer > 0.15) {
+                state.isBlinking = false;
+            }
+
+            // Lip-Sync Aperture Interpolation
+            if (state.isSpeaking) {
+                // Simulate mouth talking motion synchronized with audio waveform bounce
+                const speakFreq = Math.sin(state.time * 18) * 0.5 + 0.5;
+                state.mouthAperture = 0.2 + speakFreq * 0.7;
+                state.mouthWidthFactor = 0.8 + Math.cos(state.time * 12) * 0.2;
+            } else {
+                state.mouthAperture += (0.05 - state.mouthAperture) * 0.2;
+                state.mouthWidthFactor += (1.0 - state.mouthWidthFactor) * 0.2;
+            }
+
+            // -------------------------------------------------------------
+            // DRAWING SUKI AVATAR (Cyber Kitsune Anime Girl)
+            // -------------------------------------------------------------
+
+            // 1. Cyber Kitsune Ears (Back/Behind Hair)
+            drawCyberCatEars(ctx, scale);
+
+            // 2. Back Hair
+            drawBackHair(ctx, scale);
+
+            // 3. Neck & Body Frame / Cyber Collar
+            drawBodyFrame(ctx, scale);
+
+            // 4. Face Base Structure
+            drawFaceBase(ctx, scale);
+
+            // 5. Blushing Effect
+            if (state.currentExpression === 'blush' || state.currentExpression === 'happy') {
+                drawBlush(ctx, scale);
+            }
+
+            // 6. Eyes System (Pupils, Eyelids, Iris Glow)
+            drawAnimeEyes(ctx, scale);
+
+            // 7. Eyebrows
+            drawEyebrows(ctx, scale);
+
+            // 8. Nose
+            ctx.fillStyle = '#ff99b6';
+            ctx.beginPath();
+            ctx.arc(0, 10 * scale, 1.5 * scale, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 9. Mouth (Dynamic Animated Lip-Sync)
+            drawDynamicMouth(ctx, scale);
+
+            // 10. Front Bangs & Side Hair Locks (Hair Physics)
+            drawFrontHair(ctx, scale);
+
+            // 11. Holographic Cyber HUD Visor Accent (Tactical Mode)
+            if (state.currentExpression === 'tactical') {
+                drawCyberVisor(ctx, scale);
+            }
+
+            ctx.restore();
+
+            requestAnimationFrame(renderAvatarFrame);
+        }
+
+        // --- AVATAR DRAWING HELPER FUNCTIONS ---
+
+        function drawCyberCatEars(ctx, scale) {
+            const glow = Math.sin(state.time * 3) * 0.2 + 0.8;
+            
+            // Left Ear
+            ctx.save();
+            ctx.translate(-45 * scale, -65 * scale);
+            ctx.rotate(-0.25 + Math.sin(state.time * 2) * 0.02);
+            ctx.fillStyle = '#1e0c38';
+            ctx.beginPath();
+            ctx.moveTo(0, 30 * scale);
+            ctx.lineTo(-25 * scale, -40 * scale);
+            ctx.lineTo(25 * scale, 0);
+            ctx.closePath();
+            ctx.fill();
+
+            // Inner Ear Neon Pink Glow
+            ctx.fillStyle = `rgba(255, 42, 141, ${0.7 * glow})`;
+            ctx.beginPath();
+            ctx.moveTo(2 * scale, 20 * scale);
+            ctx.lineTo(-15 * scale, -25 * scale);
+            ctx.lineTo(18 * scale, -2 * scale);
+            ctx.closePath();
+            ctx.fill();
+
+            // Cyber Circuits on Ear
+            ctx.strokeStyle = '#00f0ff';
+            ctx.lineWidth = 2 * scale;
+            ctx.beginPath();
+            ctx.moveTo(-10 * scale, -10 * scale);
+            ctx.lineTo(10 * scale, 10 * scale);
+            ctx.stroke();
+            ctx.restore();
+
+            // Right Ear
+            ctx.save();
+            ctx.translate(45 * scale, -65 * scale);
+            ctx.rotate(0.25 - Math.sin(state.time * 2) * 0.02);
+            ctx.fillStyle = '#1e0c38';
+            ctx.beginPath();
+            ctx.moveTo(0, 30 * scale);
+            ctx.lineTo(25 * scale, -40 * scale);
+            ctx.lineTo(-25 * scale, 0);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.fillStyle = `rgba(255, 42, 141, ${0.7 * glow})`;
+            ctx.beginPath();
+            ctx.moveTo(-2 * scale, 20 * scale);
+            ctx.lineTo(15 * scale, -25 * scale);
+            ctx.lineTo(-18 * scale, -2 * scale);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.strokeStyle = '#00f0ff';
+            ctx.lineWidth = 2 * scale;
+            ctx.beginPath();
+            ctx.moveTo(10 * scale, -10 * scale);
+            ctx.lineTo(-10 * scale, 10 * scale);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function drawBackHair(ctx, scale) {
+            ctx.fillStyle = '#2d144d';
+            ctx.beginPath();
+            ctx.arc(0, -10 * scale, 75 * scale, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Long flowing twin side locks
+            const hairSway = state.hairSway;
+            ctx.fillStyle = '#3b1866';
+
+            // Left Hair Flow
+            ctx.beginPath();
+            ctx.moveTo(-60 * scale, 0);
+            ctx.quadraticCurveTo(-85 * scale + hairSway, 60 * scale, -50 * scale + hairSway, 120 * scale);
+            ctx.quadraticCurveTo(-40 * scale, 60 * scale, -45 * scale, 0);
+            ctx.fill();
+
+            // Right Hair Flow
+            ctx.beginPath();
+            ctx.moveTo(60 * scale, 0);
+            ctx.quadraticCurveTo(85 * scale + hairSway, 60 * scale, 50 * scale + hairSway, 120 * scale);
+            ctx.quadraticCurveTo(40 * scale, 60 * scale, 45 * scale, 0);
+            ctx.fill();
+        }
+
+        function drawBodyFrame(ctx, scale) {
+            // Cyber Suit & Shoulders
+            ctx.fillStyle = '#0f081d';
+            ctx.beginPath();
+            ctx.moveTo(-50 * scale, 90 * scale);
+            ctx.lineTo(-65 * scale, 140 * scale);
+            ctx.lineTo(65 * scale, 140 * scale);
+            ctx.lineTo(50 * scale, 90 * scale);
+            ctx.closePath();
+            ctx.fill();
+
+            // Cyber Collar & Neon Lines
+            ctx.strokeStyle = '#ff2a8d';
+            ctx.lineWidth = 3 * scale;
+            ctx.beginPath();
+            ctx.moveTo(-35 * scale, 85 * scale);
+            ctx.lineTo(0, 105 * scale);
+            ctx.lineTo(35 * scale, 85 * scale);
+            ctx.stroke();
+
+            // Neck
+            ctx.fillStyle = '#ffd1dc';
+            ctx.fillRect(-14 * scale, 45 * scale, 28 * scale, 45 * scale);
+        }
+
+        function drawFaceBase(ctx, scale) {
+            ctx.fillStyle = '#ffe4ec';
+            ctx.beginPath();
+            ctx.moveTo(-50 * scale, -20 * scale);
+            ctx.quadraticCurveTo(-52 * scale, 35 * scale, 0, 60 * scale);
+            ctx.quadraticCurveTo(52 * scale, 35 * scale, 50 * scale, -20 * scale);
+            ctx.quadraticCurveTo(0, -65 * scale, -50 * scale, -20 * scale);
+            ctx.closePath();
+            ctx.fill();
+
+            // Soft Jaw Shadow
+            ctx.fillStyle = 'rgba(215, 120, 160, 0.15)';
+            ctx.beginPath();
+            ctx.arc(0, 48 * scale, 12 * scale, 0, Math.PI);
+            ctx.fill();
+        }
+
+        function drawBlush(ctx, scale) {
+            ctx.fillStyle = 'rgba(255, 42, 141, 0.35)';
+            ctx.beginPath();
+            ctx.ellipse(-28 * scale, 16 * scale, 10 * scale, 5 * scale, 0, 0, Math.PI * 2);
+            ctx.ellipse(28 * scale, 16 * scale, 10 * scale, 5 * scale, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function drawAnimeEyes(ctx, scale) {
+            const eyeXOffset = 25 * scale;
+            const eyeY = -5 * scale;
+            const pupilOffsetX = state.eyeCurrentX * 5 * scale;
+            const pupilOffsetY = state.eyeCurrentY * 4 * scale;
+
+            [-eyeXOffset, eyeXOffset].forEach((centerX) => {
+                ctx.save();
+                ctx.translate(centerX, eyeY);
+
+                if (state.isBlinking) {
+                    // Closed Eye Line
+                    ctx.strokeStyle = '#2a1147';
+                    ctx.lineWidth = 3.5 * scale;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 14 * scale, 0.8 * Math.PI, 0.2 * Math.PI, true);
+                    ctx.stroke();
+                } else {
+                    // Eye White Base
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, 14 * scale, 18 * scale, 0, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Iris Gradient (Neon Purple / Cyan)
+                    const irisGrad = ctx.createLinearGradient(0, -15 * scale, 0, 15 * scale);
+                    irisGrad.addColorStop(0, '#a855f7');
+                    irisGrad.addColorStop(0.5, '#ec4899');
+                    irisGrad.addColorStop(1, '#00f0ff');
+                    
+                    ctx.fillStyle = irisGrad;
+                    ctx.beginPath();
+                    ctx.ellipse(pupilOffsetX, pupilOffsetY, 9 * scale, 13 * scale, 0, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Pupil Core
+                    ctx.fillStyle = '#0f051d';
+                    ctx.beginPath();
+                    ctx.ellipse(pupilOffsetX, pupilOffsetY, 4 * scale, 6 * scale, 0, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Catchlight / Anime Eye Highlights
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.arc(pupilOffsetX - 3 * scale, pupilOffsetY - 5 * scale, 3 * scale, 0, Math.PI * 2);
+                    ctx.arc(pupilOffsetX + 3 * scale, pupilOffsetY + 4 * scale, 1.8 * scale, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Eyelash Line
+                    ctx.strokeStyle = '#2a1147';
+                    ctx.lineWidth = 3.5 * scale;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 15 * scale, 1.15 * Math.PI, 1.85 * Math.PI);
+                    ctx.stroke();
+                }
+
+                ctx.restore();
+            });
+        }
+
+        function drawEyebrows(ctx, scale) {
+            ctx.strokeStyle = '#3b1866';
+            ctx.lineWidth = 2.5 * scale;
+            ctx.lineCap = 'round';
+
+            let yShift = 0;
+            if (state.currentExpression === 'surprised') yShift = -6 * scale;
+            if (state.currentExpression === 'thinking') yShift = -2 * scale;
+
+            // Left Brow
+            ctx.beginPath();
+            ctx.moveTo(-38 * scale, (-24 + yShift) * scale);
+            ctx.quadraticCurveTo(-25 * scale, (-30 + yShift) * scale, -12 * scale, (-23 + yShift) * scale);
+            ctx.stroke();
+
+            // Right Brow
+            ctx.beginPath();
+            ctx.moveTo(12 * scale, (-23 + yShift) * scale);
+            ctx.quadraticCurveTo(25 * scale, (-30 + yShift) * scale, 38 * scale, (-24 + yShift) * scale);
+            ctx.stroke();
+        }
+
+        function drawDynamicMouth(ctx, scale) {
+            const openH = state.mouthAperture * 18 * scale;
+            const widthW = 12 * scale * state.mouthWidthFactor;
+
+            ctx.save();
+            ctx.translate(0, 32 * scale);
+
+            if (openH > 2.5 * scale) {
+                // Open Talking / Lip-Sync Mouth
+                ctx.fillStyle = '#c72c5e';
+                ctx.beginPath();
+                ctx.ellipse(0, 0, widthW, openH, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Tongue
+                ctx.fillStyle = '#ff7597';
+                ctx.beginPath();
+                ctx.ellipse(0, openH * 0.4, widthW * 0.6, openH * 0.4, 0, 0, Math.PI);
+                ctx.fill();
+
+                // Mouth Outline
+                ctx.strokeStyle = '#520b22';
+                ctx.lineWidth = 1.8 * scale;
+                ctx.stroke();
+            } else {
+                // Closed Cute Smile / Curved Line
+                ctx.strokeStyle = '#6b1333';
+                ctx.lineWidth = 2.2 * scale;
+                ctx.beginPath();
+                if (state.currentExpression === 'surprised') {
+                    ctx.arc(0, 0, 4 * scale, 0, Math.PI * 2);
+                } else {
+                    ctx.arc(0, -2 * scale, 8 * scale, 0.15 * Math.PI, 0.85 * Math.PI);
+                }
+                ctx.stroke();
+            }
+
+            ctx.restore();
+        }
+
+        function drawFrontHair(ctx, scale) {
+            const hairSway = state.hairSway * 0.4;
+
+            ctx.fillStyle = '#4c2282';
+
+            // Center Bangs Strand
+            ctx.beginPath();
+            ctx.moveTo(0, -65 * scale);
+            ctx.quadraticCurveTo(-15 * scale + hairSway, -20 * scale, -5 * scale + hairSway, 5 * scale);
+            ctx.quadraticCurveTo(5 * scale, -20 * scale, 15 * scale + hairSway, -60 * scale);
+            ctx.fill();
+
+            // Left Bang Strand
+            ctx.beginPath();
+            ctx.moveTo(-20 * scale, -60 * scale);
+            ctx.quadraticCurveTo(-45 * scale + hairSway, -25 * scale, -32 * scale + hairSway, 0);
+            ctx.quadraticCurveTo(-20 * scale, -30 * scale, -5 * scale, -55 * scale);
+            ctx.fill();
+
+            // Right Bang Strand
+            ctx.beginPath();
+            ctx.moveTo(20 * scale, -60 * scale);
+            ctx.quadraticCurveTo(45 * scale + hairSway, -25 * scale, 32 * scale + hairSway, 0);
+            ctx.quadraticCurveTo(20 * scale, -30 * scale, 5 * scale, -55 * scale);
+            ctx.fill();
+        }
+
+        function drawCyberVisor(ctx, scale) {
+            ctx.fillStyle = 'rgba(0, 240, 255, 0.25)';
+            ctx.strokeStyle = '#00f0ff';
+            ctx.lineWidth = 1.5 * scale;
+            ctx.beginPath();
+            ctx.rect(-45 * scale, -15 * scale, 90 * scale, 22 * scale);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = '#00f0ff';
+            ctx.font = `${8 * scale}px Orbitron`;
+            ctx.fillText('TARGET LOCKED', -35 * scale, 0);
+        }
+
+        // Start Animated Canvas Loop
+        renderAvatarFrame();
+
+        // ==========================================
+        // TEXT-TO-SPEECH (TTS) & LIP-SYNC ENGINE
+        // ==========================================
+        function populateVoices() {
+            if (!('speechSynthesis' in window)) return;
+            const voices = window.speechSynthesis.getVoices();
+            voiceSelect.innerHTML = '';
+            
+            voices.forEach((voice, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = `${voice.name} (${voice.lang})`;
+                if (voice.name.includes('Google') || voice.name.includes('Natural') || voice.name.includes('Samantha') || voice.name.includes('Zira') || voice.name.includes('Female')) {
+                    option.selected = true;
+                    state.selectedVoice = voice;
+                }
+                voiceSelect.appendChild(option);
+            });
+
+            if (!state.selectedVoice && voices.length > 0) {
+                state.selectedVoice = voices[0];
+            }
+
+            document.getElementById('voice-name-tag').textContent = state.selectedVoice ? state.selectedVoice.name.split(' ')[0] : 'WebSpeech';
+        }
+
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.onvoiceschanged = populateVoices;
+            populateVoices();
+        }
+
+        voiceSelect.addEventListener('change', (e) => {
+            const voices = window.speechSynthesis.getVoices();
+            state.selectedVoice = voices[e.target.value];
+            document.getElementById('voice-name-tag').textContent = state.selectedVoice ? state.selectedVoice.name.split(' ')[0] : 'WebSpeech';
+        });
+
+        document.getElementById('pitch-slider').addEventListener('input', (e) => {
+            state.pitch = parseFloat(e.target.value);
+            document.getElementById('pitch-val').textContent = state.pitch.toFixed(1);
+        });
+
+        document.getElementById('rate-slider').addEventListener('input', (e) => {
+            state.rate = parseFloat(e.target.value);
+            document.getElementById('rate-val').textContent = state.rate.toFixed(1);
+        });
+
+        document.getElementById('vol-slider').addEventListener('input', (e) => {
+            state.volume = parseFloat(e.target.value);
+            document.getElementById('vol-val').textContent = state.volume.toFixed(1);
+        });
+
+        function speakText(text) {
+            if (state.isAudioMuted || !('speechSynthesis' in window)) return;
+
+            window.speechSynthesis.cancel(); // Stop current speech
+
+            const cleanText = text.replace(/[*_~`]/g, ''); // Strip markdown
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+
+            if (state.selectedVoice) utterance.voice = state.selectedVoice;
+            utterance.pitch = state.pitch;
+            utterance.rate = state.rate;
+            utterance.volume = state.volume;
+
+            utterance.onstart = () => {
+                state.isSpeaking = true;
+                equalizer.classList.add('speaking-active');
+                speechStateBadge.textContent = 'TALKING';
+                speechStateBadge.className = 'text-[8px] font-mono text-cyan-400 font-bold animate-pulse';
+            };
+
+            utterance.onend = () => {
+                state.isSpeaking = false;
+                equalizer.classList.remove('speaking-active');
+                speechStateBadge.textContent = 'IDLE';
+                speechStateBadge.className = 'text-[8px] font-mono text-pink-400 font-bold';
+            };
+
+            utterance.onerror = () => {
+                state.isSpeaking = false;
+                equalizer.classList.remove('speaking-active');
+                speechStateBadge.textContent = 'IDLE';
+            };
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // Toggle Audio Mute Button
+        document.getElementById('toggle-audio-btn').addEventListener('click', () => {
+            state.isAudioMuted = !state.isAudioMuted;
+            const icon = document.getElementById('audio-icon');
+            if (state.isAudioMuted) {
+                window.speechSynthesis.cancel();
+                state.isSpeaking = false;
+                icon.className = 'fa-solid fa-volume-xmark text-slate-500';
+            } else {
+                icon.className = 'fa-solid fa-volume-high text-pink-400';
+                speakText("Audio unmuted! I'm ready to talk.");
+            }
+        });
+
+        // ==========================================
+        // SPEECH RECOGNITION ENGINE (ASR / STT)
+        // ==========================================
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition = null;
+
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = () => {
+                state.isListening = true;
+                micBtn.classList.add('mic-listening');
+                speechStateBadge.textContent = 'LISTENING';
+                speechStateBadge.className = 'text-[8px] font-mono text-emerald-400 font-bold animate-pulse';
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                chatInput.value = transcript;
+                handleUserMessage(transcript);
+            };
+
+            recognition.onerror = (event) => {
+                state.isListening = false;
+                micBtn.classList.remove('mic-listening');
+                speechStateBadge.textContent = 'IDLE';
+            };
+
+            recognition.onend = () => {
+                state.isListening = false;
+                micBtn.classList.remove('mic-listening');
+                if (!state.isSpeaking) speechStateBadge.textContent = 'IDLE';
+            };
+        }
+
+        micBtn.addEventListener('click', () => {
+            if (!recognition) {
+                appendChatMessage('System', 'Speech Recognition is not supported on this browser.');
+                return;
+            }
+            if (state.isListening) {
+                recognition.stop();
+            } else {
+                recognition.start();
+            }
+        });
+
+        // ==========================================
+        // LOCAL WEBELLM & AI DIALOGUE ENGINE
+        // ==========================================
+        async function initWebLLM() {
+            const label = document.getElementById('llm-load-label');
+            const percent = document.getElementById('llm-load-percent');
+            const bar = document.getElementById('llm-progress-bar');
+            const statusText = document.getElementById('model-status-text');
+
+            try {
+                if (window.CreateMLCEngine) {
+                    const selectedModel = "Llama-3.2-1B-Instruct-q4f16_1-MLC";
+                    state.llmEngine = await window.CreateMLCEngine(
+                        selectedModel,
+                        {
+                            initProgressCallback: (report) => {
+                                const p = Math.round(report.progress * 100);
+                                percent.textContent = `${p}%`;
+                                bar.style.width = `${p}%`;
+                                label.textContent = `WebGPU Core: ${report.text.substring(0, 35)}...`;
+                            }
+                        }
+                    );
+                    state.llmLoaded = true;
+                    statusText.textContent = '[WebGPU Local Model Active]';
+                    statusText.className = 'text-emerald-400 font-bold';
+                    document.getElementById('llm-loader-container').classList.add('hidden');
+                    speakText("Kitsune neural LLM online! I'm fully initialized, Senpai!");
+                } else {
+                    throw new Error("WebLLM library not ready");
+                }
+            } catch (err) {
+                console.warn("WebGPU WebLLM initialization fallback triggered:", err);
+                statusText.textContent = '[Fallback Kitsune AI Engine]';
+                statusText.className = 'text-cyan-400 font-bold';
+                percent.textContent = '100%';
+                bar.style.width = '100%';
+                label.textContent = 'Fast Responsive Neural Engine Ready (Fallback)';
+            }
+        }
+
+        window.addEventListener('mlc-loaded', initWebLLM);
+        setTimeout(() => {
+            if (!state.llmLoaded) initWebLLM();
+        }, 1500);
+
+        // Fallback Kitsune Response Generator
+        function generateFallbackResponse(userPrompt) {
+            const text = userPrompt.toLowerCase();
+            setSukiExpression('happy');
+
+            if (text.includes('asr') || text.includes('mic') || text.includes('speak')) {
+                return "Nya! Speech Recognition and viseme lip-sync are active! I can hear your voice and talk right back with real-time mouth movements!";
+            }
+            if (text.includes('orb') || text.includes('energy')) {
+                setSukiExpression('tactical');
+                return "Energy Orb is radiating at 100% capacity! Kitsune mana levels are completely stable, Senpai!";
+            }
+            if (text.includes('core') || text.includes('llama') || text.includes('model')) {
+                return "My local neural core is operating with zero-latency speech synthesis! All viseme mouth frames are active!";
+            }
+            if (text.includes('tactics') || text.includes('combat')) {
+                setSukiExpression('tactical');
+                return "Tactical Kitsune defense matrix deployed! Target locked and visor optics engaged!";
+            }
+            if (text.includes('matrix') || text.includes('telemetry')) {
+                return "Matrix telemetry scan finished! All cyber HUD channels and datastreams are clear!";
+            }
+            if (text.includes('link') || text.includes('hello') || text.includes('hi')) {
+                setSukiExpression('blush');
+                return "Nya! Strategic voice and data uplink established! I'm so happy to chat with you, Senpai!";
+            }
+            
+            const randomAnswers = [
+                "Nya! Systems optimal! I'm tracking your voice and animating my face live in response!",
+                "Datastream received, Senpai! My kitsune neural subroutines are running at max efficiency!",
+                "Everything is operational! My lip-sync engine opens my mouth dynamically whenever I talk!",
+                "Roger that! Direct kitsune uplink confirmed. What shall we deploy next in the cyber grid?"
+            ];
+            return randomAnswers[Math.floor(Math.random() * randomAnswers.length)];
+        }
+
+        async function handleUserMessage(userText) {
+            if (!userText.trim()) return;
+
+            // Append User Message to HUD Chat
+            appendChatMessage('User', userText, 'user');
+            chatInput.value = '';
+
+            // Placeholder AI response entry
+            const aiCard = appendChatMessage('Suki', 'Thinking...', 'suki');
+            const aiTextElement = aiCard.querySelector('.chat-body-text');
+
+            setSukiExpression('thinking');
+
+            if (state.llmLoaded && state.llmEngine) {
+                try {
+                    const messages = [
+                        { role: "system", content: "You are Suki, a cute cyber Kitsune anime AI companion in a Cyberpunk HUD. Respond concisely (1-2 sentences), warmly with 'Nya!' or anime flair." },
+                        { role: "user", content: userText }
+                    ];
+                    const chunks = await state.llmEngine.chat.completions.create({
+                        messages,
+                        stream: true,
+                        max_tokens: 80
+                    });
+
+                    let fullReply = "";
+                    aiTextElement.textContent = "";
+
+                    for await (const chunk of chunks) {
+                        const content = chunk.choices[0]?.delta?.content || "";
+                        fullReply += content;
+                        aiTextElement.textContent = fullReply;
+                        chatContainer.scrollTop = chatContainer.scrollHeight;
+                    }
+
+                    setSukiExpression('happy');
+                    speakText(fullReply);
+                    return;
+                } catch (e) {
+                    console.error("LLM Generation error, fallback used:", e);
+                }
+            }
+
+            // Fallback Response Path
+            setTimeout(() => {
+                const response = generateFallbackResponse(userText);
+                aiTextElement.textContent = response;
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                speakText(response);
+            }, 300);
+        }
+
+        function appendChatMessage(sender, text, type = 'suki') {
+            const card = document.createElement('div');
+            card.className = type === 'user' 
+                ? 'hud-card p-2 rounded-lg border border-cyan-500/40 bg-cyan-950/20 ml-4' 
+                : 'hud-card p-2 rounded-lg border border-pink-500/40 bg-purple-950/40 mr-2';
+
+            const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            card.innerHTML = `
+                <div class="flex justify-between items-center mb-0.5">
+                    <span class="font-orbitron font-bold text-[9px] ${type === 'user' ? 'text-cyan-400' : 'text-pink-400'} tracking-wider">${sender}</span>
+                    <span class="text-[7px] font-mono text-purple-300/60">${timeStr}</span>
+                </div>
+                <p class="chat-body-text text-[10.5px] font-mono text-purple-100 leading-snug">${text}</p>
+                ${type !== 'user' ? `
+                <div class="flex justify-end mt-1">
+                    <button class="transmit-msg-btn px-1.5 py-0.5 rounded bg-purple-900/80 hover:bg-pink-600 text-pink-300 hover:text-white border border-pink-500/40 text-[8px] font-orbitron flex items-center gap-1 transition">
+                        <i class="fa-solid fa-bullhorn text-[7px]"></i> Speak
+                    </button>
+                </div>` : ''}
+            `;
+
+            chatContainer.appendChild(card);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            if (type !== 'user') {
+                const speakBtn = card.querySelector('.transmit-msg-btn');
+                if (speakBtn) {
+                    speakBtn.addEventListener('click', () => {
+                        const bodyText = card.querySelector('.chat-body-text').textContent;
+                        speakText(bodyText);
+                    });
+                }
+            }
+
+            return card;
+        }
+
+        // Send Buttons & Keyboard Listeners
+        sendBtn.addEventListener('click', () => handleUserMessage(chatInput.value));
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleUserMessage(chatInput.value);
+        });
+
+        // Interactive Tactical Chips Event Delegation
+        document.querySelectorAll('.chip').forEach(button => {
+            button.addEventListener('click', () => {
+                const cmd = button.getAttribute('data-cmd');
+                handleUserMessage(cmd);
+            });
+        });
+
+        // Initial Transmit Button Event listener setup
+        document.querySelectorAll('.transmit-msg-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const parent = e.target.closest('.hud-card');
+                const text = parent.querySelector('p').textContent;
+                speakText(text);
+            });
+        });
+
+        // Tactical Helper Quick Functions
+        window.triggerSukiGreeting = () => {
+            setSukiExpression('happy');
+            const greeting = "Konichiwa Senpai! Welcome back to the Suki Cyber HUD interface!";
+            appendChatMessage('Suki', greeting);
+            speakText(greeting);
+        };
+
+        window.clearChatLog = () => {
+            chatContainer.innerHTML = '';
+            appendChatMessage('System', 'Chat log telemetry cleared.');
+        };
+
+        // Modal Helpers
+        window.openSettingsModal = () => {
+            document.getElementById('settings-modal').classList.remove('hidden');
+        };
+        window.closeSettingsModal = () => {
+            document.getElementById('settings-modal').classList.add('hidden');
+        };
+        document.getElementById('settings-modal-btn').addEventListener('click', openSettingsModal);
+
+    </script>
+</body>
+</html>
