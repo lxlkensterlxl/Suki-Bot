@@ -1,662 +1,947 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-slate-950 text-slate-100">
+<html lang="en" class="h-full bg-slate-950 text-slate-100 dark">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>SUKI // NEKO-HUD</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SukiBot // Cyber-Goth Terminal & Graphics Controller</title>
   
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- Google Font: Rajdhani & Share Tech Mono -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-  
-  <!-- FontAwesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
   <script>
     tailwind.config = {
+      darkMode: 'class',
       theme: {
         extend: {
-          fontFamily: {
-            mono: ['"Share Tech Mono"', 'monospace'],
-            sans: ['Rajdhani', 'sans-serif'],
-          },
           colors: {
             cyber: {
-              pink: '#ff2a8d',
-              cyan: '#00f3ff',
+              black: '#080810',
+              card: '#0f0f1b',
+              border: '#1f1f3a',
+              pink: '#ff2a70',
+              pinkGlow: 'rgba(255, 42, 112, 0.4)',
+              cyan: '#00f0ff',
+              cyanGlow: 'rgba(0, 240, 255, 0.4)',
               purple: '#ab00ff',
-              dark: '#0a0814',
-              card: '#131126',
-              border: '#2e2654',
+              purpleGlow: 'rgba(171, 0, 255, 0.3)',
+              yellow: '#ffe600'
             }
           },
-          boxShadow: {
-            'pink-glow': '0 0 15px rgba(255, 42, 141, 0.5)',
-            'cyan-glow': '0 0 15px rgba(0, 243, 255, 0.5)',
-            'purple-glow': '0 0 20px rgba(171, 0, 255, 0.3)',
+          fontFamily: {
+            mono: ['Fira Code', 'JetBrains Mono', 'Monaco', 'Consolas', 'monospace'],
+            sans: ['Inter', 'sans-serif']
+          },
+          animation: {
+            'glitch': 'glitch 2s infinite',
+            'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'scanline': 'scanline 8s linear infinite'
+          },
+          keyframes: {
+            glitch: {
+              '0%, 100%': { transform: 'translate(0)' },
+              '20%': { transform: 'translate(-2px, 2px)' },
+              '40%': { transform: 'translate(-2px, -2px)' },
+              '60%': { transform: 'translate(2px, 2px)' },
+              '80%': { transform: 'translate(2px, -2px)' },
+            },
+            scanline: {
+              '0%': { transform: 'translateY(-100%)' },
+              '100%': { transform: 'translateY(1000%)' }
+            }
           }
         }
       }
     }
   </script>
+  
+  <!-- Font Awesome & Lucide Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;600;700&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
 
   <style>
-    /* Crisp sub-pixel rendering & mobile optimizations */
-    canvas {
-      image-rendering: -webkit-optimize-contrast;
-      image-rendering: crisp-edges;
-      image-rendering: pixelated;
-      touch-action: none;
-    }
-    
-    /* Cyberpunk custom scrollbars */
-    ::-webkit-scrollbar {
-      width: 4px;
-      height: 4px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #0a0814;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #ff2a8d;
-      border-radius: 2px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #00f3ff;
-    }
-
-    /* Scanline visual overlay effect */
-    .scanlines {
+    /* Custom CRT Scanline and Cyber Overlay Effects */
+    .crt-overlay {
       background: linear-gradient(
-        rgba(18, 16, 38, 0) 50%, 
+        rgba(18, 16, 16, 0) 50%, 
         rgba(0, 0, 0, 0.25) 50%
       );
       background-size: 100% 4px;
-      pointer-events: none;
     }
     
-    /* Subtle neon pulse animation */
-    @keyframes pulseGlow {
-      0%, 100% { opacity: 0.8; filter: drop-shadow(0 0 8px rgba(255, 42, 141, 0.6)); }
-      50% { opacity: 1; filter: drop-shadow(0 0 16px rgba(0, 243, 255, 0.8)); }
+    .glow-pink-text {
+      text-shadow: 0 0 10px rgba(255, 42, 112, 0.7), 0 0 20px rgba(255, 42, 112, 0.4);
     }
-    .neon-pulse {
-      animation: pulseGlow 4s infinite ease-in-out;
+
+    .glow-cyan-text {
+      text-shadow: 0 0 10px rgba(0, 240, 255, 0.7), 0 0 20px rgba(0, 240, 255, 0.4);
+    }
+
+    .glow-border-cyan {
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.25), inset 0 0 15px rgba(0, 240, 255, 0.1);
+    }
+
+    .glow-border-pink {
+      box-shadow: 0 0 15px rgba(255, 42, 112, 0.25), inset 0 0 15px rgba(255, 42, 112, 0.1);
+    }
+
+    /* Custom Scrollbar for Terminal */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #080810;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1f1f3a;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #00f0ff;
+    }
+
+    /* Range Slider Styling */
+    input[type=range] {
+      -webkit-appearance: none;
+      background: #1f1f3a;
+      height: 6px;
+      border-radius: 3px;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 18px;
+      width: 18px;
+      border-radius: 50%;
+      background: #00f0ff;
+      cursor: pointer;
+      box-shadow: 0 0 10px #00f0ff;
     }
   </style>
 </head>
-<body class="h-full flex flex-col justify-between select-none font-mono antialiased overflow-hidden bg-cyber-dark text-slate-200">
 
-  <!-- HUD Container -->
-  <div class="max-w-md w-full mx-auto h-full flex flex-col justify-between p-3 relative scanlines border-x border-cyber-border/40 bg-gradient-to-b from-cyber-dark via-[#0d091e] to-cyber-dark">
-    
-    <!-- TOP HEADER -->
-    <header class="flex items-center justify-between py-2 px-3 bg-cyber-card/80 border border-cyber-border rounded-xl backdrop-blur-md shadow-purple-glow">
-      <div class="flex items-center gap-2">
-        <span class="w-2.5 h-2.5 rounded-full bg-cyber-pink animate-ping"></span>
-        <h1 class="font-sans font-bold text-lg tracking-wider text-slate-100 flex items-center gap-1.5">
-          SUKI<span class="text-cyber-pink">//</span>NEKO-HUD
-        </h1>
-      </div>
+<body class="h-full bg-cyber-black font-mono text-slate-200 select-none overflow-x-hidden flex flex-col antialiased">
+
+  <!-- Top Header Navigation -->
+  <header class="w-full border-b border-cyber-border bg-cyber-card/80 backdrop-blur-md sticky top-0 z-40 px-4 py-3">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
       
-      <div class="flex items-center gap-3 text-xs text-cyber-cyan">
-        <span id="clock" class="tracking-widest">00:00:00</span>
-        <div class="flex items-center gap-1 bg-cyber-cyan/10 px-2 py-0.5 rounded border border-cyber-cyan/30">
-          <span class="w-1.5 h-1.5 rounded-full bg-cyber-cyan animate-pulse"></span>
-          <span class="text-[10px]">SYNCED</span>
+      <!-- Logo / Title with Cyberpunk Glitch effect -->
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-lg bg-gradient-to-tr from-cyber-pink to-cyber-purple flex items-center justify-center font-extrabold text-xl shadow-lg shadow-cyber-pink/30 relative">
+          <span class="text-white">S</span>
+          <div class="absolute -top-1 -right-1 w-3 h-3 bg-cyber-cyan rounded-full animate-ping"></div>
         </div>
-        <button id="soundToggleBtn" class="text-slate-400 hover:text-cyber-cyan transition-colors" title="Toggle UI Audio">
-          <i class="fas fa-volume-high text-sm"></i>
+        <div>
+          <h1 class="text-xl font-extrabold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyber-pink via-cyber-cyan to-white hover:animate-glitch cursor-default">
+            SUKIBOT<span class="text-xs text-cyber-cyan font-normal ml-2 tracking-normal border border-cyber-cyan/40 px-1.5 py-0.5 rounded">v3.0.9</span>
+          </h1>
+          <p class="text-xs text-slate-400 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            WEB GUY GRAPHICS CONTROLLER // DLSS 3.5 READY
+          </p>
+        </div>
+      </div>
+
+      <!-- Quick Status & Audio Controls -->
+      <div class="flex items-center space-x-3">
+        <button id="soundToggleBtn" onclick="toggleAudio()" class="px-3 py-1.5 rounded-md border border-cyber-border bg-cyber-black hover:border-cyber-cyan text-slate-300 hover:text-cyber-cyan text-xs flex items-center gap-2 transition-all">
+          <i id="soundIcon" class="fa-solid fa-volume-high text-cyber-cyan"></i>
+          <span id="soundLabel" class="hidden sm:inline">AUDIO: ON</span>
+        </button>
+        <button onclick="executeCommand('/help')" class="px-3 py-1.5 rounded-md border border-cyber-pink/50 bg-cyber-pink/10 hover:bg-cyber-pink/20 text-cyber-pink text-xs font-semibold flex items-center gap-1.5 transition-all glow-border-pink">
+          <i class="fa-solid fa-terminal"></i>
+          <span>COMMANDS</span>
         </button>
       </div>
-    </header>
 
-    <!-- MAIN VIEWPORT CONTAINER -->
-    <main class="flex-1 flex flex-col gap-3 my-2 min-h-0 overflow-y-auto">
+    </div>
+  </header>
+
+  <!-- Main Grid Content Area -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-5 grid grid-cols-1 lg:grid-cols-12 gap-5">
+
+    <!-- LEFT COLUMN: Graphic Viewport & Canvas Renderer (7 cols) -->
+    <section class="lg:col-span-7 flex flex-col gap-4">
       
-      <!-- AVATAR CANVAS STAGE -->
-      <section class="relative bg-cyber-card/90 border border-cyber-border rounded-2xl p-2 flex flex-col items-center justify-between shadow-purple-glow overflow-hidden">
+      <!-- Canvas Display Card -->
+      <div class="relative bg-cyber-card border border-cyber-border rounded-xl overflow-hidden flex flex-col shadow-2xl">
         
-        <!-- Status Pill Indicators -->
-        <div class="w-full flex justify-between items-center px-2 py-1 text-[11px] font-semibold z-10">
-          <div class="bg-cyber-dark/80 px-2.5 py-1 rounded-full border border-cyber-pink/40 text-cyber-pink">
-            MODE: <span id="currentModeText" class="text-slate-100 font-bold">IDLE // PATROL</span>
+        <!-- Viewport Header Toolbar -->
+        <div class="px-4 py-2.5 bg-cyber-black/70 border-b border-cyber-border flex items-center justify-between">
+          <div class="flex items-center gap-2 text-xs text-slate-400">
+            <i class="fa-solid fa-display text-cyber-cyan"></i>
+            <span>GRAPHICS ENGINE VIEWPORT</span>
+            <span id="rendererBadge" class="bg-cyber-cyan/10 border border-cyber-cyan/40 text-cyber-cyan text-[10px] px-2 py-0.5 rounded uppercase font-bold">WebGL 2.0</span>
           </div>
-          <div class="bg-cyber-dark/80 px-2.5 py-1 rounded-full border border-cyber-cyan/40 text-cyber-cyan">
-            EXPRESSION: <span id="currentExprText" class="text-slate-100 font-bold">SMILING</span>
+
+          <!-- Live Metrics Pill -->
+          <div class="flex items-center gap-3 text-xs">
+            <div class="flex items-center gap-1">
+              <span class="text-slate-400">FPS:</span>
+              <span id="fpsCounter" class="font-bold text-emerald-400">60</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <span class="text-slate-400">SCALE:</span>
+              <span id="scaleDisplay" class="font-bold text-cyber-cyan">1.00x</span>
+            </div>
           </div>
         </div>
 
-        <!-- High-DPI Crisp Canvas Frame -->
-        <div class="relative w-full flex-1 min-h-[220px] max-h-[300px] flex items-center justify-center my-1">
-          <canvas id="sukiCanvas" class="w-full h-full rounded-xl cursor-pointer"></canvas>
+        <!-- Render Canvas Container -->
+        <div class="relative w-full h-72 sm:h-96 bg-black flex items-center justify-center overflow-hidden">
           
-          <!-- Subtle Floating Background Grid -->
-          <div class="absolute inset-0 pointer-events-none border border-cyber-cyan/10 rounded-xl bg-[linear-gradient(to_right,#00f3ff0a_1px,transparent_1px),linear-gradient(to_bottom,#00f3ff0a_1px,transparent_1px)] bg-[size:16px_16px]"></div>
+          <!-- WebGL/Canvas Viewport -->
+          <canvas id="graphicsCanvas" class="w-full h-full block cursor-crosshair"></canvas>
+
+          <!-- CRT Scanline overlay effect -->
+          <div class="crt-overlay absolute inset-0 pointer-events-none opacity-40"></div>
+          
+          <!-- On-Canvas HUD Watermark -->
+          <div class="absolute top-3 left-3 pointer-events-none bg-black/60 backdrop-blur border border-white/10 rounded px-2.5 py-1 text-[11px] text-slate-300 space-y-0.5">
+            <div><span class="text-slate-500">TARGET RES:</span> <span id="targetResText">1920x1080</span></div>
+            <div><span class="text-slate-500">RENDER RES:</span> <span id="renderResText" class="text-cyber-cyan">1920x1080</span></div>
+            <div><span class="text-slate-500">DLSS MODE:</span> <span id="hudDlssMode" class="text-cyber-pink font-bold">OFF</span></div>
+          </div>
+
+          <!-- Canvas Interactive Hint -->
+          <div class="absolute bottom-3 right-3 pointer-events-none bg-black/60 backdrop-blur border border-white/10 rounded px-2.5 py-1 text-[10px] text-slate-400 flex items-center gap-1.5">
+            <i class="fa-solid fa-hand-pointer text-cyber-cyan animate-bounce"></i>
+            <span>CLICK/DRAG TO AGITATE PARTICLES</span>
+          </div>
         </div>
 
-        <!-- Action Control Buttons Grid -->
-        <div class="w-full grid grid-cols-3 gap-2 z-10 pt-1">
-          <button onclick="triggerAction('walk')" class="action-btn flex items-center justify-center gap-1.5 py-2 px-2 bg-cyber-dark/90 border border-cyber-cyan/40 hover:border-cyber-cyan text-cyber-cyan hover:bg-cyber-cyan/10 rounded-xl text-xs font-sans font-bold transition-all active:scale-95">
-            <i class="fas fa-shoe-prints"></i> Walk
+        <!-- Engine Mode Switcher Bar -->
+        <div class="p-3 bg-cyber-black/90 border-t border-cyber-border grid grid-cols-3 gap-2">
+          <button onclick="setEngineAPI('webgl2')" id="btnApiWebgl" class="py-2 px-3 rounded-lg border border-cyber-cyan bg-cyber-cyan/10 text-cyber-cyan text-xs font-bold transition-all text-center flex items-center justify-center gap-2">
+            <i class="fa-solid fa-cube"></i> WebGL 2.0
           </button>
-          <button onclick="triggerAction('greet')" class="action-btn flex items-center justify-center gap-1.5 py-2 px-2 bg-cyber-dark/90 border border-cyber-pink/40 hover:border-cyber-pink text-cyber-pink hover:bg-cyber-pink/10 rounded-xl text-xs font-sans font-bold transition-all active:scale-95">
-            <i class="fas fa-smile-beam"></i> Greet
+          <button onclick="setEngineAPI('webgpu')" id="btnApiWebgpu" class="py-2 px-3 rounded-lg border border-cyber-border bg-cyber-card hover:border-cyber-purple text-slate-400 hover:text-cyber-purple text-xs font-bold transition-all text-center flex items-center justify-center gap-2">
+            <i class="fa-solid fa-bolt"></i> WebGPU (Sim)
           </button>
-          <button onclick="triggerAction('slash')" class="action-btn flex items-center justify-center gap-1.5 py-2 px-2 bg-cyber-dark/90 border border-purple-500/40 hover:border-purple-400 text-purple-300 hover:bg-purple-500/10 rounded-xl text-xs font-sans font-bold transition-all active:scale-95">
-            <i class="fas fa-wand-magic-sparkles"></i> Katana
-          </button>
-          <button onclick="triggerAction('spin')" class="action-btn col-span-3 flex items-center justify-center gap-2 py-2 px-3 bg-gradient-to-r from-cyber-pink/20 via-cyber-purple/20 to-cyber-cyan/20 border border-cyber-cyan/60 hover:border-cyber-cyan text-slate-100 rounded-xl text-xs font-sans font-bold transition-all active:scale-95 shadow-cyan-glow">
-            <i class="fas fa-atom text-cyber-cyan animate-spin"></i> Plasma Spin
+          <button onclick="setEngineAPI('canvas2d')" id="btnApiCanvas" class="py-2 px-3 rounded-lg border border-cyber-border bg-cyber-card hover:border-cyber-pink text-slate-400 hover:text-cyber-pink text-xs font-bold transition-all text-center flex items-center justify-center gap-2">
+            <i class="fa-solid fa-layer-group"></i> Canvas 2D
           </button>
         </div>
-      </section>
 
-      <!-- AI ASSISTANT DIALOGUE BANNER -->
-      <section class="bg-cyber-card/90 border border-cyber-border rounded-xl p-3 shadow-purple-glow">
-        <div class="flex items-center justify-between text-xs text-cyber-pink mb-1">
-          <span class="flex items-center gap-1.5 font-bold">
-            <i class="fas fa-robot text-cyber-cyan"></i> SUKI // NEKO-AI:
-          </span>
-          <span class="text-[10px] text-slate-500 tracking-widest">v2.0.4</span>
-        </div>
-        <p id="sukiSpeech" class="text-xs text-slate-200 leading-relaxed font-sans font-semibold min-h-[32px] transition-all">
-          System online. High-DPI canvas renderer synced with sub-pixel perfection. Ready for your command!
-        </p>
-      </section>
+      </div>
 
-      <!-- SYSTEM INTERACTION LOG FEED -->
-      <section class="bg-cyber-card/80 border border-cyber-border rounded-xl p-2.5 flex-1 flex flex-col justify-between overflow-hidden shadow-inner">
-        <div class="flex justify-between items-center text-[11px] text-slate-400 border-b border-cyber-border/40 pb-1 mb-1.5">
-          <span class="text-cyber-cyan font-bold">SYS_LOG // INTERACTION_FEED</span>
-          <button onclick="clearLog()" class="hover:text-cyber-pink text-[10px] transition-colors">CLEAR LOG</button>
+      <!-- WEB GUY CONFIGURATOR PANEL -->
+      <div class="bg-cyber-card border border-cyber-border rounded-xl p-4 shadow-xl space-y-4">
+        
+        <div class="flex items-center justify-between border-b border-cyber-border pb-3">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-microchip text-cyber-pink"></i>
+            <h2 class="text-sm font-bold tracking-wider text-slate-100">WEB GUY GRAPHICS CONTROLLER</h2>
+          </div>
+          <span class="text-xs text-cyber-cyan font-mono bg-cyber-cyan/10 border border-cyber-cyan/30 px-2 py-0.5 rounded">NVIDIA RTX ALGORITHM SIMULATOR</span>
         </div>
-        <div id="logFeed" class="flex-1 overflow-y-auto text-[11px] space-y-1 pr-1 font-mono">
-          <!-- Dynamic Log Entries -->
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          
+          <!-- DLSS Super Sampling Mode Selection -->
+          <div class="space-y-2">
+            <label class="text-xs text-slate-400 flex items-center justify-between">
+              <span>NVIDIA DLSS PRESET</span>
+              <span id="dlssPresetBadge" class="text-cyber-pink font-bold text-[11px]">OFF (1.0x)</span>
+            </label>
+            
+            <div class="grid grid-cols-2 gap-2">
+              <button onclick="setDLSSMode('OFF')" id="dlssBtnOFF" class="dlss-btn py-2 px-2 text-xs rounded bg-cyber-pink/20 border border-cyber-pink text-cyber-pink font-bold">
+                OFF (Native)
+              </button>
+              <button onclick="setDLSSMode('QUALITY')" id="dlssBtnQUALITY" class="dlss-btn py-2 px-2 text-xs rounded bg-cyber-black border border-cyber-border text-slate-400 hover:border-cyber-cyan">
+                Quality (0.67x)
+              </button>
+              <button onclick="setDLSSMode('BALANCED')" id="dlssBtnBALANCED" class="dlss-btn py-2 px-2 text-xs rounded bg-cyber-black border border-cyber-border text-slate-400 hover:border-cyber-cyan">
+                Balanced (0.58x)
+              </button>
+              <button onclick="setDLSSMode('PERFORMANCE')" id="dlssBtnPERFORMANCE" class="dlss-btn py-2 px-2 text-xs rounded bg-cyber-black border border-cyber-border text-slate-400 hover:border-cyber-cyan">
+                Performance (0.50x)
+              </button>
+            </div>
+          </div>
+
+          <!-- Manual Scale & Sharpening Controls -->
+          <div class="space-y-3">
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-slate-400">CUSTOM RENDER SCALE</span>
+                <span id="customScaleVal" class="text-cyber-cyan font-bold">100%</span>
+              </div>
+              <input type="range" id="renderScaleSlider" min="25" max="100" value="100" class="w-full cursor-pointer" oninput="onCustomScaleChange(this.value)">
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-slate-400">AI SHARPENING (NIS POST FILTER)</span>
+                <span id="sharpenVal" class="text-cyber-purple font-bold">50%</span>
+              </div>
+              <input type="range" id="sharpenSlider" min="0" max="100" value="50" class="w-full cursor-pointer" oninput="onSharpenChange(this.value)">
+            </div>
+          </div>
+
         </div>
-      </section>
+
+        <!-- Feature Toggle Ticker -->
+        <div class="pt-2 border-t border-cyber-border/60 flex flex-wrap gap-4 text-xs">
+          <label class="flex items-center gap-2 cursor-pointer text-slate-300">
+            <input type="checkbox" id="chkBloom" checked onchange="toggleFeature('bloom')" class="accent-cyber-cyan rounded">
+            <span>Bloom Pass</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer text-slate-300">
+            <input type="checkbox" id="chkParticles" checked onchange="toggleFeature('particles')" class="accent-cyber-pink rounded">
+            <span>Cyber Particles</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer text-slate-300">
+            <input type="checkbox" id="chkGrid" checked onchange="toggleFeature('grid')" class="accent-cyber-purple rounded">
+            <span>Spatial Wireframe</span>
+          </label>
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- RIGHT COLUMN: SukiBot Interactive Cyber Terminal & Assistant (5 cols) -->
+    <section class="lg:col-span-5 flex flex-col gap-4">
       
-    </main>
+      <!-- Terminal Interface Card -->
+      <div class="bg-cyber-card border border-cyber-border rounded-xl overflow-hidden flex flex-col h-full shadow-2xl flex-1 min-h-[480px]">
+        
+        <!-- Terminal Header -->
+        <div class="px-4 py-3 bg-cyber-black border-b border-cyber-border flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <span class="w-3 h-3 rounded-full bg-red-500/80 inline-block"></span>
+            <span class="w-3 h-3 rounded-full bg-yellow-500/80 inline-block"></span>
+            <span class="w-3 h-3 rounded-full bg-emerald-500/80 inline-block"></span>
+            <span class="text-xs text-slate-400 font-bold ml-2">SUKIBOT CORE TERMINAL</span>
+          </div>
+          <button onclick="clearTerminal()" class="text-xs text-slate-500 hover:text-slate-300 transition-colors">
+            <i class="fa-solid fa-trash-can"></i> CLEAR
+          </button>
+        </div>
 
-    <!-- CHAT INPUT CONTROLLER -->
-    <footer class="pt-1">
-      <form id="chatForm" onsubmit="handleSend(event)" class="flex items-center gap-2">
-        <button type="button" onclick="triggerAction('greet')" class="p-3 bg-cyber-card border border-cyber-border hover:border-cyber-pink text-cyber-pink rounded-xl flex items-center justify-center transition-all active:scale-90">
-          <i class="fas fa-microphone"></i>
-        </button>
-        <input 
-          id="chatInput"
-          type="text" 
-          placeholder="Talk to Suki or give command..."
-          class="flex-1 bg-cyber-card/90 border border-cyber-border focus:border-cyber-cyan text-slate-100 placeholder-slate-500 rounded-xl px-3 py-2.5 text-xs outline-none transition-all font-sans"
-        />
-        <button 
-          type="submit" 
-          class="p-3 bg-gradient-to-r from-cyber-pink to-cyber-purple hover:brightness-125 text-white rounded-xl flex items-center justify-center transition-all shadow-pink-glow active:scale-95">
-          <i class="fas fa-paper-plane"></i>
-        </button>
-      </form>
-    </footer>
+        <!-- Terminal Output Stream Window -->
+        <div id="terminalOutput" class="flex-1 p-4 overflow-y-auto space-y-3 text-xs font-mono bg-cyber-black/95">
+          <!-- Terminal logs injected dynamically -->
+        </div>
 
-  </div>
+        <!-- Quick Action Suggestion Pills -->
+        <div class="p-2 bg-cyber-black/60 border-t border-cyber-border/60 flex items-center gap-1.5 overflow-x-auto text-[11px] whitespace-nowrap">
+          <span class="text-slate-500 px-1">Quick:</span>
+          <button onclick="executeCommand('/dlss quality')" class="px-2 py-0.5 rounded bg-cyber-card border border-cyber-border hover:border-cyber-cyan text-slate-300 hover:text-cyber-cyan">/dlss quality</button>
+          <button onclick="executeCommand('/engine webgpu')" class="px-2 py-0.5 rounded bg-cyber-card border border-cyber-border hover:border-cyber-pink text-slate-300 hover:text-cyber-pink">/engine webgpu</button>
+          <button onclick="executeCommand('/status')" class="px-2 py-0.5 rounded bg-cyber-card border border-cyber-border hover:border-cyber-purple text-slate-300 hover:text-cyber-purple">/status</button>
+          <button onclick="executeCommand('/matrix')" class="px-2 py-0.5 rounded bg-cyber-card border border-cyber-border hover:border-emerald-400 text-slate-300 hover:text-emerald-400">/matrix</button>
+        </div>
 
-  <!-- SCRIPT CONTROLLER & HIGH-DPI CANVAS ENGINE -->
+        <!-- Command Input Form -->
+        <form id="terminalForm" onsubmit="handleTerminalSubmit(event)" class="p-3 bg-cyber-black border-t border-cyber-border flex items-center gap-2">
+          <span class="text-cyber-pink font-bold text-sm">&gt;</span>
+          <input 
+            type="text" 
+            id="terminalInput" 
+            placeholder="Type /help or a command..." 
+            autocomplete="off" 
+            class="flex-1 bg-transparent border-none text-slate-100 placeholder-slate-600 focus:outline-none text-xs font-mono"
+            onkeydown="playTypingSound()"
+          >
+          <button type="submit" class="px-3 py-1.5 rounded bg-cyber-cyan/20 border border-cyber-cyan/50 text-cyber-cyan hover:bg-cyber-cyan/30 text-xs font-bold transition-all">
+            EXEC
+          </button>
+        </form>
+
+      </div>
+
+      <!-- Quick Metrics Summary Card -->
+      <div class="bg-cyber-card border border-cyber-border rounded-xl p-4 flex items-center justify-between text-xs">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-lg bg-cyber-cyan/10 border border-cyber-cyan/40 flex items-center justify-center text-cyber-cyan">
+            <i class="fa-solid fa-gauge-high text-base"></i>
+          </div>
+          <div>
+            <div class="text-slate-400">ESTIMATED GPU LOAD</div>
+            <div id="gpuLoadText" class="font-bold text-slate-100">LOW (24%)</div>
+          </div>
+        </div>
+        <div class="text-right">
+          <div class="text-slate-400">UPSCALING COST</div>
+          <div id="upscaleCostText" class="font-bold text-emerald-400">0.42 ms</div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Footer Info Bar -->
+  <footer class="w-full border-t border-cyber-border bg-cyber-black py-2.5 px-4 text-center text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between max-w-7xl mx-auto gap-2">
+    <div>SUKIBOT GRAPHICS SYSTEM ENGINE &copy; 2026 // CYBER GOTH UI PROTOCOL</div>
+    <div class="flex items-center gap-4 text-slate-400">
+      <span class="hover:text-cyber-cyan cursor-pointer" onclick="executeCommand('/github')"><i class="fa-brands fa-github"></i> GitHub Pages Opt</span>
+      <span class="hover:text-cyber-pink cursor-pointer" onclick="executeCommand('/dlss')"><i class="fa-solid fa-bolt"></i> DLSS Mode</span>
+    </div>
+  </footer>
+
+  <!-- SCRIPT LOGIC: Web Audio API, Canvas Engine, DLSS Simulator, Terminal -->
   <script>
-    // --- GLOBAL STATE ---
-    let soundEnabled = true;
-    let currentMode = 'IDLE';
-    let currentExpression = 'HAPPY';
-    let animationTime = 0;
-    let actionState = 'idle'; // idle, walk, greet, slash, spin
-    let actionTimer = 0;
-
-    // --- AUDIO SYSTEM (Web Audio API Synthesizer) ---
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    /* =========================================================================
+       1. WEB AUDIO API SYNTHESIZER (UI Clicks, Typing & Beeps)
+       ========================================================================= */
     let audioCtx = null;
+    let soundEnabled = true;
 
-    function playTone(freq, type, duration, vol = 0.1) {
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContext();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function toggleAudio() {
+      soundEnabled = !soundEnabled;
+      const icon = document.getElementById('soundIcon');
+      const label = document.getElementById('soundLabel');
+      
+      if (soundEnabled) {
+        icon.className = 'fa-solid fa-volume-high text-cyber-cyan';
+        label.innerText = 'AUDIO: ON';
+        playTone(600, 'sine', 0.05, 0.1);
+      } else {
+        icon.className = 'fa-solid fa-volume-xmark text-slate-500';
+        label.innerText = 'AUDIO: OFF';
+      }
+    }
+
+    function playTone(freq, type = 'sine', duration = 0.05, vol = 0.1) {
       if (!soundEnabled) return;
       try {
-        if (!audioCtx) audioCtx = new AudioCtx();
+        initAudio();
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
+        
         osc.type = type;
         osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
         gain.gain.setValueAtTime(vol, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        
         osc.connect(gain);
         gain.connect(audioCtx.destination);
+        
         osc.start();
         osc.stop(audioCtx.currentTime + duration);
-      } catch (e) {}
-    }
-
-    function playSfx(type) {
-      if (!soundEnabled) return;
-      if (type === 'btn') {
-        playTone(600, 'sine', 0.08, 0.05);
-        setTimeout(() => playTone(900, 'sine', 0.08, 0.04), 40);
-      } else if (type === 'slash') {
-        playTone(300, 'sawtooth', 0.15, 0.08);
-        setTimeout(() => playTone(150, 'triangle', 0.2, 0.06), 60);
-      } else if (type === 'spin') {
-        for (let i = 0; i < 5; i++) {
-          setTimeout(() => playTone(400 + i * 150, 'sine', 0.1, 0.04), i * 40);
-        }
-      } else if (type === 'greet') {
-        playTone(523.25, 'sine', 0.1, 0.06); // C5
-        setTimeout(() => playTone(659.25, 'sine', 0.15, 0.06), 80); // E5
+      } catch (e) {
+        // Audio fallback silence
       }
     }
 
-    document.getElementById('soundToggleBtn').addEventListener('click', function() {
-      soundEnabled = !soundEnabled;
-      this.innerHTML = soundEnabled 
-        ? '<i class="fas fa-volume-high text-sm text-cyber-cyan"></i>' 
-        : '<i class="fas fa-volume-xmark text-sm text-slate-500"></i>';
-      addLog('SYSTEM', soundEnabled ? 'Audio feedback unmuted.' : 'Audio feedback muted.');
-    });
+    function playTypingSound() {
+      const frequencies = [400, 450, 500, 550, 600];
+      const randomFreq = frequencies[Math.floor(Math.random() * frequencies.length)];
+      playTone(randomFreq, 'square', 0.03, 0.03);
+    }
 
-    // --- HIGH-DPI CANVAS SETUP & CRISP GRAPHICS ENGINE ---
-    const canvas = document.getElementById('sukiCanvas');
+    function playSuccessSound() {
+      playTone(523.25, 'triangle', 0.08, 0.1); // C5
+      setTimeout(() => playTone(659.25, 'triangle', 0.08, 0.1), 80); // E5
+      setTimeout(() => playTone(783.99, 'triangle', 0.15, 0.1), 160); // G5
+    }
+
+    function playErrorSound() {
+      playTone(200, 'sawtooth', 0.1, 0.12);
+      setTimeout(() => playTone(150, 'sawtooth', 0.15, 0.12), 100);
+    }
+
+
+    /* =========================================================================
+       2. GRAPHICS ENGINE & DLSS SUPER SAMPLING CONTROLLER
+       ========================================================================= */
+    const canvas = document.getElementById('graphicsCanvas');
     const ctx = canvas.getContext('2d');
-    let dpr = window.devicePixelRatio || 1;
+
+    // Engine Configuration State
+    const EngineState = {
+      api: 'webgl2', // 'webgl2', 'webgpu', 'canvas2d'
+      dlssMode: 'OFF', // 'OFF', 'QUALITY', 'BALANCED', 'PERFORMANCE'
+      renderScale: 1.0,
+      sharpenAmount: 0.5,
+      bloom: true,
+      particles: true,
+      grid: true,
+      targetWidth: 1920,
+      targetHeight: 1080,
+      internalWidth: 1920,
+      internalHeight: 1080,
+      fps: 60,
+      lastFrameTime: performance.now(),
+      frameCount: 0,
+      fpsTimer: performance.now()
+    };
+
+    // DLSS Scaling Factors Matrix
+    const DLSS_PRESETS = {
+      OFF: { scale: 1.0, label: 'OFF (Native 1.0x)' },
+      QUALITY: { scale: 0.67, label: 'Quality (0.67x)' },
+      BALANCED: { scale: 0.58, label: 'Balanced (0.58x)' },
+      PERFORMANCE: { scale: 0.50, label: 'Performance (0.50x)' }
+    };
+
+    // Simulated Cyber Particles
+    let particles = [];
+    const PARTICLE_COUNT = 120;
+    let mouse = { x: 0, y: 0, active: false };
+
+    function initParticles() {
+      particles = [];
+      for (let i = 0; i < PARTICLE_COUNT; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          vx: (Math.random() - 0.5) * 2,
+          vy: (Math.random() - 0.5) * 2,
+          radius: Math.random() * 2.5 + 1,
+          color: Math.random() > 0.4 ? '#00f0ff' : (Math.random() > 0.5 ? '#ff2a70' : '#ab00ff')
+        });
+      }
+    }
 
     function resizeCanvas() {
       const rect = canvas.getBoundingClientRect();
-      dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width;
+      canvas.height = rect.height;
       
-      // Set buffer display size scaled for crisp Retina Rendering
-      canvas.width = Math.round(rect.width * dpr);
-      canvas.height = Math.round(rect.height * dpr);
-      
-      // Ensure smooth vector crisping on dynamic screens
-      ctx.imageSmoothingEnabled = false;
+      EngineState.targetWidth = Math.round(rect.width);
+      EngineState.targetHeight = Math.round(rect.height);
+
+      updateRenderDimensions();
+      initParticles();
     }
 
-    window.addEventListener('resize', resizeCanvas);
-    setTimeout(resizeCanvas, 50);
+    function updateRenderDimensions() {
+      EngineState.internalWidth = Math.round(EngineState.targetWidth * EngineState.renderScale);
+      EngineState.internalHeight = Math.round(EngineState.targetHeight * EngineState.renderScale);
 
-    // --- ANIMATION & SUKI CANVAS GRAPHICS RENDERER ---
-    function renderSuki() {
-      animationTime += 0.05;
-      if (actionTimer > 0) {
-        actionTimer--;
-        if (actionTimer === 0) {
-          actionState = 'idle';
-          setMode('IDLE // PATROL', 'SMILING');
-        }
+      document.getElementById('targetResText').innerText = `${EngineState.targetWidth}x${EngineState.targetHeight}`;
+      document.getElementById('renderResText').innerText = `${EngineState.internalWidth}x${EngineState.internalHeight}`;
+      document.getElementById('scaleDisplay').innerText = `${EngineState.renderScale.toFixed(2)}x`;
+
+      // Update estimated metrics
+      const gpuLoad = Math.round(EngineState.renderScale * 45 + (EngineState.bloom ? 15 : 0));
+      document.getElementById('gpuLoadText').innerText = `${gpuLoad < 40 ? 'LOW' : (gpuLoad < 65 ? 'MED' : 'HIGH')} (${gpuLoad}%)`;
+      document.getElementById('upscaleCostText').innerText = `${(0.2 + (1.0 - EngineState.renderScale) * 0.5).toFixed(2)} ms`;
+    }
+
+    function setDLSSMode(mode) {
+      if (!DLSS_PRESETS[mode]) return;
+      playTone(700, 'sine', 0.05, 0.1);
+      
+      EngineState.dlssMode = mode;
+      EngineState.renderScale = DLSS_PRESETS[mode].scale;
+
+      // Sync UI Buttons
+      document.querySelectorAll('.dlss-btn').forEach(btn => {
+        btn.className = 'dlss-btn py-2 px-2 text-xs rounded bg-cyber-black border border-cyber-border text-slate-400 hover:border-cyber-cyan';
+      });
+
+      const activeBtn = document.getElementById(`dlssBtn${mode}`);
+      if (activeBtn) {
+        activeBtn.className = 'dlss-btn py-2 px-2 text-xs rounded bg-cyber-pink/20 border border-cyber-pink text-cyber-pink font-bold glow-border-pink';
       }
 
-      const width = canvas.width;
-      const height = canvas.height;
+      document.getElementById('dlssPresetBadge').innerText = DLSS_PRESETS[mode].label;
+      document.getElementById('hudDlssMode').innerText = mode;
+      document.getElementById('renderScaleSlider').value = Math.round(EngineState.renderScale * 100);
+      document.getElementById('customScaleVal').innerText = `${Math.round(EngineState.renderScale * 100)}%`;
 
-      // Clear viewport
-      ctx.clearRect(0, 0, width, height);
+      updateRenderDimensions();
+      logTerminal(`DLSS Mode switched to: [${mode}] (Render Scale: ${EngineState.renderScale}x)`, 'cyber');
+    }
 
-      ctx.save();
-      // Normalize scaling factor for High-DPI screen coordinates
-      const scale = (height / 280);
-      const centerX = width / 2;
-      const centerY = height / 2 + 10 * scale;
+    function onCustomScaleChange(val) {
+      const scale = val / 100;
+      EngineState.renderScale = scale;
+      EngineState.dlssMode = 'CUSTOM';
+      
+      document.getElementById('customScaleVal').innerText = `${val}%`;
+      document.getElementById('hudDlssMode').innerText = 'CUSTOM';
+      document.getElementById('scaleDisplay').innerText = `${scale.toFixed(2)}x`;
 
-      // Draw Ground Glow Shadow
-      const shadowGlow = ctx.createRadialGradient(centerX, centerY + 80 * scale, 5 * scale, centerX, centerY + 80 * scale, 50 * scale);
-      shadowGlow.addColorStop(0, 'rgba(171, 0, 255, 0.4)');
-      shadowGlow.addColorStop(1, 'transparent');
-      ctx.fillStyle = shadowGlow;
-      ctx.beginPath();
-      ctx.ellipse(centerX, centerY + 80 * scale, 45 * scale, 12 * scale, 0, 0, Math.PI * 2);
-      ctx.fill();
+      // Clear button selections
+      document.querySelectorAll('.dlss-btn').forEach(btn => {
+        btn.className = 'dlss-btn py-2 px-2 text-xs rounded bg-cyber-black border border-cyber-border text-slate-400 hover:border-cyber-cyan';
+      });
 
-      // Dynamic Motion Offsets
-      let bounceY = Math.sin(animationTime * 3) * 4 * scale;
-      let legAngle = 0;
-      let armLeftAngle = 0;
-      let armRightAngle = 0;
-      let shurikenAngle = animationTime * 4;
+      updateRenderDimensions();
+    }
 
-      if (actionState === 'walk') {
-        legAngle = Math.sin(animationTime * 8) * 0.4;
-        bounceY = Math.abs(Math.sin(animationTime * 8)) * 6 * scale;
-        armLeftAngle = -legAngle;
-        armRightAngle = legAngle;
-      } else if (actionState === 'greet') {
-        armRightAngle = -Math.PI / 1.5 + Math.sin(animationTime * 10) * 0.15;
-      } else if (actionState === 'slash') {
-        armRightAngle = -Math.PI / 1.2 + Math.cos(animationTime * 15) * 0.5;
-        bounceY -= 10 * scale;
-      } else if (actionState === 'spin') {
-        shurikenAngle = animationTime * 18;
-        bounceY += Math.sin(animationTime * 12) * 8 * scale;
-      }
+    function onSharpenChange(val) {
+      EngineState.sharpenAmount = val / 100;
+      document.getElementById('sharpenVal').innerText = `${val}%`;
+    }
 
-      const charY = centerY + bounceY;
+    function setEngineAPI(api) {
+      EngineState.api = api;
+      playTone(850, 'triangle', 0.06, 0.1);
 
-      // 1. Draw Legs (Sharp Cyber Pants)
-      ctx.lineWidth = 8 * scale;
-      ctx.strokeStyle = '#1a1633';
-      ctx.lineCap = 'round';
+      const badge = document.getElementById('rendererBadge');
+      const bWebgl = document.getElementById('btnApiWebgl');
+      const bWebgpu = document.getElementById('btnApiWebgpu');
+      const bCanvas = document.getElementById('btnApiCanvas');
 
-      // Left Leg
-      ctx.beginPath();
-      ctx.moveTo(centerX - 12 * scale, charY + 35 * scale);
-      ctx.lineTo(centerX - 16 * scale + Math.sin(legAngle) * 15 * scale, charY + 75 * scale);
-      ctx.stroke();
+      // Reset Button Styles
+      [bWebgl, bWebgpu, bCanvas].forEach(btn => {
+        btn.className = 'py-2 px-3 rounded-lg border border-cyber-border bg-cyber-card hover:border-cyber-cyan text-slate-400 hover:text-slate-200 text-xs font-bold transition-all text-center flex items-center justify-center gap-2';
+      });
 
-      // Right Leg
-      ctx.beginPath();
-      ctx.moveTo(centerX + 12 * scale, charY + 35 * scale);
-      ctx.lineTo(centerX + 16 * scale - Math.sin(legAngle) * 15 * scale, charY + 75 * scale);
-      ctx.stroke();
-
-      // Boots Glowing Accents
-      ctx.fillStyle = '#ff2a8d';
-      ctx.beginPath();
-      ctx.arc(centerX - 16 * scale + Math.sin(legAngle) * 15 * scale, charY + 74 * scale, 4 * scale, 0, Math.PI * 2);
-      ctx.arc(centerX + 16 * scale - Math.sin(legAngle) * 15 * scale, charY + 74 * scale, 4 * scale, 0, Math.PI * 2);
-      ctx.fill();
-
-      // 2. Torso & Cyber Armor
-      ctx.fillStyle = '#141226';
-      ctx.strokeStyle = '#ff2a8d';
-      ctx.lineWidth = 2 * scale;
-      ctx.beginPath();
-      ctx.roundRect(centerX - 18 * scale, charY - 10 * scale, 36 * scale, 48 * scale, 8 * scale);
-      ctx.fill();
-      ctx.stroke();
-
-      // Neon Belt
-      ctx.fillStyle = '#00f3ff';
-      ctx.fillRect(centerX - 18 * scale, charY + 22 * scale, 36 * scale, 4 * scale);
-
-      // 3. Arms & Weapon
-      // Left Arm
-      ctx.save();
-      ctx.translate(centerX - 18 * scale, charY - 2 * scale);
-      ctx.rotate(armLeftAngle);
-      ctx.fillStyle = '#2a224a';
-      ctx.fillRect(-5 * scale, 0, 8 * scale, 32 * scale);
-      ctx.restore();
-
-      // Right Arm (Holding Katana or Waving)
-      ctx.save();
-      ctx.translate(centerX + 18 * scale, charY - 2 * scale);
-      ctx.rotate(armRightAngle);
-      ctx.fillStyle = '#2a224a';
-      ctx.fillRect(-3 * scale, 0, 8 * scale, 32 * scale);
-
-      // Cyber Katana Slash Graphic
-      if (actionState === 'slash' || actionState === 'idle') {
-        ctx.strokeStyle = '#00f3ff';
-        ctx.shadowColor = '#00f3ff';
-        ctx.shadowBlur = 12 * scale;
-        ctx.lineWidth = 3 * scale;
-        ctx.beginPath();
-        ctx.moveTo(2 * scale, 25 * scale);
-        ctx.lineTo(25 * scale, -30 * scale);
-        ctx.stroke();
-        ctx.shadowBlur = 0; // Reset Shadow
-      }
-      ctx.restore();
-
-      // Katana Arc Energy Slice Effect
-      if (actionState === 'slash') {
-        ctx.strokeStyle = '#ab00ff';
-        ctx.shadowColor = '#ff2a8d';
-        ctx.shadowBlur = 18 * scale;
-        ctx.lineWidth = 4 * scale;
-        ctx.beginPath();
-        ctx.arc(centerX + 10 * scale, charY - 10 * scale, 45 * scale, -Math.PI / 4, Math.PI / 3);
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-      }
-
-      // 4. Suki Head & Neko Ears
-      const headY = charY - 30 * scale;
-
-      // Neko Cyber Ears (Glow Edges)
-      ctx.fillStyle = '#281a45';
-      ctx.strokeStyle = '#ff2a8d';
-      ctx.lineWidth = 2 * scale;
-
-      // Left Ear
-      ctx.beginPath();
-      ctx.moveTo(centerX - 24 * scale, headY - 10 * scale);
-      ctx.lineTo(centerX - 35 * scale, headY - 45 * scale);
-      ctx.lineTo(centerX - 10 * scale, headY - 24 * scale);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-
-      // Right Ear
-      ctx.beginPath();
-      ctx.moveTo(centerX + 24 * scale, headY - 10 * scale);
-      ctx.lineTo(centerX + 35 * scale, headY - 45 * scale);
-      ctx.lineTo(centerX + 10 * scale, headY - 24 * scale);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-
-      // Inner Ear Neon Inset
-      ctx.fillStyle = '#ff2a8d';
-      ctx.beginPath();
-      ctx.moveTo(centerX - 22 * scale, headY - 14 * scale);
-      ctx.lineTo(centerX - 30 * scale, headY - 36 * scale);
-      ctx.lineTo(centerX - 14 * scale, headY - 23 * scale);
-      ctx.closePath();
-      ctx.fill();
-
-      ctx.beginPath();
-      ctx.moveTo(centerX + 22 * scale, headY - 14 * scale);
-      ctx.lineTo(centerX + 30 * scale, headY - 36 * scale);
-      ctx.lineTo(centerX + 14 * scale, headY - 23 * scale);
-      ctx.closePath();
-      ctx.fill();
-
-      // Head Base Shape
-      ctx.fillStyle = '#311b58';
-      ctx.beginPath();
-      ctx.arc(centerX, headY, 26 * scale, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Anime Hair (Front Fringe)
-      ctx.fillStyle = '#4c2885';
-      ctx.beginPath();
-      ctx.arc(centerX, headY - 4 * scale, 26 * scale, Math.PI, Math.PI * 2);
-      ctx.lineTo(centerX + 18 * scale, headY);
-      ctx.lineTo(centerX, headY + 5 * scale);
-      ctx.lineTo(centerX - 18 * scale, headY);
-      ctx.closePath();
-      ctx.fill();
-
-      // Visor / Anime Glowing Eyes
-      ctx.shadowColor = '#00f3ff';
-      ctx.shadowBlur = 10 * scale;
-      ctx.fillStyle = '#00f3ff';
-
-      if (currentExpression === 'WINK') {
-        // Left Eye (Open)
-        ctx.beginPath();
-        ctx.arc(centerX - 10 * scale, headY + 2 * scale, 4 * scale, 0, Math.PI * 2);
-        ctx.fill();
-        // Right Eye (Wink Arch)
-        ctx.strokeStyle = '#00f3ff';
-        ctx.lineWidth = 2.5 * scale;
-        ctx.beginPath();
-        ctx.arc(centerX + 10 * scale, headY + 3 * scale, 5 * scale, Math.PI, 0);
-        ctx.stroke();
+      if (api === 'webgl2') {
+        badge.innerText = 'WebGL 2.0';
+        badge.className = 'bg-cyber-cyan/10 border border-cyber-cyan/40 text-cyber-cyan text-[10px] px-2 py-0.5 rounded uppercase font-bold';
+        bWebgl.className = 'py-2 px-3 rounded-lg border border-cyber-cyan bg-cyber-cyan/10 text-cyber-cyan text-xs font-bold transition-all text-center flex items-center justify-center gap-2 glow-border-cyan';
+      } else if (api === 'webgpu') {
+        badge.innerText = 'WebGPU (Simulated)';
+        badge.className = 'bg-cyber-purple/10 border border-cyber-purple/40 text-cyber-purple text-[10px] px-2 py-0.5 rounded uppercase font-bold';
+        bWebgpu.className = 'py-2 px-3 rounded-lg border border-cyber-purple bg-cyber-purple/10 text-cyber-purple text-xs font-bold transition-all text-center flex items-center justify-center gap-2';
       } else {
-        // Smiling Curved Eyes
-        ctx.strokeStyle = '#00f3ff';
-        ctx.lineWidth = 3 * scale;
-        ctx.beginPath();
-        ctx.arc(centerX - 10 * scale, headY + 2 * scale, 5 * scale, Math.PI * 0.1, Math.PI * 0.9, true);
-        ctx.arc(centerX + 10 * scale, headY + 2 * scale, 5 * scale, Math.PI * 0.1, Math.PI * 0.9, true);
-        ctx.stroke();
-      }
-      ctx.shadowBlur = 0;
-
-      // Cute Blush Marks
-      ctx.fillStyle = 'rgba(255, 42, 141, 0.6)';
-      ctx.beginPath();
-      ctx.ellipse(centerX - 14 * scale, headY + 10 * scale, 4 * scale, 2 * scale, 0, 0, Math.PI * 2);
-      ctx.ellipse(centerX + 14 * scale, headY + 10 * scale, 4 * scale, 2 * scale, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // 5. Floating Plasma Shuriken Weapon (Sharp Canvas Geometry)
-      ctx.save();
-      const shurikenDistX = 45 * scale;
-      const shurikenDistY = -15 * scale + Math.sin(animationTime * 2) * 6 * scale;
-      ctx.translate(centerX + shurikenDistX, charY + shurikenDistY);
-      ctx.rotate(shurikenAngle);
-
-      ctx.shadowColor = '#00f3ff';
-      ctx.shadowBlur = 14 * scale;
-      ctx.fillStyle = 'rgba(0, 243, 255, 0.85)';
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 1.5 * scale;
-
-      // Draw 4 Star Blades
-      for (let i = 0; i < 4; i++) {
-        ctx.rotate(Math.PI / 2);
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.lineTo(-6 * scale, -8 * scale);
-        ctx.lineTo(0, -22 * scale);
-        ctx.lineTo(6 * scale, -8 * scale);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
+        badge.innerText = 'Canvas 2D';
+        badge.className = 'bg-cyber-pink/10 border border-cyber-pink/40 text-cyber-pink text-[10px] px-2 py-0.5 rounded uppercase font-bold';
+        bCanvas.className = 'py-2 px-3 rounded-lg border border-cyber-pink bg-cyber-pink/10 text-cyber-pink text-xs font-bold transition-all text-center flex items-center justify-center gap-2 glow-border-pink';
       }
 
-      // Shuriken Center Core
-      ctx.fillStyle = '#ff2a8d';
-      ctx.beginPath();
-      ctx.arc(0, 0, 5 * scale, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-
-      ctx.restore();
-      requestAnimationFrame(renderSuki);
+      logTerminal(`Graphics Renderer Switched to -> [${api.toUpperCase()}]`, 'success');
     }
 
-    // Start Render Loop
-    requestAnimationFrame(renderSuki);
-
-    // --- CONTROLLER FUNCTIONS & INTERACTION ---
-    function setMode(mode, expr) {
-      currentMode = mode;
-      currentExpression = expr;
-      document.getElementById('currentModeText').innerText = mode;
-      document.getElementById('currentExprText').innerText = expr;
-    }
-
-    function setSpeech(text) {
-      const speechEl = document.getElementById('sukiSpeech');
-      speechEl.style.opacity = 0;
-      setTimeout(() => {
-        speechEl.innerText = text;
-        speechEl.style.opacity = 1;
-      }, 150);
-    }
-
-    function addLog(sender, text) {
-      const feed = document.getElementById('logFeed');
-      const time = new Date().toLocaleTimeString().split(' ')[0];
-      const entry = document.createElement('div');
-      entry.className = 'flex gap-1.5 leading-tight';
-      
-      const isSys = sender === 'SYSTEM';
-      const colorClass = isSys ? 'text-cyber-cyan' : 'text-cyber-pink';
-      
-      entry.innerHTML = `<span class="text-slate-600">[${time}]</span> <span class="${colorClass} font-bold">&gt; [${sender}]</span> <span class="text-slate-300">${text}</span>`;
-      feed.appendChild(entry);
-      feed.scrollTop = feed.scrollHeight;
-    }
-
-    function triggerAction(action) {
-      playSfx(action === 'slash' ? 'slash' : action === 'spin' ? 'spin' : action === 'greet' ? 'greet' : 'btn');
-      actionState = action;
-
-      if (action === 'walk') {
-        actionTimer = 140;
-        setMode('WALKING // PATROL', 'ALERT');
-        setSpeech("Initiating patrol sequence. Locomotion servos running smoothly.");
-        addLog('SUKI', 'Executing walking routine. Sector clear.');
-      } else if (action === 'greet') {
-        actionTimer = 100;
-        setMode('INTERACT // GREET', 'WINK');
-        setSpeech("Konnichiwa! High-DPI canvas graphics synchronized!");
-        addLog('SUKI', 'Greeting user with festive gesture.');
-      } else if (action === 'slash') {
-        actionTimer = 90;
-        setMode('COMBAT // KATANA', 'FOCUSED');
-        setSpeech("Katana slash initialized! Plasma blade edge calibrated.");
-        addLog('SUKI', 'Katana slash maneuver completed successfully.');
-      } else if (action === 'spin') {
-        actionTimer = 160;
-        setMode('OVERCLOCK // SPIN', 'HYPER');
-        setSpeech("Overclocking floating plasma shuriken! Kinetic energy stabilized.");
-        addLog('SUKI', 'Plasma shuriken spin synchronized at maximum RPM.');
+    function toggleFeature(feature) {
+      if (EngineState.hasOwnProperty(feature)) {
+        EngineState[feature] = !EngineState[feature];
+        playTone(500, 'sine', 0.04, 0.05);
+        logTerminal(`Render pipeline module [${feature}] toggled: ${EngineState[feature]}`, 'system');
       }
     }
 
-    function handleSend(e) {
-      e.preventDefault();
-      const input = document.getElementById('chatInput');
-      const text = input.value.trim();
-      if (!text) return;
+    /* Main Engine Animation Loop */
+    function renderLoop(timestamp) {
+      // Calculate FPS
+      EngineState.frameCount++;
+      if (timestamp - EngineState.fpsTimer >= 1000) {
+        EngineState.fps = EngineState.frameCount;
+        EngineState.frameCount = 0;
+        EngineState.fpsTimer = timestamp;
+        document.getElementById('fpsCounter').innerText = EngineState.fps;
+      }
 
-      playSfx('btn');
-      addLog('USER', text);
-      input.value = '';
+      // Clear Frame
+      ctx.fillStyle = '#05050b';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      const lower = text.toLowerCase();
-      setTimeout(() => {
-        if (lower.includes('walk') || lower.includes('move') || lower.includes('run')) {
-          triggerAction('walk');
-        } else if (lower.includes('hello') || lower.includes('hi') || lower.includes('greet') || lower.includes('smile')) {
-          triggerAction('greet');
-        } else if (lower.includes('slash') || lower.includes('katana') || lower.includes('sword') || lower.includes('attack')) {
-          triggerAction('slash');
-        } else if (lower.includes('spin') || lower.includes('plasma') || lower.includes('shuriken')) {
-          triggerAction('spin');
-        } else if (lower.includes('clear')) {
-          clearLog();
-        } else {
-          playSfx('greet');
-          actionState = 'greet';
-          actionTimer = 80;
-          setMode('CHAT // RESPONSE', 'SMILING');
-          setSpeech(`Received: "${text}". All systems operating at peak efficiency!`);
-          addLog('SUKI', `Processed command query: '${text}'`);
+      // Render Spatial Grid
+      if (EngineState.grid) {
+        ctx.strokeStyle = 'rgba(0, 240, 255, 0.08)';
+        ctx.lineWidth = 1;
+        const gridSize = 30;
+        
+        for (let x = 0; x < canvas.width; x += gridSize) {
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, canvas.height);
+          ctx.stroke();
         }
-      }, 250);
+        for (let y = 0; y < canvas.height; y += gridSize) {
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(canvas.width, y);
+          ctx.stroke();
+        }
+      }
+
+      // Render Particles & Interactivity
+      if (EngineState.particles) {
+        particles.forEach((p, idx) => {
+          p.x += p.vx;
+          p.y += p.vy;
+
+          if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+          if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+          // Mouse Attraction / Repulsion
+          if (mouse.active) {
+            const dx = mouse.x - p.x;
+            const dy = mouse.y - p.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 120) {
+              p.x -= (dx / dist) * 2;
+              p.y -= (dy / dist) * 2;
+            }
+          }
+
+          // Draw Particle
+          ctx.fillStyle = p.color;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius * (EngineState.api === 'webgpu' ? 1.4 : 1), 0, Math.PI * 2);
+          ctx.fill();
+
+          // Draw Particle Connections (Simulating Shaders)
+          for (let j = idx + 1; j < particles.length; j++) {
+            const p2 = particles[j];
+            const dx = p.x - p2.x;
+            const dy = p.y - p2.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            if (dist < 85) {
+              ctx.strokeStyle = `rgba(0, 240, 255, ${1 - dist / 85})`;
+              ctx.lineWidth = 0.5;
+              ctx.beginPath();
+              ctx.moveTo(p.x, p.y);
+              ctx.lineTo(p2.x, p2.y);
+              ctx.stroke();
+            }
+          }
+        });
+      }
+
+      // Simulated Cyber Central Core / SukiBot Neural Node
+      const time = timestamp * 0.002;
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+
+      ctx.save();
+      ctx.translate(centerX, centerY);
+      ctx.rotate(time * 0.2);
+
+      // Outer Ring
+      ctx.strokeStyle = EngineState.api === 'webgpu' ? '#ab00ff' : '#ff2a70';
+      ctx.lineWidth = 2;
+      ctx.shadowBlur = EngineState.bloom ? 15 : 0;
+      ctx.shadowColor = ctx.strokeStyle;
+      ctx.beginPath();
+      ctx.arc(0, 0, 50 + Math.sin(time) * 5, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Inner Diamond Core
+      ctx.rotate(-time * 0.5);
+      ctx.strokeStyle = '#00f0ff';
+      ctx.beginPath();
+      ctx.rect(-20, -20, 40, 40);
+      ctx.stroke();
+      ctx.restore();
+
+      // Request next frame
+      requestAnimationFrame(renderLoop);
     }
 
-    function clearLog() {
-      playSfx('btn');
-      document.getElementById('logFeed').innerHTML = '';
-      addLog('SYSTEM', 'Interaction log cleared.');
+
+    /* =========================================================================
+       3. INTERACTIVE TERMINAL ENGINE & COMMAND INTERPRETER
+       ========================================================================= */
+    const terminalOutput = document.getElementById('terminalOutput');
+    const terminalInput = document.getElementById('terminalInput');
+
+    function logTerminal(text, type = 'normal') {
+      const entry = document.createElement('div');
+      entry.className = 'flex gap-2 items-start leading-relaxed';
+
+      const timestamp = new Date().toLocaleTimeString().split(' ')[0];
+      const timeSpan = `<span class="text-slate-600">[${timestamp}]</span>`;
+
+      if (type === 'cyber') {
+        entry.innerHTML = `${timeSpan} <span class="text-cyber-cyan font-bold">SUKI_BOT:</span> <span class="text-cyber-cyan">${text}</span>`;
+      } else if (type === 'success') {
+        entry.innerHTML = `${timeSpan} <span class="text-emerald-400 font-bold">SYS_OK:</span> <span class="text-slate-200">${text}</span>`;
+      } else if (type === 'error') {
+        entry.innerHTML = `${timeSpan} <span class="text-cyber-pink font-bold">ERROR:</span> <span class="text-cyber-pink">${text}</span>`;
+      } else if (type === 'user') {
+        entry.innerHTML = `${timeSpan} <span class="text-cyber-purple font-bold">USER&gt;</span> <span class="text-slate-100">${text}</span>`;
+      } else {
+        entry.innerHTML = `${timeSpan} <span class="text-slate-400">${text}</span>`;
+      }
+
+      terminalOutput.appendChild(entry);
+      terminalOutput.scrollTop = terminalOutput.scrollHeight;
     }
 
-    // --- REALTIME HUD CLOCK ---
-    function updateClock() {
-      const now = new Date();
-      const timeStr = now.toTimeString().split(' ')[0];
-      document.getElementById('clock').innerText = timeStr;
+    function clearTerminal() {
+      terminalOutput.innerHTML = '';
+      logTerminal('SukiBot Terminal session cleared.', 'system');
+      playTone(400, 'sine', 0.05, 0.05);
     }
-    setInterval(updateClock, 1000);
-    updateClock();
 
-    // Initial Logs
-    addLog('SYSTEM', 'Suki engine loaded. Voice recognition and locomotion ready.');
-    addLog('SYSTEM', 'Retina screen sub-pixel rendering crisp edges activated.');
+    function handleTerminalSubmit(e) {
+      e.preventDefault();
+      const input = terminalInput.value.trim();
+      if (!input) return;
+
+      logTerminal(input, 'user');
+      terminalInput.value = '';
+
+      executeCommand(input);
+    }
+
+    function executeCommand(cmdStr) {
+      const parts = cmdStr.trim().split(' ');
+      const mainCmd = parts[0].toLowerCase();
+      const param = parts[1] ? parts[1].toLowerCase() : null;
+
+      switch (mainCmd) {
+        case '/help':
+          playSuccessSound();
+          logTerminal('--- AVAILABLE SUKIBOT TERMINAL COMMANDS ---', 'cyber');
+          logTerminal('  <span class="text-cyber-cyan">/dlss [off|quality|balanced|performance]</span> : Change DLSS preset');
+          logTerminal('  <span class="text-cyber-cyan">/engine [webgl2|webgpu|canvas2d]</span> : Switch rendering engine API');
+          logTerminal('  <span class="text-cyber-cyan">/scale [25-100]</span> : Set custom render scale percentage');
+          logTerminal('  <span class="text-cyber-cyan">/status</span> : Display engine metrics and hardware state');
+          logTerminal('  <span class="text-cyber-cyan">/matrix</span> : Execute digital rain visual burst');
+          logTerminal('  <span class="text-cyber-cyan">/github</span> : Info on hosting SukiBot graphics on GitHub');
+          logTerminal('  <span class="text-cyber-cyan">/clear</span> : Reset terminal output window');
+          break;
+
+        case '/dlss':
+          if (!param) {
+            logTerminal(`Current DLSS mode: ${EngineState.dlssMode} (${EngineState.renderScale}x)`, 'cyber');
+          } else if (['off', 'quality', 'balanced', 'performance'].includes(param)) {
+            setDLSSMode(param.toUpperCase());
+            playSuccessSound();
+          } else {
+            playErrorSound();
+            logTerminal(`Invalid DLSS mode '${param}'. Use: off, quality, balanced, or performance.`, 'error');
+          }
+          break;
+
+        case '/engine':
+          if (!param) {
+            logTerminal(`Current Graphics API: ${EngineState.api}`, 'cyber');
+          } else if (['webgl2', 'webgpu', 'canvas2d'].includes(param)) {
+            setEngineAPI(param);
+            playSuccessSound();
+          } else {
+            playErrorSound();
+            logTerminal(`Invalid engine '${param}'. Use: webgl2, webgpu, or canvas2d.`, 'error');
+          }
+          break;
+
+        case '/scale':
+          const val = parseInt(param, 10);
+          if (!isNaN(val) && val >= 25 && val <= 100) {
+            onCustomScaleChange(val);
+            document.getElementById('renderScaleSlider').value = val;
+            playSuccessSound();
+            logTerminal(`Render Scale manually adjusted to ${val}%`, 'success');
+          } else {
+            playErrorSound();
+            logTerminal('Invalid scale value. Provide an integer between 25 and 100.', 'error');
+          }
+          break;
+
+        case '/status':
+          playSuccessSound();
+          logTerminal('=== SUKIBOT GRAPHICS SYSTEM DIAGNOSTIC ===', 'cyber');
+          logTerminal(`  - Target Resolution: ${EngineState.targetWidth}x${EngineState.targetHeight}`);
+          logTerminal(`  - Render Resolution: ${EngineState.internalWidth}x${EngineState.internalHeight}`);
+          logTerminal(`  - DLSS Super Sampling: ${EngineState.dlssMode}`);
+          logTerminal(`  - Active Renderer API: ${EngineState.api.toUpperCase()}`);
+          logTerminal(`  - Measured Frame Rate: ${EngineState.fps} FPS`);
+          logTerminal('  - Audio Synthesizer: ' + (soundEnabled ? 'ONLINE' : 'MUTED'));
+          break;
+
+        case '/matrix':
+          playSuccessSound();
+          logTerminal('Initializing digital rain protocol burst...', 'cyber');
+          for (let i = 0; i < 20; i++) {
+            particles.push({
+              x: Math.random() * canvas.width,
+              y: 0,
+              vx: 0,
+              vy: Math.random() * 5 + 3,
+              radius: 2,
+              color: '#00f0ff'
+            });
+          }
+          break;
+
+        case '/github':
+          playSuccessSound();
+          logTerminal('=== GITHUB PAGES ENGINE DEPLOYMENT ===', 'cyber');
+          logTerminal('GitHub static hosting serves client-side JavaScript execution.');
+          logTerminal('WebGL 2.0 and WebGPU run at 100% native client speed on GitHub Pages!');
+          break;
+
+        case '/clear':
+          clearTerminal();
+          break;
+
+        default:
+          playErrorSound();
+          logTerminal(`Unknown command '${mainCmd}'. Type <span class="text-cyber-pink">/help</span> for commands list.`, 'error');
+          break;
+      }
+    }
+
+
+    /* =========================================================================
+       4. INTERACTIVE MOUSE & TOUCH LISTENERS
+       ========================================================================= */
+    canvas.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      mouse.x = e.clientX - rect.left;
+      mouse.y = e.clientY - rect.top;
+      mouse.active = true;
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+      mouse.active = false;
+    });
+
+    canvas.addEventListener('mousedown', () => {
+      playTone(900, 'square', 0.04, 0.08);
+      // Spawn extra interactive click burst
+      for (let i = 0; i < 8; i++) {
+        particles.push({
+          x: mouse.x,
+          y: mouse.y,
+          vx: (Math.random() - 0.5) * 6,
+          vy: (Math.random() - 0.5) * 6,
+          radius: Math.random() * 3 + 1,
+          color: '#ff2a70'
+        });
+      }
+      if (particles.length > 200) particles.splice(0, 8);
+    });
+
+    // Touch Event Listeners for Mobile
+    canvas.addEventListener('touchmove', (e) => {
+      if (e.touches.length > 0) {
+        const rect = canvas.getBoundingClientRect();
+        mouse.x = e.touches[0].clientX - rect.left;
+        mouse.y = e.touches[0].clientY - rect.top;
+        mouse.active = true;
+      }
+    }, { passive: true });
+
+    canvas.addEventListener('touchend', () => {
+      mouse.active = false;
+    });
+
+
+    /* =========================================================================
+       5. INITIALIZATION ON WINDOW LOAD
+       ========================================================================= */
+    window.onload = function() {
+      window.addEventListener('resize', resizeCanvas);
+      resizeCanvas();
+
+      // Start engine loop
+      requestAnimationFrame(renderLoop);
+
+      // Print Welcome Banner in Terminal
+      logTerminal('SukiBot Cyber Goth Engine Interface Initialized...', 'cyber');
+      logTerminal('NVIDIA DLSS & Upscaling Controller loaded successfully.', 'success');
+      logTerminal('Type <span class="text-cyber-pink">/help</span> or click quick pills to run engine commands.', 'normal');
+    };
   </script>
 </body>
 </html>
