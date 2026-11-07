@@ -598,3 +598,52 @@
     </script>
 </body>
 </html>
+async function initializeSukiModel() {
+  const PRIMARY_MODEL = "Llama-3-8B-Instruct-q4f32_1";
+  const LIGHT_FALLBACK_MODEL = "Llama-3.2-1B-Instruct-q4f16_1"; // Much smaller footprint for mobile VRAM
+
+  // 1. Check early for WebGPU support
+  if (!navigator.gpu) {
+    console.warn("WebGPU not supported in this browser context.");
+    enableCoreFunctionsMode("WebGPU offline: Running core functions only.");
+    return;
+  }
+
+  try {
+    updateLoadingUI("Initializing primary neural weights...");
+    
+    // Attempt loading the heavy model
+    window.sukiEngine = await CreateMLCEngine(PRIMARY_MODEL, {
+      initProgressCallback: (report) => updateLoadingUI(report.text)
+    });
+    
+    setModelState("active");
+    
+  } catch (primaryError) {
+    console.warn("Primary model load failed (likely OOM or mobile limit). Trying lightweight fallback...", primaryError);
+    
+    try {
+      updateLoadingUI("Switching to mobile-optimized fallback model...");
+      
+      // Attempt loading a smaller model that fits in mobile VRAM limits
+      window.sukiEngine = await CreateMLCEngine(LIGHT_FALLBACK_MODEL, {
+        initProgressCallback: (report) => updateLoadingUI(report.text)
+      });
+      
+      setModelState("active-fallback");
+      
+    } catch (fallbackError) {
+      console.error("All local GPU initialization attempts failed:", fallbackError);
+      
+      // Graceful fallback to core functionality without breaking the UI
+      enableCoreFunctionsMode("WebGPU model offline, but my core functions are online!");
+    }
+  }
+}
+
+function enableCoreFunctionsMode(statusMessage) {
+  window.sukiEngine = null;
+  updateStatusBanner(statusMessage);
+  // Keep local UI actions, preset buttons, and animations fully functional
+}
+
