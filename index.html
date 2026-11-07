@@ -235,7 +235,7 @@
             <!-- MAIN HUD CONTAINER (SCROLLABLE) -->
             <div class="flex-1 overflow-y-auto z-20 p-2.5 space-y-2 no-scrollbar">
 
-                <!-- CYBER ANIME STAGE DISPLAY WITH CANVAS AVATAR -->
+                <!-- CYBER ANIME STAGE DISPLAY WITH IMAGE & FALLBACK CANVAS -->
                 <div class="relative w-full h-[380px] bg-gradient-to-b from-purple-950/60 via-slate-950 to-purple-950/40 rounded-xl border border-pink-500/40 overflow-hidden cyber-corner shadow-[0_0_15px_rgba(168,85,247,0.2)] flex flex-col justify-between">
                     
                     <!-- Background Code Grid Effect -->
@@ -243,25 +243,27 @@
                         SUKI_SYSTEM_v4.0 // CYBER_NINJA_AVATAR<br>
                         TACTICAL_NEKO: PURPLE_SHURIKEN_ACTIVE<br>
                         LEFT_HAND: ENERGY_KATANA_EQUIPPED<br>
-                        BRAID_LOCOMOTION_PHYSICS: ONLINE<br>
-                        SHURIKEN_SPIN_HERTZ: 60FPS<br>
-                        WALKING_MATRIX: ACTIVE_PACING<br>
+                        SPRITE_LOADER: SUKI_ARTWORK_ONLINE<br>
                         01100011 01111001 01100011 01100101 01110011
                     </div>
 
-                    <!-- Interactive Avatar Canvas -->
-                    <div class="absolute inset-0 flex items-center justify-center z-10">
-                        <canvas id="avatar-canvas" class="w-full h-full object-contain cursor-pointer"></canvas>
+                    <!-- Suki Artwork Container with Procedural Fallback Canvas -->
+                    <div class="absolute inset-0 flex items-center justify-center z-10 overflow-hidden">
+                        <!-- High-fidelity Suki Character Sprite -->
+                        <img id="suki-sprite" src="https://raw.githubusercontent.com/lxlkensterlxl/lxlkensterlxl.github.io/main/sukibot.png" alt="Suki Cyber Ninja" class="h-full w-full object-contain cursor-pointer transition-all duration-300 hover:scale-105 filter drop-shadow-[0_0_12px_rgba(168,85,247,0.6)]" onerror="handleImageError()">
+                        
+                        <!-- Fallback Canvas if image fails to load -->
+                        <canvas id="avatar-canvas" class="w-full h-full object-contain cursor-pointer hidden"></canvas>
                     </div>
 
                     <!-- Top Avatar Stats Overlay -->
                     <div class="relative z-20 p-2.5 flex justify-between items-start pointer-events-none">
                         <div class="bg-black/70 border border-purple-500/40 px-2 py-1 rounded text-[9px] font-mono text-cyan-300 backdrop-blur-sm">
                             <div>AVATAR: <span class="text-pink-400">SUKI-NINJA</span></div>
-                            <div>STATE: <span id="avatar-state-text" class="text-emerald-400">IDLE // READY</span></div>
+                            <div>STATE: <span id="avatar-state-text" class="text-emerald-400">SPRITE // ONLINE</span></div>
                         </div>
                         <div class="bg-black/70 border border-pink-500/40 px-2 py-1 rounded text-[9px] font-mono text-pink-300 text-right backdrop-blur-sm">
-                            <div>MOTION: <span id="motion-mode-text" class="text-cyan-400">PACING</span></div>
+                            <div>MOTION: <span id="motion-mode-text" class="text-cyan-400">ACTIVE</span></div>
                             <div id="fps-counter" class="text-emerald-400">FPS: 60</div>
                         </div>
                     </div>
@@ -278,7 +280,7 @@
                             </div>
                         </div>
                         <div id="dialogue-box" class="text-xs font-rajdhani text-slate-200 tracking-wide min-h-[32px] max-h-[48px] overflow-y-auto">
-                            Tactical Cyber-Ninja initialization complete. Shuriken floating, Katana drawn. Awaiting command...
+                            Tactical Cyber-Ninja online. Neural link established. Awaiting command, operator...
                         </div>
                     </div>
                 </div>
@@ -305,7 +307,7 @@
                         <span class="font-mono text-pink-500 font-bold">&gt;</span>
                         <div class="text-slate-300 font-rajdhani leading-relaxed">
                             <span class="text-pink-400 font-mono text-[10px] block">SYSTEM // INITIALIZED</span>
-                            Procedural cyber-ninja avatar loaded: Braided hair, floating plasma shuriken, left-hand energy katana, full walking locomotion matrix active.
+                            Cyber-ninja avatar asset loaded successfully: Neko ears, braided purple hair, tactical cyber suit, and plasma katana online.
                         </div>
                     </div>
                 </div>
@@ -369,7 +371,7 @@
         </div>
     </div>
 
-    <!-- MAIN APP SCRIPT WITH PROCEDURAL FULL BODY ANIMATION ENGINE -->
+    <!-- SCRIPT WITH IMAGE FALLBACK & AUDIO/VOICE ENGINE -->
     <script>
         // Clock updater
         setInterval(() => {
@@ -385,7 +387,6 @@
         function closeSettingsModal() {
             document.getElementById('settings-modal').classList.add('hidden');
             const mode = document.getElementById('locomotion-select').value;
-            avatarState.locomotionMode = mode;
             document.getElementById('motion-mode-text').innerText = mode.toUpperCase();
         }
 
@@ -393,7 +394,6 @@
         let availableVoices = [];
         let selectedVoice = null;
         let speechVolume = 1.0;
-        let speechPitch = 1.1;
 
         function populateVoiceList() {
             if (!('speechSynthesis' in window)) return;
@@ -457,52 +457,15 @@
             }
         });
 
-        // ----------------------------------------------------
-        // PROCEDURAL CYBER-NINJA CANVAS ANIMATION ENGINE
-        // ----------------------------------------------------
-        const canvas = document.getElementById('avatar-canvas');
-        const ctx = canvas.getContext('2d');
-        
-        let frameCount = 0;
-        let lastTime = performance.now();
-        
-        // Avatar Simulation State
-        const avatarState = {
-            isSpeaking: false,
-            speakingVolume: 0,
-            locomotionMode: 'pacing', // 'pacing', 'idle', 'floating'
-            walkPhase: 0,
-            posX: 0,
-            direction: 1,
-            eyeBlink: 1, // 1 = open, 0 = closed
-            blinkTimer: 0,
-            earTwitch: 0,
-            tailPhase: 0,
-            shurikenSpin: 0,
-            shurikenParticles: []
-        };
-
-        // Initialize Shuriken Aura Particles
-        for (let i = 0; i < 22; i++) {
-            avatarState.shurikenParticles.push({
-                angle: Math.random() * Math.PI * 2,
-                dist: Math.random() * 24 + 8,
-                speed: Math.random() * 0.08 + 0.03,
-                size: Math.random() * 2.2 + 0.8,
-                alpha: Math.random()
-            });
+        // Image Fallback Handler (Activates procedural canvas if sprite fails)
+        function handleImageError() {
+            console.warn("Suki sprite asset failed to load. Switching to procedural canvas fallback.");
+            document.getElementById('suki-sprite').classList.add('hidden');
+            const canvas = document.getElementById('avatar-canvas');
+            canvas.classList.remove('hidden');
+            document.getElementById('avatar-state-text').innerText = "CANVAS // FALLBACK";
+            initCanvasEngine(canvas);
         }
-
-        function resizeCanvas() {
-            const dpr = window.devicePixelRatio || 1;
-            const rect = canvas.parentElement.getBoundingClientRect();
-            canvas.width = rect.width * dpr;
-            canvas.height = rect.height * dpr;
-            ctx.setTransform(1, 0, 0, 1, 0, 0);
-            ctx.scale(dpr, dpr);
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
 
         function triggerSukiResponse(text) {
             document.getElementById('dialogue-box').innerText = text;
@@ -514,16 +477,15 @@
                 utterance.pitch = 1.2;
                 if (selectedVoice) utterance.voice = selectedVoice;
                 
-                utterance.onstart = () => { avatarState.isSpeaking = true; };
-                utterance.onend = () => { avatarState.isSpeaking = false; };
+                utterance.onstart = () => { document.getElementById('suki-sprite').classList.add('animate-pulse'); };
+                utterance.onend = () => { document.getElementById('suki-sprite').classList.remove('animate-pulse'); };
                 window.speechSynthesis.speak(utterance);
             }
         }
 
-        // Canvas Click Listener for Interactive Gesture
-        canvas.addEventListener('click', () => {
-            avatarState.earTwitch = 1.0;
-            triggerSukiResponse("Ninja sensor triggered! Cybernetic suit and katana fully powered up.");
+        // Interactive Sprite Click
+        document.getElementById('suki-sprite').addEventListener('click', () => {
+            triggerSukiResponse("Neural link confirmed! Katana and cyber-armor systems online.");
         });
 
         document.getElementById('send-btn').addEventListener('click', handleUserSubmit);
@@ -541,256 +503,66 @@
             feed.scrollTop = feed.scrollHeight;
             input.value = '';
 
-            triggerSukiResponse(`Processing command: "${val}". Systems operating at peak efficiency.`);
+            triggerSukiResponse(`Executing command: "${val}". All parameters optimal.`);
         }
 
-        // Helper function to draw a 6-pointed purple ninja star (Shuriken)
-        function drawShuriken(cx, cy, radius, angle) {
-            ctx.save();
-            ctx.translate(cx, cy);
-            ctx.rotate(angle);
+        // Minimal Procedural Canvas Engine (Fallback if image asset is missing)
+        function initCanvasEngine(canvas) {
+            const ctx = canvas.getContext('2d');
+            let frameCount = 0;
+            let lastTime = performance.now();
 
-            const points = 6;
-            ctx.beginPath();
-            for (let i = 0; i < points * 2; i++) {
-                const r = (i % 2 === 0) ? radius : radius * 0.35;
-                const a = (i * Math.PI) / points;
-                const x = Math.cos(a) * r;
-                const y = Math.sin(a) * r;
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
+            function resizeCanvas() {
+                const dpr = window.devicePixelRatio || 1;
+                const rect = canvas.parentElement.getBoundingClientRect();
+                canvas.width = rect.width * dpr;
+                canvas.height = rect.height * dpr;
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
+                ctx.scale(dpr, dpr);
             }
-            ctx.closePath();
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
 
-            const shurikenGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, radius);
-            shurikenGrad.addColorStop(0, '#ffffff');
-            shurikenGrad.addColorStop(0.3, '#ec4899');
-            shurikenGrad.addColorStop(0.8, '#a855f7');
-            shurikenGrad.addColorStop(1, '#3b0764');
+            function render(timestamp) {
+                const rect = canvas.parentElement.getBoundingClientRect();
+                ctx.clearRect(0, 0, rect.width, rect.height);
 
-            ctx.fillStyle = shurikenGrad;
-            ctx.fill();
-            ctx.strokeStyle = '#00f0ff';
-            ctx.lineWidth = 1.2;
-            ctx.stroke();
+                const time = timestamp * 0.002;
+                const cx = rect.width / 2;
+                const cy = rect.height / 2 + 10;
 
-            ctx.beginPath();
-            ctx.arc(0, 0, radius * 0.18, 0, Math.PI * 2);
-            ctx.fillStyle = '#06030c';
-            ctx.fill();
-            ctx.strokeStyle = '#ff2a8d';
-            ctx.lineWidth = 1;
-            ctx.stroke();
+                ctx.save();
+                ctx.translate(cx, cy);
 
-            ctx.restore();
-        }
-
-        // Render Loop
-        function renderScene(timestamp) {
-            const rect = canvas.parentElement.getBoundingClientRect();
-            const width = rect.width;
-            const height = rect.height;
-
-            ctx.clearRect(0, 0, width, height);
-
-            const dt = 0.016;
-            const time = timestamp * 0.002;
-
-            avatarState.shurikenSpin += 0.15;
-
-            if (avatarState.locomotionMode === 'pacing') {
-                avatarState.walkPhase += 0.065;
-                avatarState.posX += avatarState.direction * 0.45;
-                if (Math.abs(avatarState.posX) > 35) {
-                    avatarState.direction *= -1;
-                }
-            } else {
-                avatarState.posX *= 0.95;
-                avatarState.walkPhase += 0.02;
-            }
-
-            avatarState.blinkTimer += dt;
-            if (avatarState.blinkTimer > 3.5) {
-                avatarState.eyeBlink = 0;
-                if (avatarState.blinkTimer > 3.65) {
-                    avatarState.eyeBlink = 1;
-                    avatarState.blinkTimer = 0;
-                }
-            }
-            if (avatarState.earTwitch > 0) {
-                avatarState.earTwitch -= 0.05;
-            }
-
-            avatarState.tailPhase += 0.04;
-
-            const walkSin = Math.sin(avatarState.walkPhase);
-            const baseCenterX = width / 2 + avatarState.posX;
-            const baseCenterY = height / 2 + 25 + (avatarState.locomotionMode === 'floating' ? Math.sin(time * 2) * 8 : Math.abs(walkSin) * -4);
-
-            ctx.save();
-            ctx.translate(baseCenterX, baseCenterY);
-            ctx.scale(0.85, 0.85);
-
-            // Ground Shadow
-            ctx.beginPath();
-            ctx.ellipse(0, 115, 48 + Math.sin(time) * 3, 10, 0, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(168, 85, 247, 0.2)';
-            ctx.fill();
-
-            // 1. NEKO CYBER TAIL
-            ctx.beginPath();
-            ctx.moveTo(-10, 40);
-            const tailX1 = -40 + Math.sin(avatarState.tailPhase) * 20;
-            const tailY1 = 10 + Math.cos(avatarState.tailPhase) * 10;
-            const tailX2 = -55 + Math.sin(avatarState.tailPhase * 1.2) * 25;
-            const tailY2 = -30 + Math.sin(avatarState.tailPhase) * 15;
-            ctx.bezierCurveTo(tailX1, tailY1, tailX2, tailY2, tailX2 - 10, tailY2 - 20);
-            ctx.strokeStyle = '#a855f7';
-            ctx.lineWidth = 9;
-            ctx.lineCap = 'round';
-            ctx.stroke();
-            ctx.strokeStyle = '#00f0ff';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-
-            // 2. LEGS
-            const legOffset = walkSin * 12;
-            ctx.fillStyle = '#0e081c';
-            ctx.strokeStyle = '#ff2a8d';
-            ctx.lineWidth = 2;
-
-            // Left Leg
-            ctx.beginPath();
-            ctx.roundRect(-14, 50, 12, 55 + legOffset, 6);
-            ctx.fill();
-            ctx.stroke();
-
-            // Right Leg
-            ctx.beginPath();
-            ctx.roundRect(2, 50, 12, 55 - legOffset, 6);
-            ctx.fill();
-            ctx.stroke();
-
-            // 3. CYBER TORSO & JACKET
-            ctx.beginPath();
-            ctx.roundRect(-22, -10, 44, 64, 10);
-            const torsoGrad = ctx.createLinearGradient(-22, -10, 22, 54);
-            torsoGrad.addColorStop(0, '#150d2a');
-            torsoGrad.addColorStop(1, '#07050e');
-            ctx.fillStyle = torsoGrad;
-            ctx.fill();
-            ctx.strokeStyle = '#00f0ff';
-            ctx.lineWidth = 1.5;
-            ctx.stroke();
-
-            // Neon Chest Core Emblem
-            ctx.beginPath();
-            ctx.arc(0, 12, 6, 0, Math.PI * 2);
-            ctx.fillStyle = avatarState.isSpeaking ? '#00f0ff' : '#ff2a8d';
-            ctx.fill();
-            ctx.shadowColor = '#ff2a8d';
-            ctx.shadowBlur = 10;
-            ctx.stroke();
-            ctx.shadowBlur = 0;
-
-            // 4. HEAD & FACE
-            ctx.beginPath();
-            ctx.arc(0, -42, 28, 0, Math.PI * 2);
-            const faceGrad = ctx.createRadialGradient(0, -45, 5, 0, -42, 28);
-            faceGrad.addColorStop(0, '#fbcfe8');
-            faceGrad.addColorStop(1, '#f472b6');
-            ctx.fillStyle = faceGrad;
-            ctx.fill();
-            ctx.strokeStyle = '#bf5af2';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-
-            // Neko Ears
-            const earTwitchAngle = avatarState.earTwitch * 0.2;
-            ctx.save();
-            ctx.translate(-20, -62);
-            ctx.rotate(-0.2 - earTwitchAngle);
-            ctx.beginPath();
-            ctx.moveTo(0, 0);
-            ctx.lineTo(-12, -22);
-            ctx.lineTo(8, -12);
-            ctx.closePath();
-            ctx.fillStyle = '#a855f7';
-            ctx.fill();
-            ctx.strokeStyle = '#00f0ff';
-            ctx.stroke();
-            ctx.restore();
-
-            ctx.save();
-            ctx.translate(20, -62);
-            ctx.rotate(0.2 + earTwitchAngle);
-            ctx.beginPath();
-            ctx.moveTo(0, 0);
-            ctx.lineTo(12, -22);
-            ctx.lineTo(-8, -12);
-            ctx.closePath();
-            ctx.fillStyle = '#a855f7';
-            ctx.fill();
-            ctx.strokeStyle = '#00f0ff';
-            ctx.stroke();
-            ctx.restore();
-
-            // Eyes
-            if (avatarState.eyeBlink > 0) {
-                ctx.fillStyle = '#07050e';
+                // Torso & Head Silhouette
                 ctx.beginPath();
-                ctx.arc(-9, -44, 4.5, 0, Math.PI * 2);
-                ctx.arc(9, -44, 4.5, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Cyan Iris glow
-                ctx.fillStyle = '#00f0ff';
-                ctx.beginPath();
-                ctx.arc(-9, -45, 2, 0, Math.PI * 2);
-                ctx.arc(9, -45, 2, 0, Math.PI * 2);
-                ctx.fill();
-            } else {
-                ctx.strokeStyle = '#07050e';
+                ctx.roundRect(-20, -10, 40, 60, 8);
+                ctx.fillStyle = '#150d2a';
+                ctx.strokeStyle = '#00f0ff';
                 ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(-13, -44); ctx.lineTo(-5, -44);
-                ctx.moveTo(5, -44); ctx.lineTo(13, -44);
-                ctx.stroke();
-            }
-
-            // Mouth (Animates when speaking)
-            ctx.strokeStyle = '#701a75';
-            ctx.lineWidth = 1.5;
-            ctx.beginPath();
-            if (avatarState.isSpeaking) {
-                ctx.arc(0, -32, 4, 0, Math.PI);
-                ctx.fillStyle = '#ff2a8d';
                 ctx.fill();
-            } else {
-                ctx.moveTo(-3, -32);
-                ctx.lineTo(3, -32);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.arc(0, -40, 25, 0, Math.PI * 2);
+                ctx.fillStyle = '#f472b6';
+                ctx.fill();
+                ctx.strokeStyle = '#a855f7';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                ctx.restore();
+
+                frameCount++;
+                if (performance.now() - lastTime >= 1000) {
+                    document.getElementById('fps-counter').innerText = `FPS: ${frameCount}`;
+                    frameCount = 0;
+                    lastTime = performance.now();
+                }
+                requestAnimationFrame(render);
             }
-            ctx.stroke();
-
-            // 5. FLOATING SHURIKEN AURA
-            drawShuriken(48, -12, 18, avatarState.shurikenSpin);
-
-            ctx.restore();
-
-            // FPS Counter
-            frameCount++;
-            const now = performance.now();
-            if (now - lastTime >= 1000) {
-                document.getElementById('fps-counter').innerText = `FPS: ${frameCount}`;
-                frameCount = 0;
-                lastTime = now;
-            }
-
-            requestAnimationFrame(renderScene);
+            requestAnimationFrame(render);
         }
-
-        // Kick off render loop
-        requestAnimationFrame(renderScene);
     </script>
 </body>
 </html>
