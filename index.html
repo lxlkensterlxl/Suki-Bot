@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Suki Companion AI</title>
+    <title>Suki Companion AI - WebLLM Core</title>
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -14,6 +14,12 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
     
+    <!-- Transformers.js / WebLLM Engine CDN -->
+    <script type="module">
+        import { CreateWebWorkerMLCEngine } from "https://esm.run/@mlc-ai/web-llm";
+        window.CreateWebWorkerMLCEngine = CreateWebWorkerMLCEngine;
+    </script>
+
     <script>
         tailwind.config = {
             theme: {
@@ -45,7 +51,6 @@
             overflow-x: hidden;
         }
 
-        /* Custom Cyber Scrollbar */
         ::-webkit-scrollbar {
             width: 4px;
         }
@@ -64,7 +69,6 @@
             border: 1px solid rgba(168, 85, 247, 0.3);
         }
 
-        /* Scanline Overlay */
         .scanlines {
             background: linear-gradient(
                 to bottom,
@@ -76,7 +80,6 @@
             background-size: 100% 4px;
         }
 
-        /* Microphone Recording Pulse */
         @keyframes pulseGlow {
             0% { box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.8); }
             70% { box-shadow: 0 0 0 16px rgba(236, 72, 153, 0); }
@@ -88,7 +91,6 @@
             color: #ffffff !important;
         }
 
-        /* Custom Scrollbar suppression */
         .no-scrollbar::-webkit-scrollbar {
             display: none;
         }
@@ -130,8 +132,8 @@
             <!-- Suki Companion Navigation Header -->
             <div class="px-4 py-2 flex items-center justify-between z-30 border-b border-purple-900/40 bg-cyberPanel/90">
                 <div class="flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span class="font-orbitron text-xs text-purple-300 font-bold tracking-wide">SUKI // AI CORE v2.5</span>
+                    <span id="core-status-dot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                    <span id="core-status-text" class="font-orbitron text-xs text-purple-300 font-bold tracking-wide">LOADING NEURAL MODEL...</span>
                 </div>
                 <div class="flex items-center gap-3">
                     <button id="clear-btn" class="text-xs text-slate-400 hover:text-pink-400 transition" title="Clear Chat Log">
@@ -140,7 +142,7 @@
                     <button id="mute-btn" class="text-xs text-purple-400 hover:text-white transition" title="Toggle Voice Synth">
                         <i id="mute-icon" class="fa-solid fa-volume-high"></i>
                     </button>
-                    <button id="config-btn" class="text-xs text-cyan-400 hover:text-white transition" title="Settings & System Diagnostics">
+                    <button id="config-btn" class="text-xs text-cyan-400 hover:text-white transition" title="System Info">
                         <i class="fa-solid fa-gear"></i>
                     </button>
                 </div>
@@ -173,13 +175,13 @@
 
             <!-- QUICK COMMAND CHIPS -->
             <div class="px-3 py-2 bg-slate-950/90 border-b border-purple-900/30 flex gap-2 overflow-x-auto no-scrollbar z-30">
-                <button class="chip glass-panel px-3 py-1 rounded-full text-[11px] text-purple-200 hover:text-white hover:border-purple-400 transition whitespace-nowrap flex items-center gap-1" data-cmd="Introduce yourself and your AI capabilities.">
+                <button class="chip glass-panel px-3 py-1 rounded-full text-[11px] text-purple-200 hover:text-white hover:border-purple-400 transition whitespace-nowrap flex items-center gap-1" data-cmd="Introduce yourself and your cyberpunk capabilities.">
                     <i class="fa-solid fa-sparkles text-purple-400"></i> Introduce
                 </button>
                 <button class="chip glass-panel px-3 py-1 rounded-full text-[11px] text-cyan-200 hover:text-white hover:border-cyan-400 transition whitespace-nowrap flex items-center gap-1" data-cmd="Run a full system status diagnostic scan.">
                     <i class="fa-solid fa-terminal text-cyan-400"></i> Scan Status
                 </button>
-                <button class="chip glass-panel px-3 py-1 rounded-full text-[11px] text-pink-200 hover:text-white hover:border-pink-400 transition whitespace-nowrap flex items-center gap-1" data-cmd="Tell me a quick cyberpunk mini-story.">
+                <button class="chip glass-panel px-3 py-1 rounded-full text-[11px] text-pink-200 hover:text-white hover:border-pink-400 transition whitespace-nowrap flex items-center gap-1" data-cmd="Tell me a quick cyberpunk mini-story about neon rain.">
                     <i class="fa-solid fa-book-skull text-pink-400"></i> Mini Story
                 </button>
             </div>
@@ -193,7 +195,7 @@
                     </div>
                     <div class="glass-panel p-2.5 rounded-2xl rounded-tl-none text-slate-200 leading-relaxed border border-purple-500/30">
                         <p class="font-bold text-[9px] text-purple-300 font-orbitron mb-0.5">SUKIBOT</p>
-                        Neural link established! Audio engines synthesized. Tap the mic to talk, or type your query below.
+                        Initializing local WebGPU neural weights (Llama-3-8B-Instruct or Phi-3). Please wait while the model downloads and loads into VRAM...
                     </div>
                 </div>
             </div>
@@ -205,9 +207,9 @@
                         <i id="mic-icon" class="fa-solid fa-microphone text-xs"></i>
                     </button>
                     
-                    <input type="text" id="chat-input" placeholder="Message Suki..." autocomplete="off" class="flex-1 bg-slate-900/90 border border-purple-900 focus:border-purple-400 rounded-full px-3.5 py-2 text-xs text-slate-100 placeholder-slate-500 outline-none transition" />
+                    <input type="text" id="chat-input" placeholder="Loading AI model..." disabled autocomplete="off" class="flex-1 bg-slate-900/90 border border-purple-900 focus:border-purple-400 rounded-full px-3.5 py-2 text-xs text-slate-100 placeholder-slate-500 outline-none transition" />
 
-                    <button type="submit" class="w-9 h-9 rounded-full bg-purple-600 hover:bg-purple-500 text-white flex items-center justify-center transition flex-none shadow-lg shadow-purple-600/30">
+                    <button type="submit" id="submit-btn" disabled class="w-9 h-9 rounded-full bg-purple-600/50 text-white flex items-center justify-center transition flex-none shadow-lg shadow-purple-600/30">
                         <i class="fa-solid fa-paper-plane text-xs"></i>
                     </button>
                 </form>
@@ -215,22 +217,22 @@
         </div>
     </div>
 
-    <!-- SCRIPT APPLICATION CONTROLLER -->
-    <script>
-        // --- System & Audio State ---
+    <!-- SCRIPT APPLICATION CONTROLLER WITH WEBLVM / TRANSFORMERS.JS ENGINE -->
+    <script type="module">
         let audioMuted = false;
         let isListening = false;
-        let currentMode = 'IDLE'; // IDLE | WALKING
+        let currentMode = 'IDLE';
         let isSpeaking = false;
         let speechSynth = window.speechSynthesis;
         let speechRecognition = null;
         let audioCtx = null;
+        let mlcEngine = null;
 
-        // --- DOM Elements ---
         const clockDisplay = document.getElementById('clock-display');
         const chatContainer = document.getElementById('chat-container');
         const chatInput = document.getElementById('chat-input');
         const inputForm = document.getElementById('input-form');
+        const submitBtn = document.getElementById('submit-btn');
         const micBtn = document.getElementById('mic-button');
         const micIcon = document.getElementById('mic-icon');
         const muteBtn = document.getElementById('mute-btn');
@@ -240,8 +242,10 @@
         const toggleAnimBtn = document.getElementById('toggle-anim-btn');
         const modeBadge = document.getElementById('mode-badge');
         const visualizer = document.getElementById('speaking-visualizer');
+        const coreStatusDot = document.getElementById('core-status-dot');
+        const coreStatusText = document.getElementById('core-status-text');
 
-        // --- Live Clock ---
+        // Live Clock
         function updateClock() {
             const now = new Date();
             clockDisplay.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -249,27 +253,23 @@
         setInterval(updateClock, 1000);
         updateClock();
 
-        // --- Synthesized Audio Engine (Web Audio API) ---
+        // Web Audio SFX
         function initAudioContext() {
             if (!audioCtx) {
                 const AudioContext = window.AudioContext || window.webkitAudioContext;
                 audioCtx = new AudioContext();
             }
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
+            if (audioCtx.state === 'suspended') audioCtx.resume();
         }
 
         function playSoundEffect(type) {
             try {
                 initAudioContext();
                 if (!audioCtx || audioMuted) return;
-
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
-
                 const now = audioCtx.currentTime;
 
                 if (type === 'beep') {
@@ -297,46 +297,75 @@
                     osc.start(now);
                     osc.stop(now + 0.12);
                 }
-            } catch(e) {
-                console.warn('Audio Context error:', e);
-            }
+            } catch(e) {}
         }
 
-        // --- Speech Synthesis Fix & Speech Handlers ---
+        // Speech Synth
         function speakResponse(text) {
             initAudioContext();
             if (audioMuted || !('speechSynthesis' in window)) return;
-
             speechSynth.cancel();
-
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.rate = 1.0;
             utterance.pitch = 1.1;
-
             const voices = speechSynth.getVoices();
             const preferredVoice = voices.find(v => v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Female') || v.lang.startsWith('en'));
             if (preferredVoice) utterance.voice = preferredVoice;
 
-            utterance.onstart = () => {
-                isSpeaking = true;
-                visualizer.style.opacity = '1';
-            };
-
-            utterance.onend = utterance.onerror = () => {
-                isSpeaking = false;
-                visualizer.style.opacity = '0';
-            };
-
+            utterance.onstart = () => { isSpeaking = true; visualizer.style.opacity = '1'; };
+            utterance.onend = utterance.onerror = () => { isSpeaking = false; visualizer.style.opacity = '0'; };
             speechSynth.speak(utterance);
         }
 
-        if ('speechSynthesis' in window) {
-            window.speechSynthesis.onvoiceschanged = () => {
-                window.speechSynthesis.getVoices();
-            };
-        }
+        // Initialize Local WebGPU Model (WebLLM / Transformers Architecture)
+        async function initAIModel() {
+            try {
+                // Using a lightweight, fast model that fits well in browser WebGPU memory
+                const selectedModel = "Llama-3-8B-Instruct-q4f32_1-MLC";
+                
+                mlcEngine = await window.CreateWebWorkerMLCEngine(
+                    new Worker(
+                        URL.createObjectURL(new Blob([`
+                            import { WebWorkerMLCEngineHandler } from "https://esm.run/@mlc-ai/web-llm";
+                            const handler = new WebWorkerMLCEngineHandler();
+                            onmessage = (msg) => handler.onmessage(msg);
+                        `], { type: "text/javascript" }))
+                    ),
+                    selectedModel,
+                    {
+                        initProgressCallback: (progress) => {
+                            coreStatusText.textContent = `LOADING: ${Math.round(progress.progress * 100)}%`;
+                        }
+                    }
+                );
 
-        // --- Web Speech Recognition Fix ---
+                coreStatusDot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
+                coreStatusText.textContent = 'SUKI // NEURAL ACTIVE';
+                chatInput.disabled = false;
+                chatInput.placeholder = 'Message Suki...';
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('bg-purple-600/50');
+                submitBtn.classList.add('bg-purple-600', 'hover:bg-purple-500');
+                appendChatMessage('Suki', 'Neural weights successfully loaded into WebGPU memory! I am fully awake.');
+            } catch (err) {
+                console.error(err);
+                coreStatusDot.className = 'w-2 h-2 rounded-full bg-red-500 animate-pulse';
+                coreStatusText.textContent = 'GPU ERROR / FALLBACK MODE';
+                chatInput.disabled = false;
+                chatInput.placeholder = 'Message Suki (Offline Mode)...';
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('bg-purple-600/50');
+                submitBtn.classList.add('bg-purple-600', 'hover:bg-purple-500');
+                appendChatMessage('Suki', 'WebGPU acceleration unavailable or restricted. Operating on backup logic mode.');
+            }
+        }
+        
+        // Start model initialization on load
+        window.addEventListener('DOMContentLoaded', () => {
+            initAIModel();
+        });
+
+        // Speech Recognition
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (SpeechRecognition) {
             speechRecognition = new SpeechRecognition();
@@ -349,13 +378,11 @@
                 micBtn.classList.add('mic-listening');
                 playSoundEffect('micOn');
             };
-
             speechRecognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
                 chatInput.value = transcript;
                 handleUserSubmit(transcript);
             };
-
             speechRecognition.onerror = speechRecognition.onend = () => {
                 isListening = false;
                 micBtn.classList.remove('mic-listening');
@@ -365,17 +392,13 @@
         micBtn.addEventListener('click', () => {
             initAudioContext();
             if (!speechRecognition) {
-                appendChatMessage('System', 'Speech Recognition is not supported on this browser.');
+                appendChatMessage('System', 'Speech Recognition not supported.');
                 return;
             }
-            if (isListening) {
-                speechRecognition.stop();
-            } else {
-                speechRecognition.start();
-            }
+            if (isListening) speechRecognition.stop();
+            else speechRecognition.start();
         });
 
-        // --- Mute Toggle ---
         muteBtn.addEventListener('click', () => {
             audioMuted = !audioMuted;
             if (audioMuted) {
@@ -389,7 +412,6 @@
             }
         });
 
-        // --- Chat Output & Handling ---
         function appendChatMessage(sender, text) {
             const wrapper = document.createElement('div');
             wrapper.className = 'flex gap-2 max-w-[90%] ' + (sender === 'You' ? 'ml-auto flex-row-reverse' : '');
@@ -410,6 +432,7 @@
             nameHeader.textContent = sender.toUpperCase();
 
             const bodyText = document.createElement('p');
+            bodyText.className = 'whitespace-pre-wrap';
             bodyText.textContent = text;
 
             bubble.appendChild(nameHeader);
@@ -419,32 +442,39 @@
 
             chatContainer.appendChild(wrapper);
             chatContainer.scrollTop = chatContainer.scrollHeight;
+            return bodyText; // return reference for streaming update if needed
         }
 
-        function generateAIResponse(input) {
-            const clean = input.toLowerCase();
-            if (clean.includes('introduce') || clean.includes('who are you')) {
-                return "I am Suki, your cyberpunk AI companion! I feature speech recognition, audio synthesis, system diagnostics, and realtime animated rendering.";
-            } else if (clean.includes('scan') || clean.includes('status')) {
-                return "Diagnostic complete: Neural Engines 100%, Speech Synth Active, Web Audio Synthesizer OK. All cybernetic components optimal!";
-            } else if (clean.includes('story') || clean.includes('mini story')) {
-                return "Neon rain glistened off the chrome tower as Suki deciphered the final encrypted pulse. 'The grid is ours,' she whispered into the night.";
-            } else {
-                return `Received: "${input}". My cyber core is running at peak speed. How can I assist you further?`;
-            }
-        }
-
-        function handleUserSubmit(text) {
+        async function handleUserSubmit(text) {
             if (!text.trim()) return;
             playSoundEffect('send');
             appendChatMessage('You', text);
             chatInput.value = '';
 
-            setTimeout(() => {
-                const response = generateAIResponse(text);
-                appendChatMessage('Suki', response);
-                speakResponse(response);
-            }, 500);
+            const aiBubbleText = appendChatMessage('Suki', '...');
+
+            if (mlcEngine) {
+                try {
+                    const messages = [
+                        { role: "system", content: "You are Suki, an advanced cyberpunk AI companion with an edgy, helpful, and friendly personality. Keep responses concise and immersive." },
+                        { role: "user", content: text }
+                    ];
+                    
+                    const reply = await mlcEngine.chat.completions.create({ messages });
+                    const responseText = reply.choices[0].message.content;
+                    aiBubbleText.textContent = responseText;
+                    speakResponse(responseText);
+                } catch (e) {
+                    const fallback = `Neural compute error: ${e.message}`;
+                    aiBubbleText.textContent = fallback;
+                    speakResponse(fallback);
+                }
+            } else {
+                // Fallback response if model failed to load
+                const fallback = `Received: "${text}". WebGPU model offline, but my core functions are online!`;
+                aiBubbleText.textContent = fallback;
+                speakResponse(fallback);
+            }
         }
 
         inputForm.addEventListener('submit', (e) => {
@@ -452,24 +482,21 @@
             handleUserSubmit(chatInput.value);
         });
 
-        // Quick action chips
         document.querySelectorAll('.chip').forEach(chip => {
             chip.addEventListener('click', () => {
-                const cmd = chip.getAttribute('data-cmd');
-                handleUserSubmit(cmd);
+                handleUserSubmit(chip.getAttribute('data-cmd'));
             });
         });
 
-        // Action Buttons
         clearBtn.addEventListener('click', () => {
             playSoundEffect('beep');
             chatContainer.innerHTML = '';
-            appendChatMessage('Suki', 'Chat memory log purged.');
+            appendChatMessage('Suki', 'Memory cache cleared.');
         });
 
         configBtn.addEventListener('click', () => {
             playSoundEffect('beep');
-            appendChatMessage('Suki', 'System Diagnostics: Audio context active. Web Speech Engine ready.');
+            appendChatMessage('Suki', 'System Architecture: Transformers.js / WebLLM running locally via WebGPU inside browser container.');
         });
 
         toggleAnimBtn.addEventListener('click', () => {
@@ -478,7 +505,7 @@
             modeBadge.textContent = `${currentMode} MODE`;
         });
 
-        // --- 2D Animated Suki Renderer ---
+        // 2D Canvas Suki Renderer
         const canvas = document.getElementById('sukiCanvas');
         const ctx = canvas.getContext('2d');
 
@@ -497,7 +524,6 @@
             const centerX = canvas.width / 2;
             const centerY = canvas.height / 2 + 15;
 
-            // Background Grid Lines
             ctx.strokeStyle = 'rgba(168, 85, 247, 0.15)';
             ctx.lineWidth = 1;
             for (let i = 0; i < canvas.width; i += 20) {
@@ -507,7 +533,6 @@
                 ctx.stroke();
             }
 
-            // Animated Platform Base
             ctx.save();
             ctx.beginPath();
             ctx.ellipse(centerX, centerY + 65, 75, 18, 0, 0, Math.PI * 2);
@@ -518,12 +543,9 @@
             ctx.stroke();
             ctx.restore();
 
-            // Character Bob / Walk offset calculations
             const bob = Math.sin(animFrame * 0.08) * (currentMode === 'WALKING' ? 6 : 2);
             const legSwing = currentMode === 'WALKING' ? Math.sin(animFrame * 0.15) * 12 : 0;
 
-            // Draw Suki Body (Cyber Avatar)
-            // Legs
             ctx.strokeStyle = '#a855f7';
             ctx.lineWidth = 4;
             ctx.beginPath();
@@ -533,7 +555,6 @@
             ctx.lineTo(centerX + 12 + legSwing, centerY + 60);
             ctx.stroke();
 
-            // Torso / Jacket
             ctx.fillStyle = '#120b24';
             ctx.strokeStyle = '#ec4899';
             ctx.lineWidth = 2;
@@ -542,13 +563,11 @@
             ctx.fill();
             ctx.stroke();
 
-            // Core Glow Element
             ctx.beginPath();
             ctx.arc(centerX, centerY - 5 + bob, 6, 0, Math.PI * 2);
             ctx.fillStyle = isSpeaking ? '#ec4899' : '#06b6d4';
             ctx.fill();
 
-            // Head
             ctx.fillStyle = '#0f172a';
             ctx.strokeStyle = '#a855f7';
             ctx.lineWidth = 2;
@@ -557,14 +576,12 @@
             ctx.fill();
             ctx.stroke();
 
-            // Visor / Eyes
             ctx.fillStyle = isSpeaking ? '#ec4899' : '#06b6d4';
             ctx.beginPath();
             const mouthWave = isSpeaking ? Math.abs(Math.sin(animFrame * 0.3)) * 4 : 0;
             ctx.rect(centerX - 12, centerY - 46 + bob, 24, 8 + mouthWave);
             ctx.fill();
 
-            // Cyber Hair Antennae / Ears
             ctx.strokeStyle = '#ec4899';
             ctx.lineWidth = 2;
             ctx.beginPath();
