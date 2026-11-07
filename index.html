@@ -50,8 +50,12 @@
             color: #e2e8f0;
             font-family: 'Rajdhani', sans-serif;
             user-select: none;
-            overflow-x: hidden;
+            overflow: hidden;
             touch-action: manipulation;
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100dvh;
         }
 
         ::-webkit-scrollbar {
@@ -240,7 +244,7 @@
                     
                     <!-- Background Code Grid Effect -->
                     <div class="absolute inset-0 opacity-15 font-mono text-[8px] text-purple-300 overflow-hidden pointer-events-none p-2 leading-tight">
-                        SUKI_SYSTEM_v4.5 // HIGH_FIDELITY_AVATAR_ENGINE<br>
+                        SUKI_SYSTEM_v4.6 // IPHONE_17_OPTIMIZED<br>
                         NEKO_EARS: ONLINE // TACTICAL_ARMOR: SYNCED<br>
                         PLASMA_KATANA: CHARGED // BRAIDED_PURPLE_HAIR: ACTIVE<br>
                         01100011 01111001 01100011 01100101 01110011 01110011
@@ -494,7 +498,7 @@
             triggerSukiResponse(`Executing command: "${val}". All combat parameters optimal.`);
         }
 
-        // HIGH-FIDELITY CYBER-NINJA CANVAS AVATAR ENGINE
+        // HIGH-FIDELITY CYBER-NINJA CANVAS AVATAR ENGINE (ROBUST DPR SCALING FOR IPHONE 17)
         function initSukiAvatarEngine() {
             const canvas = document.getElementById('suki-avatar-canvas');
             const ctx = canvas.getContext('2d');
@@ -503,10 +507,16 @@
             window.isAvatarSpeaking = false;
 
             function resizeCanvas() {
-                const dpr = window.devicePixelRatio || 1;
-                const rect = canvas.parentElement.getBoundingClientRect();
-                canvas.width = rect.width * dpr;
-                canvas.height = rect.height * dpr;
+                const parent = canvas.parentElement;
+                const width = parent.clientWidth;
+                const height = parent.clientHeight;
+                const dpr = Math.min(window.devicePixelRatio || 1, 2); // Cap at 2x for optimal mobile GPU performance
+                
+                canvas.width = width * dpr;
+                canvas.height = height * dpr;
+                canvas.style.width = width + 'px';
+                canvas.style.height = height + 'px';
+                
                 ctx.setTransform(1, 0, 0, 1, 0, 0);
                 ctx.scale(dpr, dpr);
             }
@@ -514,14 +524,15 @@
             resizeCanvas();
 
             function renderAvatar(timestamp) {
-                const rect = canvas.parentElement.getBoundingClientRect();
-                ctx.clearRect(0, 0, rect.width, rect.height);
+                const width = canvas.parentElement.clientWidth;
+                const height = canvas.parentElement.clientHeight;
+                ctx.clearRect(0, 0, width, height);
 
                 const time = timestamp * 0.003;
                 const hoverOffset = Math.sin(time * 1.5) * 6;
                 const breathOffset = Math.sin(time * 2) * 2;
-                const cx = rect.width / 2;
-                const cy = rect.height / 2 + 15 + hoverOffset;
+                const cx = width / 2;
+                const cy = height / 2 + 15 + hoverOffset;
 
                 ctx.save();
                 ctx.translate(cx, cy);
@@ -552,7 +563,6 @@
                 ctx.save();
                 ctx.translate(0, 15 + breathOffset);
                 
-                // Shoulders & Armor Plate
                 ctx.beginPath();
                 ctx.moveTo(-35, 25);
                 ctx.lineTo(35, 25);
@@ -574,7 +584,6 @@
                 ctx.fill();
                 ctx.shadowBlur = 0;
 
-                // Armor Highlights
                 ctx.strokeStyle = '#a855f7';
                 ctx.lineWidth = 1.5;
                 ctx.beginPath();
@@ -594,7 +603,6 @@
                 ctx.save();
                 ctx.translate(0, -15 + breathOffset * 0.5);
 
-                // Head Base
                 ctx.beginPath();
                 ctx.arc(0, -10, 36, 0, Math.PI * 2);
                 ctx.fillStyle = '#fdf4f8';
@@ -607,17 +615,14 @@
                 ctx.fillStyle = '#00f0ff';
                 ctx.shadowColor = '#00f0ff';
                 ctx.shadowBlur = 12;
-                // Left Eye
                 ctx.beginPath();
                 ctx.ellipse(-12, -10, 5, 3, -0.1, 0, Math.PI * 2);
                 ctx.fill();
-                // Right Eye
                 ctx.beginPath();
                 ctx.ellipse(12, -10, 5, 3, 0.1, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.shadowBlur = 0;
 
-                // Cyber Visor Frame
                 ctx.strokeStyle = '#ff2a8d';
                 ctx.lineWidth = 1.5;
                 ctx.beginPath();
@@ -625,7 +630,7 @@
                 ctx.lineTo(20, -13);
                 ctx.stroke();
 
-                // Cute Anime Mouth (Changes if speaking)
+                // Cute Anime Mouth
                 ctx.strokeStyle = '#db2777';
                 ctx.lineWidth = 2;
                 ctx.beginPath();
@@ -639,8 +644,7 @@
                 }
                 ctx.stroke();
 
-                // NEKO EARS (Cat Ears with Cyber Teal Inner Trim)
-                // Left Ear
+                // NEKO EARS
                 ctx.save();
                 ctx.translate(-22, -32);
                 ctx.rotate(-0.25);
@@ -654,7 +658,6 @@
                 ctx.strokeStyle = '#ff2a8d';
                 ctx.lineWidth = 2;
                 ctx.stroke();
-                // Inner ear glow
                 ctx.beginPath();
                 ctx.moveTo(-2, -4);
                 ctx.lineTo(-8, -18);
@@ -664,7 +667,6 @@
                 ctx.fill();
                 ctx.restore();
 
-                // Right Ear
                 ctx.save();
                 ctx.translate(22, -32);
                 ctx.rotate(0.25);
@@ -678,7 +680,6 @@
                 ctx.strokeStyle = '#ff2a8d';
                 ctx.lineWidth = 2;
                 ctx.stroke();
-                // Inner ear glow
                 ctx.beginPath();
                 ctx.moveTo(2, -4);
                 ctx.lineTo(8, -18);
@@ -688,18 +689,16 @@
                 ctx.fill();
                 ctx.restore();
 
-                // BRAIDED PURPLE HAIR & BANGS
+                // HAIR & BRAIDS
                 ctx.fillStyle = '#c084fc';
                 ctx.shadowColor = '#a855f7';
                 ctx.shadowBlur = 8;
-                // Left Bang
                 ctx.beginPath();
                 ctx.moveTo(-32, -22);
                 ctx.quadraticCurveTo(-22, -38, 0, -42);
                 ctx.quadraticCurveTo(-15, -30, -25, -12);
                 ctx.closePath();
                 ctx.fill();
-                // Right Bang
                 ctx.beginPath();
                 ctx.moveTo(32, -22);
                 ctx.quadraticCurveTo(22, -38, 0, -42);
@@ -708,17 +707,14 @@
                 ctx.fill();
                 ctx.shadowBlur = 0;
 
-                // Long Braided Hair Tendrils swinging gently
                 const sway = Math.sin(time * 3) * 5;
                 ctx.strokeStyle = '#9333ea';
                 ctx.lineWidth = 8;
                 ctx.lineCap = 'round';
-                // Left Braid
                 ctx.beginPath();
                 ctx.moveTo(-28, -15);
                 ctx.quadraticCurveTo(-45 + sway, 15, -35 + sway * 1.5, 45);
                 ctx.stroke();
-                // Right Braid
                 ctx.beginPath();
                 ctx.moveTo(28, -15);
                 ctx.quadraticCurveTo(45 + sway, 15, 35 + sway * 1.5, 45);
@@ -726,23 +722,20 @@
 
                 ctx.restore();
 
-                // 6. PLASMA KATANA WEAPON (Gleaming Energy Blade in Hand)
+                // 6. PLASMA KATANA
                 ctx.save();
                 ctx.translate(45, 10 + breathOffset);
                 ctx.rotate(-0.4 + Math.sin(time * 2) * 0.05);
                 
-                // Katana Hilt
                 ctx.fillStyle = '#0f172a';
                 ctx.fillRect(-3, 0, 6, 22);
                 ctx.strokeStyle = '#00f0ff';
                 ctx.lineWidth = 1.5;
                 ctx.strokeRect(-3, 0, 6, 22);
 
-                // Guard (Tsuba)
                 ctx.fillStyle = '#ff2a8d';
                 ctx.fillRect(-10, -2, 20, 4);
 
-                // Plasma Blade Glow Trail
                 ctx.shadowColor = '#00f0ff';
                 ctx.shadowBlur = 18;
                 ctx.strokeStyle = '#ffffff';
@@ -762,7 +755,7 @@
 
                 ctx.restore();
 
-                // 7. FLOATING CYBER SHURIKEN
+                // 7. FLOATING SHURIKEN
                 ctx.save();
                 const shurikenAngle = time * 4;
                 ctx.translate(-65, -10 + Math.cos(time * 2) * 12);
@@ -784,7 +777,7 @@
                 ctx.shadowBlur = 0;
                 ctx.restore();
 
-                ctx.restore(); // Restore main transform
+                ctx.restore();
 
                 frameCount++;
                 if (performance.now() - lastTime >= 1000) {
