@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>SukiBot // CYBER HUD & ANIME AVATAR ENGINE</title>
+    <title>SukiBot // CYBER HUD & ANIME NINJA AVATAR ENGINE</title>
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -16,13 +16,6 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     
-    <!-- WebLLM Engine CDN Import -->
-    <script type="module">
-        import { CreateMLCEngine } from "https://esm.run/@mlc-ai/web-llm";
-        window.CreateMLCEngine = CreateMLCEngine;
-        window.dispatchEvent(new CustomEvent('mlc-loaded'));
-    </script>
-
     <script>
         tailwind.config = {
             theme: {
@@ -96,7 +89,7 @@
         }
 
         .matrix-bg {
-            background-image: radial-gradient(rgba(0, 240, 255, 0.1) 1px, transparent 0);
+            background-image: radial-gradient(rgba(191, 90, 242, 0.15) 1px, transparent 0);
             background-size: 12px 12px;
         }
 
@@ -159,7 +152,6 @@
             100% { height: 100%; }
         }
 
-        /* iOS Safari Input Zoom Fix */
         @media screen and (max-width: 768px) {
             input, select, textarea {
                 font-size: 16px !important;
@@ -170,12 +162,12 @@
 <body class="min-h-screen flex items-center justify-center p-0 sm:p-4 bg-slate-950">
 
     <!-- Screen Frame Container -->
-    <div class="relative w-full max-w-[420px] h-[100dvh] sm:h-[890px] bg-black sm:rounded-[48px] p-2 sm:p-3 shadow-[0_0_60px_rgba(255,42,141,0.3)] border-0 sm:border-4 border-slate-900 flex flex-col overflow-hidden">
+    <div class="relative w-full max-w-[440px] h-[100dvh] sm:h-[900px] bg-black sm:rounded-[48px] p-2 sm:p-3 shadow-[0_0_60px_rgba(255,42,141,0.3)] border-0 sm:border-4 border-slate-900 flex flex-col overflow-hidden">
         
         <!-- Dynamic Island / Top Notch -->
         <div class="absolute top-3 left-1/2 -translate-x-1/2 w-28 sm:w-32 h-5 sm:h-6 bg-black rounded-full z-50 flex items-center justify-between px-3 border border-slate-800">
             <div class="w-2.5 h-2.5 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center">
-                <div id="notch-dot" class="w-1 h-1 rounded-full bg-cyan-500/80"></div>
+                <div id="notch-dot" class="w-1 h-1 rounded-full bg-pink-500/80"></div>
             </div>
             <div id="notch-speaker" class="w-2 h-1 rounded-full bg-purple-600/60"></div>
         </div>
@@ -227,8 +219,8 @@
             <!-- URL SUB-HEADER BAR -->
             <div class="px-3 py-1 flex items-center justify-between bg-black/60 border-b border-purple-900/40 z-30 text-[10px] font-mono text-purple-300/80">
                 <div class="flex items-center gap-1">
-                    <i class="fa-solid fa-link text-[8px] text-pink-400"></i>
-                    <span id="url-text" class="tracking-wider text-[9px]">sukibot.cyber.hud</span>
+                    <i class="fa-solid fa-shield-halved text-[8px] text-pink-400"></i>
+                    <span id="url-text" class="tracking-wider text-[9px]">sukibot.cyber.ninja</span>
                 </div>
                 <div class="flex items-center gap-2">
                     <button id="toggle-audio-btn" title="Mute/Unmute Audio" class="text-pink-400 hover:text-pink-300">
@@ -244,17 +236,16 @@
             <div class="flex-1 overflow-y-auto z-20 p-2.5 space-y-2 no-scrollbar">
 
                 <!-- CYBER ANIME STAGE DISPLAY WITH CANVAS AVATAR -->
-                <div class="relative w-full h-[360px] bg-gradient-to-b from-purple-950/60 via-slate-950 to-purple-950/40 rounded-xl border border-pink-500/40 overflow-hidden cyber-corner shadow-[0_0_15px_rgba(168,85,247,0.2)] flex flex-col justify-between">
+                <div class="relative w-full h-[380px] bg-gradient-to-b from-purple-950/60 via-slate-950 to-purple-950/40 rounded-xl border border-pink-500/40 overflow-hidden cyber-corner shadow-[0_0_15px_rgba(168,85,247,0.2)] flex flex-col justify-between">
                     
                     <!-- Background Code Grid Effect -->
-                    <div class="absolute inset-0 opacity-15 font-mono text-[8px] text-cyan-400 overflow-hidden pointer-events-none p-2 leading-tight">
-                        SUKI_SYSTEM_v3.5 // FULL_BODY_WALK_ENGINE<br>
-                        01001001 01001110 01001001 01010100<br>
-                        CONNECTED TO LIVE SPEECH ENGINE & WEBGPU<br>
-                        TACTICAL_KITSUNE_AVATAR: FULL_BODY_ACTIVE<br>
-                        WALKING_LOCOMOTION_MATRIX: PACING<br>
-                        LIP_SYNC_VISEME_MATRIX: ONLINE<br>
-                        AVATAR_AUDIO_REACTIVE: 100% [TALKING]<br>
+                    <div class="absolute inset-0 opacity-15 font-mono text-[8px] text-purple-300 overflow-hidden pointer-events-none p-2 leading-tight">
+                        SUKI_SYSTEM_v4.0 // CYBER_NINJA_AVATAR<br>
+                        TACTICAL_NEKO: PURPLE_SHURIKEN_ACTIVE<br>
+                        LEFT_HAND: ENERGY_KATANA_EQUIPPED<br>
+                        BRAID_LOCOMOTION_PHYSICS: ONLINE<br>
+                        SHURIKEN_SPIN_HERTZ: 60FPS<br>
+                        WALKING_MATRIX: ACTIVE_PACING<br>
                         01100011 01111001 01100011 01100101 01110011
                     </div>
 
@@ -266,7 +257,7 @@
                     <!-- Top Avatar Stats Overlay -->
                     <div class="relative z-20 p-2.5 flex justify-between items-start pointer-events-none">
                         <div class="bg-black/70 border border-purple-500/40 px-2 py-1 rounded text-[9px] font-mono text-cyan-300 backdrop-blur-sm">
-                            <div>AVATAR: <span class="text-pink-400">SUKI-NEKO</span></div>
+                            <div>AVATAR: <span class="text-pink-400">SUKI-NINJA</span></div>
                             <div>STATE: <span id="avatar-state-text" class="text-emerald-400">IDLE // READY</span></div>
                         </div>
                         <div class="bg-black/70 border border-pink-500/40 px-2 py-1 rounded text-[9px] font-mono text-pink-300 text-right backdrop-blur-sm">
@@ -287,7 +278,7 @@
                             </div>
                         </div>
                         <div id="dialogue-box" class="text-xs font-rajdhani text-slate-200 tracking-wide min-h-[32px] max-h-[48px] overflow-y-auto">
-                            Initializing neural connection... Full cybernetic avatar online. Tap screen or input command.
+                            Tactical Cyber-Ninja initialization complete. Shuriken floating, Katana drawn. Awaiting command...
                         </div>
                     </div>
                 </div>
@@ -295,8 +286,8 @@
                 <!-- SYSTEM METRICS & STATUS PANEL -->
                 <div class="grid grid-cols-3 gap-2">
                     <div class="hud-card rounded-lg p-2 text-center cyber-corner">
-                        <div class="text-[9px] font-mono text-purple-400">VRAM / RAM</div>
-                        <div id="vram-status" class="text-xs font-orbitron font-bold text-cyan-300 mt-0.5">LOCAL READY</div>
+                        <div class="text-[9px] font-mono text-purple-400">WEAPONS</div>
+                        <div class="text-xs font-orbitron font-bold text-pink-400 mt-0.5">SHURIKEN / KATANA</div>
                     </div>
                     <div class="hud-card rounded-lg p-2 text-center cyber-corner">
                         <div class="text-[9px] font-mono text-purple-400">ENGINE STATUS</div>
@@ -304,7 +295,7 @@
                     </div>
                     <div class="hud-card rounded-lg p-2 text-center cyber-corner">
                         <div class="text-[9px] font-mono text-purple-400">LATENCY</div>
-                        <div id="latency-status" class="text-xs font-orbitron font-bold text-pink-400 mt-0.5">14 ms</div>
+                        <div id="latency-status" class="text-xs font-orbitron font-bold text-cyan-400 mt-0.5">12 ms</div>
                     </div>
                 </div>
 
@@ -313,8 +304,8 @@
                     <div class="flex items-start gap-2 text-xs">
                         <span class="font-mono text-pink-500 font-bold">&gt;</span>
                         <div class="text-slate-300 font-rajdhani leading-relaxed">
-                            <span class="text-cyan-400 font-mono text-[10px] block">SYSTEM // 00:00:00</span>
-                            Full body locomotion & viseme animation engine ready. Suki is standing by.
+                            <span class="text-pink-400 font-mono text-[10px] block">SYSTEM // INITIALIZED</span>
+                            Procedural cyber-ninja avatar loaded: Braided hair, floating plasma shuriken, left-hand energy katana, full walking locomotion matrix active.
                         </div>
                     </div>
                 </div>
@@ -329,7 +320,7 @@
                     </button>
                     
                     <div class="relative flex-1">
-                        <input type="text" id="user-input" placeholder="Enter command or query..." class="w-full bg-purple-950/30 border border-purple-500/40 rounded-xl px-3 py-2 text-xs font-rajdhani text-slate-100 placeholder-purple-400/50 focus:outline-none focus:border-cyan-400 transition-all">
+                        <input type="text" id="user-input" placeholder="Give Suki a command..." class="w-full bg-purple-950/30 border border-purple-500/40 rounded-xl px-3 py-2 text-xs font-rajdhani text-slate-100 placeholder-purple-400/50 focus:outline-none focus:border-cyan-400 transition-all">
                     </div>
 
                     <button id="send-btn" title="Send Message" class="w-10 h-10 rounded-xl bg-gradient-to-r from-pink-600 to-purple-600 border border-pink-400/60 flex items-center justify-center text-white hover:brightness-110 transition-all shadow-[0_0_10px_rgba(255,42,141,0.4)]">
@@ -353,8 +344,8 @@
                     <label class="block font-mono text-[10px] text-purple-300 mb-1">LOCOMOTION MODE</label>
                     <select id="locomotion-select" class="w-full bg-black border border-purple-500/50 rounded-lg p-2 text-slate-200 font-mono text-xs">
                         <option value="pacing">Pacing / Walking</option>
-                        <option value="idle">Stationary Idle</option>
-                        <option value="floating">Zero-G Hover</option>
+                        <option value="idle">Stationary Stance</option>
+                        <option value="floating">Zero-G Cyber Hover</option>
                     </select>
                 </div>
                 <div>
@@ -370,13 +361,6 @@
                 <div>
                     <label class="block font-mono text-[10px] text-purple-300 mb-1">VOICE SYNTHESIS SPEED (<span id="speed-val-text">1.0x</span>)</label>
                     <input type="range" id="speech-speed" min="0.5" max="2.0" step="0.1" value="1.0" class="w-full accent-pink-500">
-                </div>
-                <div>
-                    <label class="block font-mono text-[10px] text-purple-300 mb-1">LLM MODEL SELECTION</label>
-                    <select id="model-select" class="w-full bg-black border border-purple-500/50 rounded-lg p-2 text-slate-200 font-mono text-xs">
-                        <option value="Llama-3-8B-Instruct-q4f32_1-MLC">Llama-3-8B-Instruct (Default)</option>
-                        <option value="Phi-3-mini-4k-instruct-q4f32_1-MLC">Phi-3-mini-4k-instruct (Fast)</option>
-                    </select>
                 </div>
             </div>
             <div class="flex justify-end pt-2">
@@ -446,7 +430,7 @@
             document.getElementById('speed-val-text').innerText = parseFloat(e.target.value).toFixed(1) + 'x';
         });
 
-        // Web Audio & Speech Setup
+        // Web Audio Setup
         let audioCtx;
         let isMuted = false;
 
@@ -474,7 +458,7 @@
         });
 
         // ----------------------------------------------------
-        // FULL BODY PROCEDURAL ANIMATION ENGINE
+        // PROCEDURAL CYBER-NINJA CANVAS ANIMATION ENGINE
         // ----------------------------------------------------
         const canvas = document.getElementById('avatar-canvas');
         const ctx = canvas.getContext('2d');
@@ -494,17 +478,17 @@
             blinkTimer: 0,
             earTwitch: 0,
             tailPhase: 0,
-            orbEnergy: 0,
-            orbParticles: []
+            shurikenSpin: 0,
+            shurikenParticles: []
         };
 
-        // Initialize Orb Particles
-        for (let i = 0; i < 20; i++) {
-            avatarState.orbParticles.push({
+        // Initialize Shuriken Aura Particles
+        for (let i = 0; i < 22; i++) {
+            avatarState.shurikenParticles.push({
                 angle: Math.random() * Math.PI * 2,
-                dist: Math.random() * 18 + 5,
-                speed: Math.random() * 0.05 + 0.02,
-                size: Math.random() * 2.5 + 1,
+                dist: Math.random() * 24 + 8,
+                speed: Math.random() * 0.08 + 0.03,
+                size: Math.random() * 2.2 + 0.8,
                 alpha: Math.random()
             });
         }
@@ -514,6 +498,7 @@
             const rect = canvas.parentElement.getBoundingClientRect();
             canvas.width = rect.width * dpr;
             canvas.height = rect.height * dpr;
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
             ctx.scale(dpr, dpr);
         }
         window.addEventListener('resize', resizeCanvas);
@@ -522,8 +507,51 @@
         // Canvas Click Listener for Interactive Gesture
         canvas.addEventListener('click', () => {
             avatarState.earTwitch = 1.0;
-            triggerSukiResponse("Interactive sensor touched. All cybernetic limbs fully operational.");
+            triggerSukiResponse("Ninja sensor triggered! Cybernetic suit and katana fully powered up.");
         });
+
+        // Helper function to draw a 6-pointed purple ninja star (Shuriken)
+        function drawShuriken(cx, cy, radius, angle) {
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(angle);
+
+            const points = 6;
+            ctx.beginPath();
+            for (let i = 0; i < points * 2; i++) {
+                const r = (i % 2 === 0) ? radius : radius * 0.35;
+                const a = (i * Math.PI) / points;
+                const x = Math.cos(a) * r;
+                const y = Math.sin(a) * r;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+
+            // Metallic/Neon Fill & Glow
+            const shurikenGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, radius);
+            shurikenGrad.addColorStop(0, '#ffffff');
+            shurikenGrad.addColorStop(0.3, '#ec4899');
+            shurikenGrad.addColorStop(0.8, '#a855f7');
+            shurikenGrad.addColorStop(1, '#3b0764');
+
+            ctx.fillStyle = shurikenGrad;
+            ctx.fill();
+            ctx.strokeStyle = '#00f0ff';
+            ctx.lineWidth = 1.2;
+            ctx.stroke();
+
+            // Center Ring Hole
+            ctx.beginPath();
+            ctx.arc(0, 0, radius * 0.18, 0, Math.PI * 2);
+            ctx.fillStyle = '#06030c';
+            ctx.fill();
+            ctx.strokeStyle = '#ff2a8d';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            ctx.restore();
+        }
 
         // Render Loop
         function renderScene(timestamp) {
@@ -533,18 +561,21 @@
 
             ctx.clearRect(0, 0, width, height);
 
-            const dt = 0.016; // approximate delta time
+            const dt = 0.016;
             const time = timestamp * 0.002;
+
+            // Spin Shuriken
+            avatarState.shurikenSpin += 0.15;
 
             // Update Locomotion Matrix
             if (avatarState.locomotionMode === 'pacing') {
-                avatarState.walkPhase += 0.06;
+                avatarState.walkPhase += 0.065;
                 avatarState.posX += avatarState.direction * 0.45;
                 if (Math.abs(avatarState.posX) > 35) {
                     avatarState.direction *= -1;
                 }
             } else {
-                avatarState.posX *= 0.95; // smooth return to center
+                avatarState.posX *= 0.95;
                 avatarState.walkPhase += 0.02;
             }
 
@@ -565,25 +596,24 @@
 
             // Procedural Posture Transforms
             const walkSin = Math.sin(avatarState.walkPhase);
-            const walkCos = Math.cos(avatarState.walkPhase);
             const breath = Math.sin(time * 1.5) * 2;
             
-            // Center Base Coordinates adjusted for canvas scaling
+            // Base Center Coordinates
             const baseCenterX = width / 2 + avatarState.posX;
-            const baseCenterY = height / 2 + 10 + (avatarState.locomotionMode === 'floating' ? Math.sin(time * 2) * 8 : Math.abs(walkSin) * -4);
+            const baseCenterY = height / 2 + 15 + (avatarState.locomotionMode === 'floating' ? Math.sin(time * 2) * 8 : Math.abs(walkSin) * -4);
 
             ctx.save();
             ctx.translate(baseCenterX, baseCenterY);
-            ctx.scale(0.85, 0.85); // Scale down slightly so full body fits comfortably
+            ctx.scale(0.85, 0.85); // Scale to fit full body comfortably
 
-            // Shadow / Aura Ground Ring
+            // Ground Shadow / Glow Ring
             ctx.beginPath();
-            ctx.ellipse(0, 130, 45 + Math.sin(time) * 3, 10, 0, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(168, 85, 247, 0.15)';
+            ctx.ellipse(0, 135, 48 + Math.sin(time) * 3, 10, 0, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(168, 85, 247, 0.2)';
             ctx.fill();
 
             // --------------------------------------------------
-            // 1. NEKO TAIL (Procedural Curves)
+            // 1. NEKO CYBER TAIL
             // --------------------------------------------------
             ctx.beginPath();
             ctx.moveTo(-10, 40);
@@ -597,452 +627,11 @@
             ctx.lineCap = 'round';
             ctx.stroke();
             
-            // Inner Cyber Tail Line
+            // Inner Cyan Circuit Line
             ctx.strokeStyle = '#00f0ff';
             ctx.lineWidth = 2;
             ctx.stroke();
 
             // --------------------------------------------------
-            // 2. LEGS & TACTICAL PANTS (Locomotion Sway)
-            // --------------------------------------------------
-            const leftLegAngle = walkSin * 0.35;
-            const rightLegAngle = -walkSin * 0.35;
-
-            // Left Leg
-            ctx.save();
-            ctx.translate(-14, 45);
-            ctx.rotate(leftLegAngle);
-            ctx.fillStyle = '#1e1435';
-            ctx.fillRect(-8, 0, 16, 50); // Thigh
-            ctx.fillStyle = '#0f0921';
-            ctx.fillRect(-7, 50, 14, 45); // Shin / Boot
-            // Strap Detail
-            ctx.fillStyle = '#ff2a8d';
-            ctx.fillRect(-8, 25, 16, 4);
-            ctx.restore();
-
-            // Right Leg
-            ctx.save();
-            ctx.translate(14, 45);
-            ctx.rotate(rightLegAngle);
-            ctx.fillStyle = '#1e1435';
-            ctx.fillRect(-8, 0, 16, 50); // Thigh
-            ctx.fillStyle = '#0f0921';
-            ctx.fillRect(-7, 50, 14, 45); // Shin / Boot
-            // Strap Detail
-            ctx.fillStyle = '#00f0ff';
-            ctx.fillRect(-8, 25, 16, 4);
-            ctx.restore();
-
-            // --------------------------------------------------
-            // 3. TACTICAL BELT & POUCHES
-            // --------------------------------------------------
-            ctx.fillStyle = '#120b24';
-            ctx.fillRect(-22, 40, 44, 10);
-            ctx.strokeStyle = '#ff2a8d';
-            ctx.lineWidth = 1.5;
-            ctx.strokeRect(-22, 40, 44, 10);
-
-            // Pouches
-            ctx.fillStyle = '#1e143b';
-            ctx.fillRect(-20, 43, 10, 12);
-            ctx.fillRect(10, 43, 10, 12);
-            ctx.fillStyle = '#a855f7';
-            ctx.fillRect(-18, 45, 6, 3);
-            ctx.fillRect(12, 45, 6, 3);
-
-            // --------------------------------------------------
-            // 4. TORSO & MIDRIFF (Breathing Motion)
-            // --------------------------------------------------
-            const torsoY = 0 + breath * 0.3;
-
-            // Midriff / Midsection Skin
-            ctx.fillStyle = '#fce7f3';
-            ctx.beginPath();
-            ctx.moveTo(-16, 15 + torsoY);
-            ctx.lineTo(16, 15 + torsoY);
-            ctx.lineTo(18, 42);
-            ctx.lineTo(-18, 42);
-            ctx.closePath();
-            ctx.fill();
-
-            // Tactical Crop Top / Bra
-            ctx.fillStyle = '#18102e';
-            ctx.beginPath();
-            ctx.moveTo(-18, -10 + torsoY);
-            ctx.lineTo(18, -10 + torsoY);
-            ctx.lineTo(16, 20 + torsoY);
-            ctx.lineTo(-16, 20 + torsoY);
-            ctx.closePath();
-            ctx.fill();
-            ctx.strokeStyle = '#ff2a8d';
-            ctx.lineWidth = 1.5;
-            ctx.stroke();
-
-            // Glowing chest harness lines
-            ctx.strokeStyle = '#00f0ff';
-            ctx.beginPath();
-            ctx.moveTo(-10, -5 + torsoY);
-            ctx.lineTo(0, 10 + torsoY);
-            ctx.lineTo(10, -5 + torsoY);
-            ctx.stroke();
-
-            // --------------------------------------------------
-            // 5. LEFT ARM (Holding Glowing Floating Orb)
-            // --------------------------------------------------
-            ctx.save();
-            ctx.translate(-20, -8 + torsoY);
-            ctx.rotate(-0.35 + Math.sin(time) * 0.05);
-
-            // Shoulder Cyber Joint
-            ctx.fillStyle = '#a855f7';
-            ctx.beginPath();
-            ctx.arc(0, 0, 7, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Robotic Forearm & Hand extending outwards
-            ctx.strokeStyle = '#3b0764';
-            ctx.lineWidth = 8;
-            ctx.beginPath();
-            ctx.moveTo(0, 0);
-            ctx.lineTo(-25, 20);
-            ctx.lineTo(-45, -5);
-            ctx.stroke();
-
-            // Hand
-            ctx.fillStyle = '#ff2a8d';
-            ctx.beginPath();
-            ctx.arc(-47, -7, 4, 0, Math.PI * 2);
-            ctx.fill();
-
-            // FLOATING CYBER ORB & PARTICLES
-            const orbX = -52;
-            const orbY = -35 + Math.sin(time * 3) * 4;
-
-            // Particles surrounding orb
-            avatarState.orbParticles.forEach(p => {
-                p.angle += p.speed;
-                const px = orbX + Math.cos(p.angle) * p.dist;
-                const py = orbY + Math.sin(p.angle) * p.dist;
-                ctx.fillStyle = `rgba(0, 240, 255, ${p.alpha})`;
-                ctx.beginPath();
-                ctx.arc(px, py, p.size, 0, Math.PI * 2);
-                ctx.fill();
-            });
-
-            // Outer Orb Glow
-            const orbGlow = ctx.createRadialGradient(orbX, orbY, 2, orbX, orbY, 22);
-            orbGlow.addColorStop(0, 'rgba(0, 240, 255, 0.9)');
-            orbGlow.addColorStop(0.5, 'rgba(168, 85, 247, 0.5)');
-            orbGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
-            ctx.fillStyle = orbGlow;
-            ctx.beginPath();
-            ctx.arc(orbX, orbY, 22, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Core Orb Structure
-            ctx.fillStyle = '#ffffff';
-            ctx.beginPath();
-            ctx.arc(orbX, orbY, 8, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.strokeStyle = '#00f0ff';
-            ctx.lineWidth = 1.5;
-            ctx.stroke();
-
-            ctx.restore();
-
-            // --------------------------------------------------
-            // 6. RIGHT ARM (Mechanical Cybernetic)
-            // --------------------------------------------------
-            ctx.save();
-            ctx.translate(20, -8 + torsoY);
-            ctx.rotate(0.25 - walkSin * 0.2);
-
-            // Shoulder Joint
-            ctx.fillStyle = '#00f0ff';
-            ctx.beginPath();
-            ctx.arc(0, 0, 7, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Mechanical Arm Segments
-            ctx.strokeStyle = '#1e143b';
-            ctx.lineWidth = 9;
-            ctx.beginPath();
-            ctx.moveTo(0, 0);
-            ctx.lineTo(15, 30);
-            ctx.lineTo(10, 55);
-            ctx.stroke();
-
-            // Neon Trim
-            ctx.strokeStyle = '#ff2a8d';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-
-            ctx.restore();
-
-            // --------------------------------------------------
-            // 7. HEAD & ANIME FACE
-            // --------------------------------------------------
-            const headY = -35 + breath * 0.5;
-
-            ctx.save();
-            ctx.translate(0, headY);
-
-            // Head Tilt Sway
-            ctx.rotate(Math.sin(time * 0.8) * 0.03);
-
-            // Cyber Neko Ears
-            const leftEarTwitch = avatarState.earTwitch * 0.3;
-            ctx.fillStyle = '#1e143b';
-            ctx.beginPath();
-            ctx.moveTo(-25, -20);
-            ctx.lineTo(-45 - leftEarTwitch * 10, -65);
-            ctx.lineTo(-5, -35);
-            ctx.closePath();
-            ctx.fill();
-
-            ctx.fillStyle = '#ff2a8d';
-            ctx.beginPath();
-            ctx.moveTo(-23, -22);
-            ctx.lineTo(-38, -55);
-            ctx.lineTo(-10, -33);
-            ctx.closePath();
-            ctx.fill();
-
-            // Right Ear
-            ctx.fillStyle = '#1e143b';
-            ctx.beginPath();
-            ctx.moveTo(25, -20);
-            ctx.lineTo(45, -65);
-            ctx.lineTo(5, -35);
-            ctx.closePath();
-            ctx.fill();
-
-            ctx.fillStyle = '#00f0ff';
-            ctx.beginPath();
-            ctx.moveTo(23, -22);
-            ctx.lineTo(38, -55);
-            ctx.lineTo(10, -33);
-            ctx.closePath();
-            ctx.fill();
-
-            // Anime Hair (Back Layer)
-            ctx.fillStyle = '#15092b';
-            ctx.beginPath();
-            ctx.arc(0, -10, 36, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Face Shape
-            ctx.fillStyle = '#fde047'; // Base Tone Gradient Simulation
-            ctx.fillStyle = '#fce7f3';
-            ctx.beginPath();
-            ctx.moveTo(-26, -20);
-            ctx.quadraticCurveTo(-26, 15, 0, 30);
-            ctx.quadraticCurveTo(26, 15, 26, -20);
-            ctx.quadraticCurveTo(0, -30, -26, -20);
-            ctx.fill();
-
-            // Anime Hair Bangs (Front Layer)
-            ctx.fillStyle = '#2e1065';
-            ctx.beginPath();
-            ctx.moveTo(-28, -25);
-            ctx.quadraticCurveTo(-15, 0, -10, -10);
-            ctx.quadraticCurveTo(0, 10, 10, -10);
-            ctx.quadraticCurveTo(20, 5, 28, -25);
-            ctx.quadraticCurveTo(0, -42, -28, -25);
-            ctx.fill();
-            ctx.strokeStyle = '#bf5af2';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-
-            // Cyber Eye Left
-            if (avatarState.eyeBlink > 0) {
-                ctx.fillStyle = '#00f0ff';
-                ctx.beginPath();
-                ctx.ellipse(-12, -4, 6, 9, 0, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.fillStyle = '#ffffff';
-                ctx.beginPath();
-                ctx.arc(-14, -6, 2, 0, Math.PI * 2);
-                ctx.fill();
-            } else {
-                ctx.strokeStyle = '#00f0ff';
-                ctx.lineWidth = 2.5;
-                ctx.beginPath();
-                ctx.moveTo(-18, -4);
-                ctx.lineTo(-6, -4);
-                ctx.stroke();
-            }
-
-            // Cyber Eye Right
-            if (avatarState.eyeBlink > 0) {
-                ctx.fillStyle = '#ff2a8d';
-                ctx.beginPath();
-                ctx.ellipse(12, -4, 6, 9, 0, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.fillStyle = '#ffffff';
-                ctx.beginPath();
-                ctx.arc(10, -6, 2, 0, Math.PI * 2);
-                ctx.fill();
-            } else {
-                ctx.strokeStyle = '#ff2a8d';
-                ctx.lineWidth = 2.5;
-                ctx.beginPath();
-                ctx.moveTo(6, -4);
-                ctx.lineTo(18, -4);
-                ctx.stroke();
-            }
-
-            // Viseme Lip-Sync Mouth
-            ctx.strokeStyle = '#ff2a8d';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            if (avatarState.isSpeaking) {
-                const mouthOpen = 3 + Math.sin(time * 25) * 5 * avatarState.speakingVolume;
-                ctx.ellipse(0, 14, 5, Math.max(2, mouthOpen), 0, 0, Math.PI * 2);
-                ctx.fillStyle = '#831843';
-                ctx.fill();
-            } else {
-                ctx.moveTo(-4, 14);
-                ctx.quadraticCurveTo(0, 17, 4, 14);
-            }
-            ctx.stroke();
-
-            ctx.restore(); // Restore Head
-            ctx.restore(); // Restore Base Body Transform
-
-            // Calculate FPS
-            frameCount++;
-            if (timestamp - lastTime >= 1000) {
-                document.getElementById('fps-counter').innerText = `FPS: ${frameCount}`;
-                frameCount = 0;
-                lastTime = timestamp;
-            }
-
-            requestAnimationFrame(renderScene);
-        }
-
-        requestAnimationFrame(renderScene);
-
-        // ----------------------------------------------------
-        // VOICE & DIALOGUE HANDLING
-        // ----------------------------------------------------
-        function speakText(text) {
-            if (isMuted || !('speechSynthesis' in window)) return;
-            window.speechSynthesis.cancel();
-            
-            const utterance = new SpeechSynthesisUtterance(text);
-            const speed = parseFloat(document.getElementById('speech-speed').value) || 1.0;
-            utterance.rate = speed;
-            utterance.volume = speechVolume;
-            utterance.pitch = speechPitch;
-            
-            if (selectedVoice) {
-                utterance.voice = selectedVoice;
-            }
-
-            utterance.onstart = () => {
-                avatarState.isSpeaking = true;
-                avatarState.speakingVolume = 1.0;
-                document.getElementById('avatar-state-text').innerText = 'TALKING';
-                document.getElementById('avatar-state-text').className = 'text-pink-400 font-bold animate-pulse';
-                document.getElementById('equalizer-container').classList.add('speaking-active');
-            };
-
-            utterance.onend = () => {
-                avatarState.isSpeaking = false;
-                avatarState.speakingVolume = 0;
-                document.getElementById('avatar-state-text').innerText = 'IDLE // READY';
-                document.getElementById('avatar-state-text').className = 'text-emerald-400';
-                document.getElementById('equalizer-container').classList.remove('speaking-active');
-            };
-
-            window.speechSynthesis.speak(utterance);
-        }
-
-        function triggerSukiResponse(text) {
-            const dialogueBox = document.getElementById('dialogue-box');
-            dialogueBox.innerText = text;
-            
-            const chatFeed = document.getElementById('chat-feed');
-            const now = new Date().toTimeString().split(' ')[0];
-            const msgHtml = `
-                <div class="flex items-start gap-2 text-xs">
-                    <span class="font-mono text-pink-500 font-bold">&gt;</span>
-                    <div class="text-slate-300 font-rajdhani leading-relaxed">
-                        <span class="text-pink-400 font-mono text-[10px] block">SUKI_AI // ${now}</span>
-                        ${text}
-                    </div>
-                </div>
-            `;
-            chatFeed.insertAdjacentHTML('beforeend', msgHtml);
-            chatFeed.scrollTop = chatFeed.scrollHeight;
-
-            speakText(text);
-        }
-
-        // Send User Input Handling
-        function handleSend() {
-            const input = document.getElementById('user-input');
-            const val = input.value.trim();
-            if (!val) return;
-
-            const chatFeed = document.getElementById('chat-feed');
-            const now = new Date().toTimeString().split(' ')[0];
-            const userHtml = `
-                <div class="flex items-start gap-2 text-xs">
-                    <span class="font-mono text-cyan-400 font-bold">&gt;</span>
-                    <div class="text-slate-300 font-rajdhani leading-relaxed">
-                        <span class="text-cyan-400 font-mono text-[10px] block">USER // ${now}</span>
-                        ${val}
-                    </div>
-                </div>
-            `;
-            chatFeed.insertAdjacentHTML('beforeend', userHtml);
-            input.value = '';
-            chatFeed.scrollTop = chatFeed.scrollHeight;
-
-            // Simulated AI Response
-            setTimeout(() => {
-                triggerSukiResponse(`Acknowledged: "${val}". HUD systems processing request.`);
-            }, 600);
-        }
-
-        document.getElementById('send-btn').addEventListener('click', handleSend);
-        document.getElementById('user-input').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') handleSend();
-        });
-
-        // Speech Recognition Setup
-        const micBtn = document.getElementById('mic-btn');
-        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            const recognition = new SpeechRecognition();
-            recognition.continuous = false;
-            recognition.interimResults = false;
-
-            recognition.onstart = () => {
-                micBtn.classList.add('mic-listening');
-            };
-
-            recognition.onend = () => {
-                micBtn.classList.remove('mic-listening');
-            };
-
-            recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                document.getElementById('user-input').value = transcript;
-                handleSend();
-            };
-
-            micBtn.addEventListener('click', () => {
-                try {
-                    recognition.start();
-                } catch (e) {
-                    recognition.stop();
-                }
-            });
-        }
-    </script>
-</body>
-</html>
+            // 2. LEGS & TACTICAL CARGO PANTS
+            // ------------------------------------------------
