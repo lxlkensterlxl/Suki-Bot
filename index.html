@@ -1,322 +1,344 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#120a2a">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="description" content="SukiBot Cyber HUD Console">
-  <title>SukiBot // CYBER HUD</title>
-  
-  <link rel="manifest" href="./manifest.json">
-  <link rel="apple-touch-icon" href="./icon-512.svg">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Three.js Library for 3D graphics -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <link rel="stylesheet" href="./style.css">
-  <link rel="stylesheet" href="./suki-renderer.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Suki Conversational Assistant</title>
+  <style>
+    /* Suki conversational assistant styles */
+    .suki-ai {
+      width: min(100% - 32px, 560px);
+      margin: 18px auto 28px;
+      padding: 18px;
+      border: 1px solid rgb(192 132 252 / 28%);
+      border-radius: 20px;
+      color: #f7f1ff;
+      background: linear-gradient(145deg, rgb(38 25 57 / 96%), rgb(20 14 30 / 96%));
+      box-shadow: 0 14px 36px rgb(0 0 0 / 20%);
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+
+    .suki-ai h2,
+    .suki-ai h3 {
+      margin: 0;
+    }
+
+    .suki-ai h2 {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #f7f1ff;
+      font-size: 1.15rem;
+    }
+
+    .suki-settings-btn {
+      background: transparent;
+      border: 1px solid rgb(192 132 252 / 30%);
+      color: #d6a8ff;
+      border-radius: 8px;
+      padding: 4px 8px;
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
+
+    .suki-settings-panel {
+      display: none;
+      margin: 10px 0;
+      padding: 10px;
+      background: rgb(0 0 0 / 25%);
+      border-radius: 10px;
+      border: 1px solid rgb(192 132 252 / 20%);
+    }
+
+    .suki-settings-panel.open {
+      display: block;
+    }
+
+    .suki-settings-panel input {
+      width: 100%;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid rgb(192 132 252 / 30%);
+      background: rgb(255 255 255 / 5%);
+      color: #fff;
+      font-size: 0.85rem;
+      box-sizing: border-box;
+      margin-top: 6px;
+    }
+
+    .suki-ai-intro,
+    .suki-ai-note,
+    #suki-chat-status {
+      color: #baaaca;
+      font-size: 0.84rem;
+      line-height: 1.5;
+    }
+
+    .suki-ai-intro {
+      margin: 7px 0 14px;
+    }
+
+    .suki-chat-log {
+      display: flex;
+      min-height: 86px;
+      max-height: 260px;
+      flex-direction: column;
+      gap: 9px;
+      overflow: auto;
+      padding: 12px;
+      border: 1px solid rgb(192 132 252 / 15%);
+      border-radius: 14px;
+      background: rgb(0 0 0 / 14%);
+      overscroll-behavior: contain;
+    }
+
+    .suki-chat-message {
+      max-width: 90%;
+      margin: 0;
+      padding: 9px 12px;
+      border-radius: 14px;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
+
+    .suki-chat-message.suki {
+      align-self: flex-start;
+      border: 1px solid rgb(192 132 252 / 22%);
+      background: rgb(192 132 252 / 10%);
+    }
+
+    .suki-chat-message.you {
+      align-self: flex-end;
+      color: #160c22;
+      background: linear-gradient(105deg, #d6a8ff, #a879ff);
+    }
+
+    .suki-chat-form {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .suki-chat-form textarea,
+    .suki-memory {
+      width: 100%;
+      min-height: 46px;
+      padding: 11px 12px;
+      border: 1px solid rgb(192 132 252 / 30%);
+      border-radius: 12px;
+      color: #f7f1ff;
+      background: rgb(255 255 255 / 4%);
+      font: inherit;
+      resize: vertical;
+      box-sizing: border-box;
+    }
+
+    .suki-chat-form textarea:focus-visible,
+    .suki-memory:focus-visible,
+    .suki-settings-panel input:focus-visible {
+      outline: 2px solid #67e8f9;
+      outline-offset: 2px;
+    }
+
+    .suki-chat-form button,
+    .suki-memory-actions button {
+      min-height: 44px;
+      padding: 0 14px;
+      border: 1px solid transparent;
+      border-radius: 12px;
+      color: #160c22;
+      background: linear-gradient(105deg, #d6a8ff, #a879ff);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .suki-chat-form button:disabled {
+      cursor: wait;
+      opacity: 0.6;
+    }
+
+    #suki-chat-status {
+      min-height: 1.3em;
+      margin: 8px 0 12px;
+    }
+
+    .suki-ai-note {
+      margin: 12px 0 6px;
+      font-weight: 700;
+    }
+
+    .suki-memory {
+      min-height: 66px;
+      font-size: 0.85rem;
+    }
+
+    .suki-memory-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .suki-memory-actions button:last-child {
+      border-color: rgb(192 132 252 / 32%);
+      color: #f7f1ff;
+      background: transparent;
+    }
+
+    @media (max-width: 420px) {
+      .suki-chat-form {
+        grid-template-columns: 1fr;
+      }
+
+      .suki-chat-form button {
+        width: 100%;
+      }
+    }
+  </style>
 </head>
-<body class="min-h-screen overflow-x-hidden bg-[#0a0518] text-white antialiased font-sans select-none">
-  <!-- Matrix Code Background -->
-  <canvas id="matrix-canvas" class="fixed inset-0 z-0 h-screen w-screen pointer-events-none opacity-20" aria-hidden="true"></canvas>
+<body style="background: #0f0a18; margin: 0; padding: 20px;">
 
-  <!-- Outer Cyber Border Wrapper -->
-  <div class="relative z-[1] mx-auto min-h-dvh max-w-[440px] px-3 py-2 flex flex-col gap-3 border-x border-fuchsia-500/30 bg-[#0d071e]/90 shadow-[0_0_50px_rgba(192,38,211,0.15)]">
+  <div class="suki-ai">
+    <h2>
+      <span>Suki AI Assistant</span>
+      <button type="button" class="suki-settings-btn" id="suki-toggle-settings">API Key</button>
+    </h2>
+    
+    <div class="suki-settings-panel" id="suki-settings-panel">
+      <label for="suki-api-key" style="font-size: 0.78rem; color: #baaaca;">Gemini API Key:</label>
+      <input type="password" id="suki-api-key" placeholder="Paste your Gemini API key here...">
+    </div>
 
-    <!-- Top Cyber Header -->
-    <header class="relative flex items-center justify-between border-b border-fuchsia-500/40 pb-2 pt-1">
-      <!-- Top Decorative Corners -->
-      <div class="absolute -top-1 -left-3 h-2 w-2 border-t-2 border-l-2 border-cyan-400"></div>
-      <div class="absolute -top-1 -right-3 h-2 w-2 border-t-2 border-r-2 border-fuchsia-400"></div>
-      
-      <div class="flex items-center gap-2">
-        <span class="text-[0.65rem] font-black tracking-widest text-emerald-400 bg-emerald-950/60 border border-emerald-500/40 px-2 py-0.5 rounded shadow-[0_0_10px_rgba(52,211,153,0.3)]">
-          HUD // ONLINE
-        </span>
-      </div>
+    <p class="suki-ai-intro">Hello! I am Suki, your conversational assistant. How can I help you today?</p>
+    
+    <div class="suki-chat-log" id="suki-chat-log">
+      <div class="suki-chat-message suki">Hi there! Ask me anything or configure my memory below.</div>
+    </div>
 
-      <div class="text-center">
-        <h1 class="text-sm font-black tracking-wider text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]">
-          SukiBot <span class="text-fuchsia-400">// CYBER HUD</span>
-        </h1>
-        <p class="text-[0.6rem] tracking-widest text-fuchsia-300/60 font-mono">🔗 lxlkensterlxl.github.io</p>
-      </div>
+    <div id="suki-chat-status">Ready</div>
 
-      <button id="open-settings" class="grid h-7 w-7 place-items-center rounded border border-fuchsia-500/30 bg-fuchsia-950/40 text-xs text-fuchsia-200 transition-colors hover:bg-fuchsia-500/20" aria-label="Open settings">
-        ⚙️
-      </button>
-    </header>
+    <form class="suki-chat-form" id="suki-chat-form">
+      <textarea id="suki-input" placeholder="Type a message to Suki..." rows="1" required></textarea>
+      <button type="submit" id="suki-submit">Send</button>
+    </form>
 
-    <!-- Main Character Display with Interactive 3D Canvas -->
-    <section class="relative my-1 flex justify-center items-center rounded-2xl border border-fuchsia-500/40 bg-gradient-to-b from-fuchsia-950/30 to-purple-950/20 p-2 shadow-[inset_0_0_20px_rgba(217,70,239,0.15)] overflow-hidden">
-      <!-- Background Cyber Accent Lines -->
-      <div class="absolute inset-0 bg-[linear-gradient(to_right,#1f103c_1px,transparent_1px),linear-gradient(to_bottom,#1f103c_1px,transparent_1px)] bg-[size:16px_16px] opacity-30"></div>
-
-      <!-- 3D Interactive Canvas Box -->
-      <div id="avatar-container" class="relative z-10 w-full max-w-[260px] aspect-square flex items-center justify-center cursor-grab active:cursor-grabbing rounded-xl border border-fuchsia-400/30 shadow-[0_0_25px_rgba(192,38,211,0.4)] overflow-hidden">
-        <!-- Three.js mounts here -->
-        <div class="absolute top-2 left-2 z-20 text-[0.55rem] font-mono text-cyan-400/80 bg-black/40 px-1.5 py-0.5 rounded border border-cyan-500/30 pointer-events-none">
-          3D INTERACTIVE // MOVE CURSOR/TOUCH
-        </div>
-      </div>
-    </section>
-
-    <!-- Quick Action / Status Bar -->
-    <section class="grid grid-cols-6 gap-1 text-center font-mono text-[0.6rem]">
-      <button class="flex flex-col items-center justify-center p-1.5 rounded-lg border border-emerald-500/40 bg-emerald-950/30 text-emerald-300 hover:bg-emerald-900/40 transition">
-        <span>⚡ ASR:</span>
-        <span class="font-bold text-emerald-400">Active</span>
-      </button>
-      <button class="flex flex-col items-center justify-center p-1.5 rounded-lg border border-fuchsia-500/40 bg-fuchsia-950/30 text-fuchsia-300 hover:bg-fuchsia-900/40 transition">
-        <span>🔮 Orb:</span>
-        <span class="font-bold text-fuchsia-400">Active</span>
-      </button>
-      <button class="flex flex-col items-center justify-center p-1.5 rounded-lg border border-cyan-500/40 bg-cyan-950/30 text-cyan-300 hover:bg-cyan-900/40 transition">
-        <span>🤖 Core:</span>
-        <span class="font-bold text-cyan-400">Flash 3.8</span>
-      </button>
-      <button class="flex flex-col items-center justify-center p-1.5 rounded-lg border border-purple-500/40 bg-purple-950/30 text-purple-300 hover:bg-purple-900/40 transition">
-        <span>🛡 Tactics</span>
-      </button>
-      <button class="flex flex-col items-center justify-center p-1.5 rounded-lg border border-emerald-500/40 bg-emerald-950/30 text-emerald-300 hover:bg-emerald-900/40 transition">
-        <span>🧩 Matrix</span>
-      </button>
-      <button class="flex flex-col items-center justify-center p-1.5 rounded-lg border border-cyan-500/40 bg-cyan-950/30 text-cyan-300 hover:bg-cyan-900/40 transition">
-        <span>📡 Link</span>
-      </button>
-    </section>
-
-    <!-- Cyber Dialogue Box -->
-    <section class="rounded-xl border border-fuchsia-500/50 bg-[#0d071e]/90 p-3 shadow-[0_0_15px_rgba(192,38,211,0.2)]">
-      <div class="flex items-center justify-between border-b border-fuchsia-500/30 pb-1 mb-2">
-        <span class="text-xs font-bold tracking-wider text-fuchsia-300">Kitty Cat Ears</span>
-      </div>
-      <p id="transmission-text" class="text-xs leading-relaxed text-fuchsia-100 font-sans">
-        <strong class="text-fuchsia-400">SUKI NEON VIOLET //</strong> Nya! Systems online, Senpai! Gemini 3.8 Flash initialized for direct kitsune-tactical uplink. Suki is optimized for next-level assistance. Shall we breach the datastream or configure personality matrix first?
-      </p>
-      <div class="mt-3 flex justify-end gap-2">
-        <button id="btn-transmit" class="inline-flex items-center gap-1.5 rounded-lg border border-fuchsia-400/50 bg-fuchsia-700/60 px-3 py-1 text-xs font-bold text-white shadow-[0_0_10px_rgba(192,38,211,0.4)] hover:bg-fuchsia-600 active:scale-95 transition">
-          🔊 Transmit
-        </button>
-      </div>
-    </section>
-
-    <!-- Bottom HUD Footer status -->
-    <footer class="mt-auto flex items-center justify-between border-t border-fuchsia-500/30 pt-2 px-1 text-[0.65rem] font-mono text-fuchsia-300/70">
-      <span class="flex items-center gap-1"><i class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></i> HUD ONLINE</span>
-      <span>CYBER // v2.6</span>
-    </footer>
-
+    <div class="suki-ai-note">Assistant Memory / Context</div>
+    <textarea class="suki-memory" id="suki-memory" placeholder="Add custom instructions or background memory for Suki here..."></textarea>
+    
+    <div class="suki-memory-actions">
+      <button type="button" id="suki-save-memory">Save Memory</button>
+      <button type="button" id="suki-clear-memory">Clear</button>
+    </div>
   </div>
 
   <script>
-    // Matrix Canvas Rain Effect
-    const matrixCanvas = document.getElementById('matrix-canvas');
-    const mCtx = matrixCanvas.getContext('2d');
+    const chatLog = document.getElementById('suki-chat-log');
+    const chatForm = document.getElementById('suki-chat-form');
+    const inputField = document.getElementById('suki-input');
+    const statusField = document.getElementById('suki-chat-status');
+    const memoryField = document.getElementById('suki-memory');
+    const saveMemoryBtn = document.getElementById('suki-save-memory');
+    const clearMemoryBtn = document.getElementById('suki-clear-memory');
+    const apiKeyField = document.getElementById('suki-api-key');
+    const toggleSettingsBtn = document.getElementById('suki-toggle-settings');
+    const settingsPanel = document.getElementById('suki-settings-panel');
 
-    function resizeMatrix() {
-      matrixCanvas.width = window.innerWidth;
-      matrixCanvas.height = window.innerHeight;
+    // Conversation history for multi-turn chat
+    let conversationHistory = [];
+
+    // Load saved settings & memory from localStorage
+    if (localStorage.getItem('suki_memory')) {
+      memoryField.value = localStorage.getItem('suki_memory');
     }
-    resizeMatrix();
-    window.addEventListener('resize', resizeMatrix);
+    if (localStorage.getItem('suki_gemini_key')) {
+      apiKeyField.value = localStorage.getItem('suki_gemini_key');
+    }
 
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789カタカナ';
-    const fontSize = 14;
-    let columns = Math.floor(matrixCanvas.width / fontSize);
-    let drops = Array(columns).fill(1);
+    toggleSettingsBtn.addEventListener('click', () => {
+      settingsPanel.classList.toggle('open');
+    });
 
-    function drawMatrix() {
-      mCtx.fillStyle = 'rgba(10, 5, 24, 0.05)';
-      mCtx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
-      mCtx.fillStyle = '#d946ef';
-      mCtx.font = fontSize + 'px monospace';
+    apiKeyField.addEventListener('input', () => {
+      localStorage.setItem('suki_gemini_key', apiKeyField.value.trim());
+    });
 
-      columns = Math.floor(matrixCanvas.width / fontSize);
-      if (drops.length < columns) {
-        drops = [...drops, ...Array(columns - drops.length).fill(1)];
+    saveMemoryBtn.addEventListener('click', () => {
+      localStorage.setItem('suki_memory', memoryField.value);
+      statusField.textContent = 'Memory saved successfully!';
+      setTimeout(() => { statusField.textContent = 'Ready'; }, 2000);
+    });
+
+    clearMemoryBtn.addEventListener('click', () => {
+      memoryField.value = '';
+      localStorage.removeItem('suki_memory');
+      statusField.textContent = 'Memory cleared.';
+      setTimeout(() => { statusField.textContent = 'Ready'; }, 2000);
+    });
+
+    chatForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const text = inputField.value.trim();
+      if (!text) return;
+
+      const apiKey = apiKeyField.value.trim();
+      if (!apiKey) {
+        settingsPanel.classList.add('open');
+        statusField.textContent = 'Please enter your Gemini API key above.';
+        apiKeyField.focus();
+        return;
       }
 
-      for (let i = 0; i < drops.length; i++) {
-        const text = chars.charAt(Math.floor(Math.random() * chars.length));
-        mCtx.fillText(text, i * fontSize, drops[i] * fontSize);
-        if (drops[i] * fontSize > matrixCanvas.height && Math.random() > 0.975) {
-          drops[i] = 0;
+      // Append user message
+      appendMessage(text, 'you');
+      conversationHistory.push({ role: 'user', parts: [{ text: text }] });
+      inputField.value = '';
+      statusField.textContent = 'Suki is thinking...';
+
+      try {
+        const systemInstructionContent = memoryField.value.trim();
+        const payload = {
+          contents: conversationHistory
+        };
+
+        if (systemInstructionContent) {
+          payload.systemInstruction = {
+            parts: [{ text: systemInstructionContent }]
+          };
         }
-        drops[i]++;
-      }
-    }
-    setInterval(drawMatrix, 33);
 
-    // ----------------------------------------------------
-    // 3D Interactive Moving Card Effect (Three.js)
-    // ----------------------------------------------------
-    const avatarContainer = document.getElementById('avatar-container');
-    const width = avatarContainer.clientWidth || 260;
-    const height = avatarContainer.clientHeight || 260;
-
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    camera.position.z = 4;
-
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-    renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    avatarContainer.appendChild(renderer.domElement);
-
-    // Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
-    scene.add(ambientLight);
-
-    const pointLight = new THREE.PointLight(0xd946ef, 2, 10);
-    pointLight.position.set(2, 2, 3);
-    scene.add(pointLight);
-
-    // Load Suki Avatar Texture (Fallback to SVG/Placeholder if local file missing)
-    const textureLoader = new THREE.TextureLoader();
-    const imagePath = './suki-avatar.jpg';
-    
-    // Create 3D Mesh Card
-    const geometry = new THREE.PlaneGeometry(2.3, 2.3, 32, 32);
-    let cardMesh;
-
-    textureLoader.load(
-      imagePath,
-      (texture) => {
-        texture.minFilter = THREE.LinearFilter;
-        const material = new THREE.MeshStandardMaterial({
-          map: texture,
-          side: THREE.DoubleSide,
-          roughness: 0.3,
-          metalness: 0.1
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
         });
-        cardMesh = new THREE.Mesh(geometry, material);
-        scene.add(cardMesh);
-      },
-      undefined,
-      () => {
-        // Fallback procedural canvas texture if image is not found in repository
-        const fallbackCanvas = document.createElement('canvas');
-        fallbackCanvas.width = 512;
-        fallbackCanvas.height = 512;
-        const fCtx = fallbackCanvas.getContext('2d');
-        
-        const grad = fCtx.createLinearGradient(0, 0, 512, 512);
-        grad.addColorStop(0, '#1e0938');
-        grad.addColorStop(1, '#6b21a8');
-        fCtx.fillStyle = grad;
-        fCtx.fillRect(0, 0, 512, 512);
-        
-        fCtx.fillStyle = '#e879f9';
-        fCtx.font = 'bold 36px monospace';
-        fCtx.textAlign = 'center';
-        fCtx.fillText('SUKI 3D AVATAR', 256, 240);
-        fCtx.fillStyle = '#38bdf8';
-        fCtx.font = '24px monospace';
-        fCtx.fillText('suki-avatar.jpg', 256, 290);
 
-        const canvasTexture = new THREE.CanvasTexture(fallbackCanvas);
-        const material = new THREE.MeshStandardMaterial({ map: canvasTexture, side: THREE.DoubleSide });
-        cardMesh = new THREE.Mesh(geometry, material);
-        scene.add(cardMesh);
-      }
-    );
+        const data = await response.json();
 
-    // Mouse / Touch Interaction Controls
-    let targetRotationX = 0;
-    let targetRotationY = 0;
-    let currentRotationX = 0;
-    let currentRotationY = 0;
-
-    function handleMove(clientX, clientY) {
-      const rect = avatarContainer.getBoundingClientRect();
-      const x = (clientX - rect.left) / rect.width - 0.5;
-      const y = (clientY - rect.top) / rect.height - 0.5;
-
-      targetRotationY = x * 0.8; // Tilt horizontal
-      targetRotationX = -y * 0.8; // Tilt vertical
-    }
-
-    avatarContainer.addEventListener('mousemove', (e) => {
-      handleMove(e.clientX, e.clientY);
-    });
-
-    avatarContainer.addEventListener('mouseleave', () => {
-      targetRotationX = 0;
-      targetRotationY = 0;
-    });
-
-    avatarContainer.addEventListener('touchmove', (e) => {
-      if (e.touches.length > 0) {
-        handleMove(e.touches[0].clientX, e.touches[0].clientY);
-      }
-    }, { passive: true });
-
-    avatarContainer.addEventListener('touchend', () => {
-      targetRotationX = 0;
-      targetRotationY = 0;
-    });
-
-    // Render loop with smooth floating idle animation and mouse tracking
-    let clock = new THREE.Clock();
-
-    function animate() {
-      requestAnimationFrame(animate);
-      const time = clock.getElapsedTime();
-
-      // Smooth interpolation (lerp) for tilt
-      currentRotationX += (targetRotationX - currentRotationX) * 0.08;
-      currentRotationY += (targetRotationY - currentRotationY) * 0.08;
-
-      if (cardMesh) {
-        // Apply interactive rotation
-        cardMesh.rotation.x = currentRotationX;
-        cardMesh.rotation.y = currentRotationY;
-
-        // Idle 3D float + slight breathing wave effect
-        cardMesh.position.y = Math.sin(time * 2) * 0.08;
-        cardMesh.rotation.z = Math.sin(time * 1.5) * 0.02;
-      }
-
-      renderer.render(scene, camera);
-    }
-    animate();
-
-    // Responsive Canvas Resize
-    window.addEventListener('resize', () => {
-      const w = avatarContainer.clientWidth;
-      const h = avatarContainer.clientHeight;
-      camera.aspect = w / h;
-      camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
-    });
-
-    // Transmit button speech & visual pulse
-    document.getElementById('btn-transmit')?.addEventListener('click', () => {
-      // Play sound effect if CyberAudio instance exists
-      if (window.sound && typeof window.sound.playBeep === 'function') {
-        window.sound.playBeep();
-      }
-
-      const transmission = document.getElementById('transmission-text');
-      if (transmission) {
-        // Visual pulse effect
-        transmission.classList.add('animate-pulse');
-        setTimeout(() => transmission.classList.remove('animate-pulse'), 1000);
-
-        // Text-to-speech voice synthesis
-        if ('speechSynthesis' in window) {
-          window.speechSynthesis.cancel(); // Cancel any ongoing speech
-          
-          // Clean prompt prefix out of text to speak spoken dialogue
-          const speechText = transmission.textContent.replace(/^SUKI NEON VIOLET\s*\/\/\s*/i, '').trim();
-          const utterance = new SpeechSynthesisUtterance(speechText);
-          
-          window.speechSynthesis.speak(utterance);
+        if (!response.ok) {
+          throw new Error(data.error?.message || 'API request failed');
         }
+
+        const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response generated.';
+        appendMessage(reply, 'suki');
+        conversationHistory.push({ role: 'model', parts: [{ text: reply }] });
+        statusField.textContent = 'Ready';
+      } catch (error) {
+        appendMessage(`Error: ${error.message}`, 'suki');
+        statusField.textContent = 'Error connecting to brain.';
       }
     });
+
+    function appendMessage(text, sender) {
+      const msg = document.createElement('div');
+      msg.className = `suki-chat-message ${sender}`;
+      msg.textContent = text;
+      chatLog.appendChild(msg);
+      chatLog.scrollTop = chatLog.scrollHeight;
+    }
   </script>
 </body>
 </html>
