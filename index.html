@@ -292,12 +292,29 @@
       renderer.setSize(w, h);
     });
 
-    // Transmit button visual pulse
+    // Transmit button speech & visual pulse
     document.getElementById('btn-transmit')?.addEventListener('click', () => {
+      // Play sound effect if CyberAudio instance exists
+      if (window.sound && typeof window.sound.playBeep === 'function') {
+        window.sound.playBeep();
+      }
+
       const transmission = document.getElementById('transmission-text');
       if (transmission) {
+        // Visual pulse effect
         transmission.classList.add('animate-pulse');
         setTimeout(() => transmission.classList.remove('animate-pulse'), 1000);
+
+        // Text-to-speech voice synthesis
+        if ('speechSynthesis' in window) {
+          window.speechSynthesis.cancel(); // Cancel any ongoing speech
+          
+          // Clean prompt prefix out of text to speak spoken dialogue
+          const speechText = transmission.textContent.replace(/^SUKI NEON VIOLET\s*\/\/\s*/i, '').trim();
+          const utterance = new SpeechSynthesisUtterance(speechText);
+          
+          window.speechSynthesis.speak(utterance);
+        }
       }
     });
   </script>
