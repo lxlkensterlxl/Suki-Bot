@@ -235,32 +235,27 @@
             <!-- MAIN HUD CONTAINER (SCROLLABLE) -->
             <div class="flex-1 overflow-y-auto z-20 p-2.5 space-y-2 no-scrollbar">
 
-                <!-- CYBER ANIME STAGE DISPLAY WITH IMAGE & FALLBACK CANVAS -->
+                <!-- CYBER ANIME STAGE DISPLAY WITH ADVANCED PROCEDURAL CYBER-NINJA CANVAS -->
                 <div class="relative w-full h-[380px] bg-gradient-to-b from-purple-950/60 via-slate-950 to-purple-950/40 rounded-xl border border-pink-500/40 overflow-hidden cyber-corner shadow-[0_0_15px_rgba(168,85,247,0.2)] flex flex-col justify-between">
                     
                     <!-- Background Code Grid Effect -->
                     <div class="absolute inset-0 opacity-15 font-mono text-[8px] text-purple-300 overflow-hidden pointer-events-none p-2 leading-tight">
-                        SUKI_SYSTEM_v4.0 // CYBER_NINJA_AVATAR<br>
-                        TACTICAL_NEKO: PURPLE_SHURIKEN_ACTIVE<br>
-                        LEFT_HAND: ENERGY_KATANA_EQUIPPED<br>
-                        SPRITE_LOADER: SUKI_ARTWORK_ONLINE<br>
-                        01100011 01111001 01100011 01100101 01110011
+                        SUKI_SYSTEM_v4.5 // HIGH_FIDELITY_AVATAR_ENGINE<br>
+                        NEKO_EARS: ONLINE // TACTICAL_ARMOR: SYNCED<br>
+                        PLASMA_KATANA: CHARGED // BRAIDED_PURPLE_HAIR: ACTIVE<br>
+                        01100011 01111001 01100011 01100101 01110011 01110011
                     </div>
 
-                    <!-- Suki Artwork Container with Procedural Fallback Canvas -->
-                    <div class="absolute inset-0 flex items-center justify-center z-10 overflow-hidden">
-                        <!-- High-fidelity Suki Character Sprite -->
-                        <img id="suki-sprite" src="https://raw.githubusercontent.com/lxlkensterlxl/lxlkensterlxl.github.io/main/sukibot.png" alt="Suki Cyber Ninja" class="h-full w-full object-contain cursor-pointer transition-all duration-300 hover:scale-105 filter drop-shadow-[0_0_12px_rgba(168,85,247,0.6)]" onerror="handleImageError()">
-                        
-                        <!-- Fallback Canvas if image fails to load -->
-                        <canvas id="avatar-canvas" class="w-full h-full object-contain cursor-pointer hidden"></canvas>
+                    <!-- Primary High-Fidelity Cyber-Ninja Avatar Canvas Container -->
+                    <div class="absolute inset-0 flex items-center justify-center z-10 overflow-hidden cursor-pointer" id="avatar-container" title="Click to interact with Suki!">
+                        <canvas id="suki-avatar-canvas" class="w-full h-full object-contain filter drop-shadow-[0_0_16px_rgba(168,85,247,0.7)]"></canvas>
                     </div>
 
                     <!-- Top Avatar Stats Overlay -->
                     <div class="relative z-20 p-2.5 flex justify-between items-start pointer-events-none">
                         <div class="bg-black/70 border border-purple-500/40 px-2 py-1 rounded text-[9px] font-mono text-cyan-300 backdrop-blur-sm">
                             <div>AVATAR: <span class="text-pink-400">SUKI-NINJA</span></div>
-                            <div>STATE: <span id="avatar-state-text" class="text-emerald-400">SPRITE // ONLINE</span></div>
+                            <div>STATE: <span id="avatar-state-text" class="text-emerald-400">PROCEDURAL // ONLINE</span></div>
                         </div>
                         <div class="bg-black/70 border border-pink-500/40 px-2 py-1 rounded text-[9px] font-mono text-pink-300 text-right backdrop-blur-sm">
                             <div>MOTION: <span id="motion-mode-text" class="text-cyan-400">ACTIVE</span></div>
@@ -307,7 +302,7 @@
                         <span class="font-mono text-pink-500 font-bold">&gt;</span>
                         <div class="text-slate-300 font-rajdhani leading-relaxed">
                             <span class="text-pink-400 font-mono text-[10px] block">SYSTEM // INITIALIZED</span>
-                            Cyber-ninja avatar asset loaded successfully: Neko ears, braided purple hair, tactical cyber suit, and plasma katana online.
+                            High-fidelity cyber-ninja avatar loaded successfully: Neko ears, braided purple hair, tactical cyber suit, and plasma katana online.
                         </div>
                     </div>
                 </div>
@@ -371,7 +366,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT WITH IMAGE FALLBACK & AUDIO/VOICE ENGINE -->
+    <!-- SCRIPT WITH HIGH-FIDELITY AVATAR ENGINE & AUDIO/VOICE ENGINE -->
     <script>
         // Clock updater
         setInterval(() => {
@@ -457,35 +452,28 @@
             }
         });
 
-        // Image Fallback Handler (Activates procedural canvas if sprite fails)
-        function handleImageError() {
-            console.warn("Suki sprite asset failed to load. Switching to procedural canvas fallback.");
-            document.getElementById('suki-sprite').classList.add('hidden');
-            const canvas = document.getElementById('avatar-canvas');
-            canvas.classList.remove('hidden');
-            document.getElementById('avatar-state-text').innerText = "CANVAS // FALLBACK";
-            initCanvasEngine(canvas);
-        }
-
-        function triggerSukiResponse(text) {
+        function triggerSukiResponse(text, isActionClick = false) {
             document.getElementById('dialogue-box').innerText = text;
+            
+            // Trigger avatar speaking bounce intensity
+            window.isAvatarSpeaking = true;
+            setTimeout(() => { window.isAvatarSpeaking = false; }, 2500);
+
             if (!isMuted && 'speechSynthesis' in window) {
                 window.speechSynthesis.cancel();
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.volume = speechVolume;
                 utterance.rate = parseFloat(document.getElementById('speech-speed').value);
-                utterance.pitch = 1.2;
+                utterance.pitch = 1.25;
                 if (selectedVoice) utterance.voice = selectedVoice;
                 
-                utterance.onstart = () => { document.getElementById('suki-sprite').classList.add('animate-pulse'); };
-                utterance.onend = () => { document.getElementById('suki-sprite').classList.remove('animate-pulse'); };
                 window.speechSynthesis.speak(utterance);
             }
         }
 
-        // Interactive Sprite Click
-        document.getElementById('suki-sprite').addEventListener('click', () => {
-            triggerSukiResponse("Neural link confirmed! Katana and cyber-armor systems online.");
+        // Interactive Avatar Click
+        document.getElementById('avatar-container').addEventListener('click', () => {
+            triggerSukiResponse("Neural link confirmed! Plasma katana and cyber-armor systems fully online.");
         });
 
         document.getElementById('send-btn').addEventListener('click', handleUserSubmit);
@@ -503,14 +491,16 @@
             feed.scrollTop = feed.scrollHeight;
             input.value = '';
 
-            triggerSukiResponse(`Executing command: "${val}". All parameters optimal.`);
+            triggerSukiResponse(`Executing command: "${val}". All combat parameters optimal.`);
         }
 
-        // Minimal Procedural Canvas Engine (Fallback if image asset is missing)
-        function initCanvasEngine(canvas) {
+        // HIGH-FIDELITY CYBER-NINJA CANVAS AVATAR ENGINE
+        function initSukiAvatarEngine() {
+            const canvas = document.getElementById('suki-avatar-canvas');
             const ctx = canvas.getContext('2d');
             let frameCount = 0;
             let lastTime = performance.now();
+            window.isAvatarSpeaking = false;
 
             function resizeCanvas() {
                 const dpr = window.devicePixelRatio || 1;
@@ -523,35 +513,278 @@
             window.addEventListener('resize', resizeCanvas);
             resizeCanvas();
 
-            function render(timestamp) {
+            function renderAvatar(timestamp) {
                 const rect = canvas.parentElement.getBoundingClientRect();
                 ctx.clearRect(0, 0, rect.width, rect.height);
 
-                const time = timestamp * 0.002;
+                const time = timestamp * 0.003;
+                const hoverOffset = Math.sin(time * 1.5) * 6;
+                const breathOffset = Math.sin(time * 2) * 2;
                 const cx = rect.width / 2;
-                const cy = rect.height / 2 + 10;
+                const cy = rect.height / 2 + 15 + hoverOffset;
 
                 ctx.save();
                 ctx.translate(cx, cy);
 
-                // Torso & Head Silhouette
+                // 1. CYBER ENERGY AURA / HOLOGRAM BASE
+                const gradient = ctx.createRadialGradient(0, 0, 10, 0, 0, 110);
+                gradient.addColorStop(0, 'rgba(168, 85, 247, 0.25)');
+                gradient.addColorStop(0.7, 'rgba(236, 72, 153, 0.1)');
+                gradient.addColorStop(1, 'transparent');
+                ctx.fillStyle = gradient;
                 ctx.beginPath();
-                ctx.roundRect(-20, -10, 40, 60, 8);
-                ctx.fillStyle = '#150d2a';
-                ctx.strokeStyle = '#00f0ff';
-                ctx.lineWidth = 2;
+                ctx.arc(0, 0, 110, 0, Math.PI * 2);
                 ctx.fill();
+
+                // 2. HOLOGRAM FLOOR RINGS
+                ctx.strokeStyle = 'rgba(0, 240, 255, 0.4)';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.ellipse(0, 125, 50, 18, 0, 0, Math.PI * 2);
                 ctx.stroke();
 
+                ctx.strokeStyle = 'rgba(255, 42, 141, 0.5)';
                 ctx.beginPath();
-                ctx.arc(0, -40, 25, 0, Math.PI * 2);
-                ctx.fillStyle = '#f472b6';
+                ctx.ellipse(0, 128, 70, 24, 0, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // 3. TACTICAL CYBER SUIT & TORSO
+                ctx.save();
+                ctx.translate(0, 15 + breathOffset);
+                
+                // Shoulders & Armor Plate
+                ctx.beginPath();
+                ctx.moveTo(-35, 25);
+                ctx.lineTo(35, 25);
+                ctx.lineTo(42, 75);
+                ctx.lineTo(-42, 75);
+                ctx.closePath();
+                ctx.fillStyle = '#0f081c';
+                ctx.fill();
+                ctx.strokeStyle = '#00f0ff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Chest Core Reactor / LED
+                ctx.beginPath();
+                ctx.arc(0, 42, 7, 0, Math.PI * 2);
+                ctx.fillStyle = '#ff2a8d';
+                ctx.shadowColor = '#ff2a8d';
+                ctx.shadowBlur = 10;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+
+                // Armor Highlights
+                ctx.strokeStyle = '#a855f7';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(-20, 30);
+                ctx.lineTo(-25, 65);
+                ctx.moveTo(20, 30);
+                ctx.lineTo(25, 65);
+                ctx.stroke();
+
+                ctx.restore();
+
+                // 4. NECK & CHIN
+                ctx.fillStyle = '#fce7f3';
+                ctx.fillRect(-6, 2, 12, 18);
+
+                // 5. HEAD & FACE
+                ctx.save();
+                ctx.translate(0, -15 + breathOffset * 0.5);
+
+                // Head Base
+                ctx.beginPath();
+                ctx.arc(0, -10, 36, 0, Math.PI * 2);
+                ctx.fillStyle = '#fdf4f8';
                 ctx.fill();
                 ctx.strokeStyle = '#a855f7';
                 ctx.lineWidth = 2;
                 ctx.stroke();
 
+                // Cyber Visor / Glowing Anime Eyes
+                ctx.fillStyle = '#00f0ff';
+                ctx.shadowColor = '#00f0ff';
+                ctx.shadowBlur = 12;
+                // Left Eye
+                ctx.beginPath();
+                ctx.ellipse(-12, -10, 5, 3, -0.1, 0, Math.PI * 2);
+                ctx.fill();
+                // Right Eye
+                ctx.beginPath();
+                ctx.ellipse(12, -10, 5, 3, 0.1, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+
+                // Cyber Visor Frame
+                ctx.strokeStyle = '#ff2a8d';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(-20, -13);
+                ctx.lineTo(20, -13);
+                ctx.stroke();
+
+                // Cute Anime Mouth (Changes if speaking)
+                ctx.strokeStyle = '#db2777';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                if (window.isAvatarSpeaking) {
+                    ctx.arc(0, 3, 5, 0, Math.PI);
+                    ctx.fillStyle = '#db2777';
+                    ctx.fill();
+                } else {
+                    ctx.moveTo(-4, 2);
+                    ctx.quadraticCurveTo(0, 6, 4, 2);
+                }
+                ctx.stroke();
+
+                // NEKO EARS (Cat Ears with Cyber Teal Inner Trim)
+                // Left Ear
+                ctx.save();
+                ctx.translate(-22, -32);
+                ctx.rotate(-0.25);
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(-14, -26);
+                ctx.lineTo(10, -12);
+                ctx.closePath();
+                ctx.fillStyle = '#a855f7';
+                ctx.fill();
+                ctx.strokeStyle = '#ff2a8d';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                // Inner ear glow
+                ctx.beginPath();
+                ctx.moveTo(-2, -4);
+                ctx.lineTo(-8, -18);
+                ctx.lineTo(4, -10);
+                ctx.closePath();
+                ctx.fillStyle = '#00f0ff';
+                ctx.fill();
                 ctx.restore();
+
+                // Right Ear
+                ctx.save();
+                ctx.translate(22, -32);
+                ctx.rotate(0.25);
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(14, -26);
+                ctx.lineTo(-10, -12);
+                ctx.closePath();
+                ctx.fillStyle = '#a855f7';
+                ctx.fill();
+                ctx.strokeStyle = '#ff2a8d';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                // Inner ear glow
+                ctx.beginPath();
+                ctx.moveTo(2, -4);
+                ctx.lineTo(8, -18);
+                ctx.lineTo(-4, -10);
+                ctx.closePath();
+                ctx.fillStyle = '#00f0ff';
+                ctx.fill();
+                ctx.restore();
+
+                // BRAIDED PURPLE HAIR & BANGS
+                ctx.fillStyle = '#c084fc';
+                ctx.shadowColor = '#a855f7';
+                ctx.shadowBlur = 8;
+                // Left Bang
+                ctx.beginPath();
+                ctx.moveTo(-32, -22);
+                ctx.quadraticCurveTo(-22, -38, 0, -42);
+                ctx.quadraticCurveTo(-15, -30, -25, -12);
+                ctx.closePath();
+                ctx.fill();
+                // Right Bang
+                ctx.beginPath();
+                ctx.moveTo(32, -22);
+                ctx.quadraticCurveTo(22, -38, 0, -42);
+                ctx.quadraticCurveTo(15, -30, 25, -12);
+                ctx.closePath();
+                ctx.fill();
+                ctx.shadowBlur = 0;
+
+                // Long Braided Hair Tendrils swinging gently
+                const sway = Math.sin(time * 3) * 5;
+                ctx.strokeStyle = '#9333ea';
+                ctx.lineWidth = 8;
+                ctx.lineCap = 'round';
+                // Left Braid
+                ctx.beginPath();
+                ctx.moveTo(-28, -15);
+                ctx.quadraticCurveTo(-45 + sway, 15, -35 + sway * 1.5, 45);
+                ctx.stroke();
+                // Right Braid
+                ctx.beginPath();
+                ctx.moveTo(28, -15);
+                ctx.quadraticCurveTo(45 + sway, 15, 35 + sway * 1.5, 45);
+                ctx.stroke();
+
+                ctx.restore();
+
+                // 6. PLASMA KATANA WEAPON (Gleaming Energy Blade in Hand)
+                ctx.save();
+                ctx.translate(45, 10 + breathOffset);
+                ctx.rotate(-0.4 + Math.sin(time * 2) * 0.05);
+                
+                // Katana Hilt
+                ctx.fillStyle = '#0f172a';
+                ctx.fillRect(-3, 0, 6, 22);
+                ctx.strokeStyle = '#00f0ff';
+                ctx.lineWidth = 1.5;
+                ctx.strokeRect(-3, 0, 6, 22);
+
+                // Guard (Tsuba)
+                ctx.fillStyle = '#ff2a8d';
+                ctx.fillRect(-10, -2, 20, 4);
+
+                // Plasma Blade Glow Trail
+                ctx.shadowColor = '#00f0ff';
+                ctx.shadowBlur = 18;
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.moveTo(0, -4);
+                ctx.lineTo(0, -85);
+                ctx.stroke();
+
+                ctx.strokeStyle = '#00f0ff';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(0, -4);
+                ctx.lineTo(0, -85);
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+
+                ctx.restore();
+
+                // 7. FLOATING CYBER SHURIKEN
+                ctx.save();
+                const shurikenAngle = time * 4;
+                ctx.translate(-65, -10 + Math.cos(time * 2) * 12);
+                ctx.rotate(shurikenAngle);
+                
+                ctx.shadowColor = '#ff2a8d';
+                ctx.shadowBlur = 10;
+                ctx.fillStyle = '#ff2a8d';
+                ctx.beginPath();
+                for (let i = 0; i < 4; i++) {
+                    ctx.rotate(Math.PI / 2);
+                    ctx.lineTo(0, -12);
+                    ctx.lineTo(3, -3);
+                    ctx.lineTo(12, 0);
+                    ctx.lineTo(3, 3);
+                }
+                ctx.closePath();
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                ctx.restore();
+
+                ctx.restore(); // Restore main transform
 
                 frameCount++;
                 if (performance.now() - lastTime >= 1000) {
@@ -559,10 +792,15 @@
                     frameCount = 0;
                     lastTime = performance.now();
                 }
-                requestAnimationFrame(render);
+                requestAnimationFrame(renderAvatar);
             }
-            requestAnimationFrame(render);
+            requestAnimationFrame(renderAvatar);
         }
+
+        // Initialize avatar engine on window load
+        window.addEventListener('load', () => {
+            initSukiAvatarEngine();
+        });
     </script>
 </body>
 </html>
