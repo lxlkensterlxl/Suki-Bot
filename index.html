@@ -18,6 +18,7 @@
     <script type="module">
         import { CreateMLCEngine } from "https://esm.run/@mlc-ai/web-llm";
         window.CreateMLCEngine = CreateMLCEngine;
+        window.dispatchEvent(new CustomEvent('mlc-loaded'));
     </script>
 
     <script>
@@ -238,10 +239,10 @@
                         </div>
                     </div>
 
-                    <!-- META DATA OVERLAY BOX (Left Bottom with Integrated Avatar Thumbnail) -->
+                    <!-- META DATA OVERLAY BOX -->
                     <div class="absolute bottom-2 left-2 z-20 w-[64%] hud-card p-2 rounded-lg border border-purple-500/50 text-[9px] font-mono leading-tight flex items-start gap-2">
                         <div class="relative flex-none">
-                            <img src="suki-avatar.jpg" alt="Suki Avatar" class="w-10 h-10 rounded-lg border border-pink-500/80 object-cover shadow-[0_0_8px_rgba(255,42,141,0.5)]" />
+                            <img id="avatar-img" src="suki-avatar.jpg" alt="Suki Avatar" class="w-10 h-10 rounded-lg border border-pink-500/80 object-cover shadow-[0_0_8px_rgba(255,42,141,0.5)]" onerror="this.src='https://api.dicebear.com/7.x/bottts/svg?seed=Suki';" />
                             <span class="absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 border border-black"></span>
                         </div>
                         <div class="flex-1 min-w-0">
@@ -388,7 +389,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT APPLICATION CONTROLLER WITH WEBLVM ENGINE & CANVAS RENDERING -->
+    <!-- SCRIPT APPLICATION CONTROLLER -->
     <script type="module">
         let audioMuted = false;
         let isListening = false;
@@ -409,11 +410,12 @@
         const transmitBtn = document.getElementById('transmit-btn');
         const modelStatusText = document.getElementById('model-status-text');
 
-        // Preload Avatar Image for Canvas Stage
+        // Preload Avatar Image for Canvas Stage with Fallback
         const sukiAvatarImg = new Image();
         let avatarLoaded = false;
         sukiAvatarImg.src = 'suki-avatar.jpg';
         sukiAvatarImg.onload = () => { avatarLoaded = true; };
+        sukiAvatarImg.onerror = () => { avatarLoaded = false; };
 
         // Live Clock
         function updateClock() {
@@ -493,24 +495,25 @@
 
             try {
                 modelStatusText.textContent = "[Loading Model]";
-                window.sukiEngine = await window.CreateMLCEngine(PRIMARY_MODEL, {
-                    initProgressCallback: (progress) => {
-                        console.log(progress.text);
-                    }
-                });
-                modelStatusText.textContent = "[Fully Functional]";
-                modelStatusText.className = "text-emerald-400 font-bold";
-                appendChatMessage('Suki', 'Local WebGPU model successfully linked and loaded!');
+                if (window.CreateMLCEngine) {
+                    window.sukiEngine = await window.CreateMLCEngine(PRIMARY_MODEL, {
+                        initProgressCallback: (progress) => console.log(progress.text)
+                    });
+                    modelStatusText.textContent = "[Fully Functional]";
+                    modelStatusText.className = "text-emerald-400 font-bold";
+                    appendChatMessage('Suki', 'Local WebGPU model successfully linked and loaded!');
+                } else {
+                    throw new Error("MLC Engine Module Not Ready");
+                }
             } catch (error) {
                 console.warn("Local engine load fallback active:", error);
                 modelStatusText.textContent = "[Fallback Active]";
                 modelStatusText.className = "text-amber-400 font-bold";
             }
         }
-        
-        window.addEventListener('DOMContentLoaded', () => {
-            initAIModel();
-        });
+
+        window.addEventListener('mlc-loaded', initAIModel);
+        if (window.CreateMLCEngine) initAIModel();
 
         // Speech Recognition Setup
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -665,7 +668,7 @@
             ctx.stroke();
             ctx.restore();
 
-            // Render Suki Avatar Image on Canvas Stage
+            // Render Avatar Image or Vector Fallback
             if (avatarLoaded) {
                 const imgSize = 130;
                 ctx.save();
@@ -675,7 +678,6 @@
                 ctx.drawImage(sukiAvatarImg, cx - imgSize / 2, cy - imgSize / 2 + bob, imgSize, imgSize);
                 ctx.restore();
 
-                // Cyber Ring Border Around Image Avatar
                 ctx.strokeStyle = isSpeaking ? '#00f0ff' : '#ff2a8d';
                 ctx.lineWidth = 2.5;
                 ctx.shadowColor = isSpeaking ? '#00f0ff' : '#ff2a8d';
@@ -684,6 +686,21 @@
                 ctx.arc(cx, cy + bob, imgSize / 2 + 1, 0, Math.PI * 2);
                 ctx.stroke();
                 ctx.shadowBlur = 0;
+            } else {
+                // PROCEDURAL KITSUNE FALLBACK
+                ctx.fillStyle = '#120826';
+                ctx.strokeStyle = '#ff2a8d';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(cx, cy - 10 + bob, 35, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.fillStyle = '#ff2a8d';
+                ctx.beginPath();
+                ctx.arc(cx - 12, cy - 12 + bob, 4, 0, Math.PI * 2);
+                ctx.arc(cx + 12, cy - 12 + bob, 4, 0, Math.PI * 2);
+                ctx.fill();
             }
 
             requestAnimationFrame(renderSukiHUD);
