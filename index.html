@@ -14,10 +14,10 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
     
-    <!-- Transformers.js / WebLLM Engine CDN -->
+    <!-- WebLLM Engine CDN Import -->
     <script type="module">
-        import { CreateWebWorkerMLCEngine } from "https://esm.run/@mlc-ai/web-llm";
-        window.CreateWebWorkerMLCEngine = CreateWebWorkerMLCEngine;
+        import { CreateMLCEngine } from "https://esm.run/@mlc-ai/web-llm";
+        window.CreateMLCEngine = CreateMLCEngine;
     </script>
 
     <script>
@@ -217,7 +217,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT APPLICATION CONTROLLER WITH WEBLVM / TRANSFORMERS.JS ENGINE -->
+    <!-- SCRIPT APPLICATION CONTROLLER WITH WEBLVM ENGINE -->
     <script type="module">
         let audioMuted = false;
         let isListening = false;
@@ -226,7 +226,7 @@
         let speechSynth = window.speechSynthesis;
         let speechRecognition = null;
         let audioCtx = null;
-        let mlcEngine = null;
+        window.sukiEngine = null;
 
         const clockDisplay = document.getElementById('clock-display');
         const chatContainer = document.getElementById('chat-container');
@@ -317,47 +317,63 @@
             speechSynth.speak(utterance);
         }
 
-        // Initialize Local WebGPU Model (WebLLM / Transformers Architecture)
+        // Initialize Local WebGPU Model with Mobile Fallback Handling
         async function initAIModel() {
-            try {
-                // Using a lightweight, fast model that fits well in browser WebGPU memory
-                const selectedModel = "Llama-3-8B-Instruct-q4f32_1-MLC";
-                
-                mlcEngine = await window.CreateWebWorkerMLCEngine(
-                    new Worker(
-                        URL.createObjectURL(new Blob([`
-                            import { WebWorkerMLCEngineHandler } from "https://esm.run/@mlc-ai/web-llm";
-                            const handler = new WebWorkerMLCEngineHandler();
-                            onmessage = (msg) => handler.onmessage(msg);
-                        `], { type: "text/javascript" }))
-                    ),
-                    selectedModel,
-                    {
-                        initProgressCallback: (progress) => {
-                            coreStatusText.textContent = `LOADING: ${Math.round(progress.progress * 100)}%`;
-                        }
-                    }
-                );
+            const PRIMARY_MODEL = "Llama-3-8B-Instruct-q4f32_1-MLC";
+            const LIGHT_FALLBACK_MODEL = "Llama-3.2-1B-Instruct-q4f16_1-MLC";
 
-                coreStatusDot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
-                coreStatusText.textContent = 'SUKI // NEURAL ACTIVE';
-                chatInput.disabled = false;
-                chatInput.placeholder = 'Message Suki...';
-                submitBtn.disabled = false;
-                submitBtn.classList.remove('bg-purple-600/50');
-                submitBtn.classList.add('bg-purple-600', 'hover:bg-purple-500');
-                appendChatMessage('Suki', 'Neural weights successfully loaded into WebGPU memory! I am fully awake.');
-            } catch (err) {
-                console.error(err);
-                coreStatusDot.className = 'w-2 h-2 rounded-full bg-red-500 animate-pulse';
-                coreStatusText.textContent = 'GPU ERROR / FALLBACK MODE';
-                chatInput.disabled = false;
-                chatInput.placeholder = 'Message Suki (Offline Mode)...';
-                submitBtn.disabled = false;
-                submitBtn.classList.remove('bg-purple-600/50');
-                submitBtn.classList.add('bg-purple-600', 'hover:bg-purple-500');
-                appendChatMessage('Suki', 'WebGPU acceleration unavailable or restricted. Operating on backup logic mode.');
+            if (!navigator.gpu) {
+                console.warn("WebGPU not supported in this browser context.");
+                enableCoreFunctionsMode("WebGPU offline: Core functions active.");
+                return;
             }
+
+            try {
+                coreStatusText.textContent = "INITIALIZING NEURAL WEIGHTS...";
+                window.sukiEngine = await window.CreateMLCEngine(PRIMARY_MODEL, {
+                    initProgressCallback: (progress) => {
+                        coreStatusText.textContent = `LOADING: ${Math.round(progress.progress * 100)}%`;
+                    }
+                });
+                onModelLoadedSuccessfully("SUKI // NEURAL ACTIVE");
+            } catch (primaryError) {
+                console.warn("Primary model load failed (likely OOM/mobile limit). Trying lightweight fallback...", primaryError);
+                try {
+                    coreStatusText.textContent = "SWITCHING TO MOBILE FALLBACK...";
+                    window.sukiEngine = await window.CreateMLCEngine(LIGHT_FALLBACK_MODEL, {
+                        initProgressCallback: (progress) => {
+                            coreStatusText.textContent = `FALLBACK LOAD: ${Math.round(progress.progress * 100)}%`;
+                        }
+                    });
+                    onModelLoadedSuccessfully("SUKI // FALLBACK ACTIVE");
+                } catch (fallbackError) {
+                    console.error("All local GPU initialization attempts failed:", fallbackError);
+                    enableCoreFunctionsMode("WebGPU model offline, core functions online!");
+                }
+            }
+        }
+
+        function onModelLoadedSuccessfully(statusMsg) {
+            coreStatusDot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
+            coreStatusText.textContent = statusMsg;
+            chatInput.disabled = false;
+            chatInput.placeholder = 'Message Suki...';
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('bg-purple-600/50');
+            submitBtn.classList.add('bg-purple-600', 'hover:bg-purple-500');
+            appendChatMessage('Suki', 'Neural weights successfully loaded into memory! I am fully awake.');
+        }
+
+        function enableCoreFunctionsMode(statusMessage) {
+            window.sukiEngine = null;
+            coreStatusDot.className = 'w-2 h-2 rounded-full bg-amber-400 animate-pulse';
+            coreStatusText.textContent = statusMessage;
+            chatInput.disabled = false;
+            chatInput.placeholder = 'Message Suki (Offline Mode)...';
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('bg-purple-600/50');
+            submitBtn.classList.add('bg-purple-600', 'hover:bg-purple-500');
+            appendChatMessage('Suki', 'WebGPU model offline, but my core functions are online!');
         }
         
         // Start model initialization on load
@@ -442,7 +458,7 @@
 
             chatContainer.appendChild(wrapper);
             chatContainer.scrollTop = chatContainer.scrollHeight;
-            return bodyText; // return reference for streaming update if needed
+            return bodyText;
         }
 
         async function handleUserSubmit(text) {
@@ -453,14 +469,14 @@
 
             const aiBubbleText = appendChatMessage('Suki', '...');
 
-            if (mlcEngine) {
+            if (window.sukiEngine) {
                 try {
                     const messages = [
                         { role: "system", content: "You are Suki, an advanced cyberpunk AI companion with an edgy, helpful, and friendly personality. Keep responses concise and immersive." },
                         { role: "user", content: text }
                     ];
                     
-                    const reply = await mlcEngine.chat.completions.create({ messages });
+                    const reply = await window.sukiEngine.chat.completions.create({ messages });
                     const responseText = reply.choices[0].message.content;
                     aiBubbleText.textContent = responseText;
                     speakResponse(responseText);
@@ -470,7 +486,6 @@
                     speakResponse(fallback);
                 }
             } else {
-                // Fallback response if model failed to load
                 const fallback = `Received: "${text}". WebGPU model offline, but my core functions are online!`;
                 aiBubbleText.textContent = fallback;
                 speakResponse(fallback);
@@ -496,7 +511,7 @@
 
         configBtn.addEventListener('click', () => {
             playSoundEffect('beep');
-            appendChatMessage('Suki', 'System Architecture: Transformers.js / WebLLM running locally via WebGPU inside browser container.');
+            appendChatMessage('Suki', 'System Architecture: WebLLM running locally via WebGPU inside browser container.');
         });
 
         toggleAnimBtn.addEventListener('click', () => {
@@ -598,52 +613,3 @@
     </script>
 </body>
 </html>
-async function initializeSukiModel() {
-  const PRIMARY_MODEL = "Llama-3-8B-Instruct-q4f32_1";
-  const LIGHT_FALLBACK_MODEL = "Llama-3.2-1B-Instruct-q4f16_1"; // Much smaller footprint for mobile VRAM
-
-  // 1. Check early for WebGPU support
-  if (!navigator.gpu) {
-    console.warn("WebGPU not supported in this browser context.");
-    enableCoreFunctionsMode("WebGPU offline: Running core functions only.");
-    return;
-  }
-
-  try {
-    updateLoadingUI("Initializing primary neural weights...");
-    
-    // Attempt loading the heavy model
-    window.sukiEngine = await CreateMLCEngine(PRIMARY_MODEL, {
-      initProgressCallback: (report) => updateLoadingUI(report.text)
-    });
-    
-    setModelState("active");
-    
-  } catch (primaryError) {
-    console.warn("Primary model load failed (likely OOM or mobile limit). Trying lightweight fallback...", primaryError);
-    
-    try {
-      updateLoadingUI("Switching to mobile-optimized fallback model...");
-      
-      // Attempt loading a smaller model that fits in mobile VRAM limits
-      window.sukiEngine = await CreateMLCEngine(LIGHT_FALLBACK_MODEL, {
-        initProgressCallback: (report) => updateLoadingUI(report.text)
-      });
-      
-      setModelState("active-fallback");
-      
-    } catch (fallbackError) {
-      console.error("All local GPU initialization attempts failed:", fallbackError);
-      
-      // Graceful fallback to core functionality without breaking the UI
-      enableCoreFunctionsMode("WebGPU model offline, but my core functions are online!");
-    }
-  }
-}
-
-function enableCoreFunctionsMode(statusMessage) {
-  window.sukiEngine = null;
-  updateStatusBanner(statusMessage);
-  // Keep local UI actions, preset buttons, and animations fully functional
-}
-
