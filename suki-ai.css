@@ -5,34 +5,66 @@
     flex-direction: column;
     gap: 12px;
     padding: 16px;
-    font-family: monospace, sans-serif;
+    font-family: 'Share Tech Mono', monospace, sans-serif;
     color: #f3e8ff;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
 }
 
-/* Chat Message Bubbles */
+/* Custom Scrollbar for Chat Container */
+.suki-chat-container::-webkit-scrollbar {
+    width: 4px;
+}
+.suki-chat-container::-webkit-scrollbar-track {
+    background: rgba(14, 8, 28, 0.6);
+}
+.suki-chat-container::-webkit-scrollbar-thumb {
+    background: #ff5fd2;
+    border-radius: 4px;
+}
+
+/* Chat Message Bubbles with Entrance Animation */
 .suki-msg, .user-msg {
-    max-width: 80%;
+    max-width: 85%;
     padding: 10px 14px;
-    border-radius: 8px;
-    font-size: 14px;
-    line-height: 1.4;
+    border-radius: 10px;
+    font-size: 13px;
+    line-height: 1.45;
     word-break: break-word;
+    animation: sukiMsgFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes sukiMsgFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .suki-msg {
-    background: rgba(45, 10, 60, 0.85);
+    background: rgba(45, 10, 60, 0.88);
+    backdrop-filter: blur(6px);
     border: 1px solid rgba(255, 95, 210, 0.5);
-    box-shadow: 0 0 10px rgba(255, 95, 210, 0.2);
+    box-shadow: 0 0 12px rgba(255, 95, 210, 0.2);
     align-self: flex-start;
+    border-top-left-radius: 2px;
 }
 
 .user-msg {
-    background: rgba(80, 20, 110, 0.9);
+    background: rgba(80, 20, 110, 0.92);
+    backdrop-filter: blur(6px);
     border: 1px solid rgba(168, 85, 247, 0.6);
+    box-shadow: 0 0 10px rgba(168, 85, 247, 0.25);
     align-self: flex-end;
+    border-top-right-radius: 2px;
 }
 
-/* Cyberpunk Glitch & Typing Effects */
+/* Cyberpunk Glitch & Glow Effects */
 @keyframes sukiGlowPulse {
     0% { filter: drop-shadow(0 0 10px rgba(255, 95, 210, 0.3)); }
     50% { filter: drop-shadow(0 0 20px rgba(255, 95, 210, 0.7)); }
@@ -51,4 +83,5 @@
     border-radius: 50%;
     box-shadow: 0 0 8px #22c55e;
     display: inline-block;
+    flex-shrink: 0;
 }
