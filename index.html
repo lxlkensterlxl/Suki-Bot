@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Suki Companion AI - WebLLM Core</title>
+    <title>SukiBot // CYBER HUD</title>
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     
     <!-- WebLLM Engine CDN Import -->
     <script type="module">
@@ -26,14 +26,19 @@
                 extend: {
                     colors: {
                         cyberDark: '#07050e',
-                        cyberPanel: '#120b24',
+                        cyberPanel: '#0e081c',
+                        cyberCard: '#150d2a',
                         cyberPurple: '#a855f7',
                         cyberPink: '#ec4899',
                         cyberCyan: '#06b6d4',
+                        cyberNeonPink: '#ff2a8d',
+                        cyberNeonCyan: '#00f0ff',
+                        cyberNeonPurple: '#bf5af2',
                     },
                     fontFamily: {
                         orbitron: ['Orbitron', 'sans-serif'],
                         rajdhani: ['Rajdhani', 'sans-serif'],
+                        mono: ['Share Tech Mono', 'monospace'],
                     }
                 }
             }
@@ -42,6 +47,7 @@
     <style>
         * {
             -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
         }
         body {
             background-color: #030207;
@@ -52,21 +58,26 @@
         }
 
         ::-webkit-scrollbar {
-            width: 4px;
+            width: 3px;
+            height: 3px;
         }
         ::-webkit-scrollbar-track {
-            background: rgba(18, 11, 36, 0.5);
+            background: rgba(14, 8, 28, 0.8);
         }
         ::-webkit-scrollbar-thumb {
-            background: #a855f7;
+            background: #ff2a8d;
             border-radius: 4px;
         }
 
-        .glass-panel {
+        .hud-border {
+            border: 1px solid rgba(255, 42, 141, 0.4);
+            box-shadow: inset 0 0 15px rgba(168, 85, 247, 0.15), 0 0 10px rgba(255, 42, 141, 0.2);
+        }
+
+        .hud-card {
             background: rgba(18, 11, 36, 0.85);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(168, 85, 247, 0.3);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(191, 90, 242, 0.35);
         }
 
         .scanlines {
@@ -74,20 +85,25 @@
                 to bottom,
                 rgba(255,255,255,0),
                 rgba(255,255,255,0) 50%,
-                rgba(0, 0, 0, 0.4) 50%,
-                rgba(0, 0, 0, 0.4)
+                rgba(0, 0, 0, 0.45) 50%,
+                rgba(0, 0, 0, 0.45)
             );
             background-size: 100% 4px;
         }
 
+        .matrix-bg {
+            background-image: radial-gradient(rgba(0, 240, 255, 0.1) 1px, transparent 0);
+            background-size: 12px 12px;
+        }
+
         @keyframes pulseGlow {
-            0% { box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.8); }
-            70% { box-shadow: 0 0 0 16px rgba(236, 72, 153, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(236, 72, 153, 0); }
+            0% { box-shadow: 0 0 0 0 rgba(255, 42, 141, 0.8); }
+            70% { box-shadow: 0 0 0 12px rgba(255, 42, 141, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 42, 141, 0); }
         }
         .mic-listening {
             animation: pulseGlow 1.4s infinite;
-            background-color: #ec4899 !important;
+            background-color: #ff2a8d !important;
             color: #ffffff !important;
         }
 
@@ -98,130 +114,280 @@
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
+
+        .cyber-corner {
+            position: relative;
+        }
+        .cyber-corner::before {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: -1px;
+            width: 8px;
+            height: 8px;
+            border-top: 2px solid #00f0ff;
+            border-left: 2px solid #00f0ff;
+        }
+        .cyber-corner::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            right: -1px;
+            width: 8px;
+            height: 8px;
+            border-bottom: 2px solid #ff2a8d;
+            border-right: 2px solid #ff2a8d;
+        }
+
+        .equalizer-bar {
+            animation: bounce 0.8s ease-in-out infinite alternate;
+        }
+        @keyframes bounce {
+            0% { height: 15%; }
+            100% { height: 100%; }
+        }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-0 sm:p-4 bg-slate-950">
 
     <!-- iPhone Screen Frame Container -->
-    <div class="relative w-full max-w-[410px] h-[100vh] sm:h-[840px] bg-black sm:rounded-[48px] p-2.5 sm:p-3 shadow-[0_0_50px_rgba(168,85,247,0.35)] border-0 sm:border-4 border-slate-800 flex flex-col overflow-hidden">
+    <div class="relative w-full max-w-[410px] h-[100vh] sm:h-[860px] bg-black sm:rounded-[48px] p-2.5 sm:p-3 shadow-[0_0_60px_rgba(255,42,141,0.3)] border-0 sm:border-4 border-slate-900 flex flex-col overflow-hidden">
         
         <!-- Dynamic Island / Top Notch -->
         <div class="absolute top-3 left-1/2 -translate-x-1/2 w-28 sm:w-32 h-5 sm:h-6 bg-black rounded-full z-50 flex items-center justify-between px-3 border border-slate-800">
             <div class="w-2.5 h-2.5 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center">
-                <div class="w-1 h-1 rounded-full bg-blue-900/80"></div>
+                <div class="w-1 h-1 rounded-full bg-cyan-500/80"></div>
             </div>
-            <div class="w-1.5 h-1.5 rounded-full bg-purple-900/60"></div>
+            <div class="w-1.5 h-1.5 rounded-full bg-purple-600/60"></div>
         </div>
 
         <!-- Inner Screen -->
-        <div class="relative w-full h-full bg-cyberDark rounded-[32px] sm:rounded-[38px] flex flex-col overflow-hidden border border-purple-900/50">
+        <div class="relative w-full h-full bg-[#06030c] rounded-[32px] sm:rounded-[38px] flex flex-col overflow-hidden border border-pink-500/30">
             
-            <!-- Scanlines Layer -->
-            <div class="absolute inset-0 scanlines pointer-events-none z-40 opacity-25"></div>
+            <!-- Scanlines & Grid Overlay -->
+            <div class="absolute inset-0 scanlines pointer-events-none z-40 opacity-20"></div>
+            <div class="absolute inset-0 matrix-bg pointer-events-none z-10 opacity-30"></div>
 
-            <!-- Header / Status Bar -->
-            <div class="w-full pt-2.5 sm:pt-3 pb-1 px-5 flex justify-between items-center text-[10px] font-orbitron text-slate-300 z-30 tracking-wider">
-                <span id="clock-display">10:23</span>
-                <div class="flex items-center space-x-1.5">
-                    <i class="fa-solid fa-signal text-[9px]"></i>
-                    <span>5G</span>
-                    <i class="fa-solid fa-battery-full text-purple-400 text-[10px]"></i>
+            <!-- Status Bar Header -->
+            <div class="w-full pt-2.5 sm:pt-3 pb-1 px-5 flex justify-between items-center text-[11px] font-mono text-slate-300 z-30 tracking-wider">
+                <span id="clock-display" class="font-bold">7:52</span>
+                <div class="flex items-center space-x-1.5 text-[10px]">
+                    <i class="fa-solid fa-signal"></i>
+                    <span class="font-bold">5G</span>
+                    <i class="fa-solid fa-battery-full text-cyan-400"></i>
                 </div>
             </div>
 
-            <!-- Suki Companion Navigation Header -->
-            <div class="px-4 py-2 flex items-center justify-between z-30 border-b border-purple-900/40 bg-cyberPanel/90">
-                <div class="flex items-center gap-2">
-                    <span id="core-status-dot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-                    <span id="core-status-text" class="font-orbitron text-xs text-purple-300 font-bold tracking-wide">LOADING NEURAL MODEL...</span>
-                </div>
-                <div class="flex items-center gap-3">
-                    <button id="clear-btn" class="text-xs text-slate-400 hover:text-pink-400 transition" title="Clear Chat Log">
-                        <i class="fa-solid fa-trash-can"></i>
-                    </button>
-                    <button id="mute-btn" class="text-xs text-purple-400 hover:text-white transition" title="Toggle Voice Synth">
-                        <i id="mute-icon" class="fa-solid fa-volume-high"></i>
-                    </button>
-                    <button id="config-btn" class="text-xs text-cyan-400 hover:text-white transition" title="System Info">
-                        <i class="fa-solid fa-gear"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- ANIMATED STAGE / CANVASES (SUKI STAGE) -->
-            <div class="relative w-full h-64 bg-slate-950 flex-none border-b border-purple-500/30 overflow-hidden">
-                <canvas id="sukiCanvas" class="w-full h-full block cursor-pointer"></canvas>
-
-                <!-- Stage UI Badge Overlay -->
-                <div class="absolute top-2 left-3 right-3 flex justify-between items-center pointer-events-none">
-                    <div class="glass-panel px-2.5 py-1 rounded-full text-[9px] font-orbitron text-cyan-300 flex items-center gap-1.5 border border-cyan-500/30">
-                        <i class="fa-solid fa-microchip text-cyan-400"></i>
-                        <span id="mode-badge">IDLE MODE</span>
+            <!-- HUD TITLE HEADER BAR -->
+            <div class="px-4 py-1.5 flex items-center justify-between z-30 border-b border-pink-500/40 bg-purple-950/40 backdrop-blur-md">
+                <div class="flex items-center gap-1.5">
+                    <div class="flex gap-1">
+                        <span class="w-2.5 h-1.5 bg-pink-500 transform -skew-x-12 inline-block"></span>
+                        <span class="w-2.5 h-1.5 bg-purple-500 transform -skew-x-12 inline-block"></span>
+                        <span class="w-2.5 h-1.5 bg-cyan-400 transform -skew-x-12 inline-block"></span>
                     </div>
-                    <button id="toggle-anim-btn" class="pointer-events-auto glass-panel px-2.5 py-1 rounded-full text-[9px] font-orbitron text-purple-300 hover:text-white border border-purple-500/40 hover:bg-purple-900/50 transition">
-                        <i class="fa-solid fa-person-walking mr-1"></i> Switch Mode
-                    </button>
+                    <span class="font-orbitron text-[9px] font-semibold text-emerald-400 tracking-wider flex items-center gap-1">
+                        <span id="core-status-dot" class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping inline-block"></span>
+                        HUD // ONLINE
+                    </span>
+                </div>
+                
+                <div class="font-orbitron text-xs font-bold text-slate-100 tracking-widest text-center">
+                    SukiBot <span class="text-pink-500">//</span> CYBER HUD
                 </div>
 
-                <!-- Voice Visualizer Wave -->
-                <div id="speaking-visualizer" class="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1 px-3 py-1 glass-panel rounded-full border border-pink-500/50 opacity-0 transition-opacity duration-300 pointer-events-none">
-                    <div class="w-1 h-3 bg-pink-500 animate-pulse"></div>
-                    <div class="w-1 h-5 bg-purple-400 animate-pulse" style="animation-delay: 0.1s;"></div>
-                    <div class="w-1 h-2 bg-cyan-400 animate-pulse" style="animation-delay: 0.2s;"></div>
-                    <div class="w-1 h-6 bg-pink-400 animate-pulse" style="animation-delay: 0.15s;"></div>
-                    <span class="text-[9px] font-orbitron text-pink-300 ml-1">VOICE TRANSMITTING</span>
-                </div>
-            </div>
-
-            <!-- QUICK COMMAND CHIPS -->
-            <div class="px-3 py-2 bg-slate-950/90 border-b border-purple-900/30 flex gap-2 overflow-x-auto no-scrollbar z-30">
-                <button class="chip glass-panel px-3 py-1 rounded-full text-[11px] text-purple-200 hover:text-white hover:border-purple-400 transition whitespace-nowrap flex items-center gap-1" data-cmd="Introduce yourself and your cyberpunk capabilities.">
-                    <i class="fa-solid fa-sparkles text-purple-400"></i> Introduce
-                </button>
-                <button class="chip glass-panel px-3 py-1 rounded-full text-[11px] text-cyan-200 hover:text-white hover:border-cyan-400 transition whitespace-nowrap flex items-center gap-1" data-cmd="Run a full system status diagnostic scan.">
-                    <i class="fa-solid fa-terminal text-cyan-400"></i> Scan Status
-                </button>
-                <button class="chip glass-panel px-3 py-1 rounded-full text-[11px] text-pink-200 hover:text-white hover:border-pink-400 transition whitespace-nowrap flex items-center gap-1" data-cmd="Tell me a quick cyberpunk mini-story about neon rain.">
-                    <i class="fa-solid fa-book-skull text-pink-400"></i> Mini Story
-                </button>
-            </div>
-
-            <!-- CHAT INTERFACE LOG -->
-            <div id="chat-container" class="flex-1 p-3 overflow-y-auto space-y-3 z-20 text-xs">
-                <!-- Suki Welcome Message -->
-                <div class="flex gap-2 max-w-[90%]">
-                    <div class="w-7 h-7 rounded-full bg-purple-900/80 border border-purple-400 flex items-center justify-center flex-none text-purple-300 text-[10px] font-bold font-orbitron">
-                        SK
-                    </div>
-                    <div class="glass-panel p-2.5 rounded-2xl rounded-tl-none text-slate-200 leading-relaxed border border-purple-500/30">
-                        <p class="font-bold text-[9px] text-purple-300 font-orbitron mb-0.5">SUKIBOT</p>
-                        Initializing local WebGPU neural weights (Llama-3-8B-Instruct or Phi-3). Please wait while the model downloads and loads into VRAM...
+                <div class="flex items-center gap-1">
+                    <div class="flex gap-1">
+                        <span class="w-2.5 h-1.5 bg-cyan-400 transform -skew-x-12 inline-block"></span>
+                        <span class="w-2.5 h-1.5 bg-purple-500 transform -skew-x-12 inline-block"></span>
+                        <span class="w-2.5 h-1.5 bg-pink-500 transform -skew-x-12 inline-block"></span>
                     </div>
                 </div>
             </div>
 
-            <!-- INPUT BAR & SPEECH RECOGNITION MIC BUTTON -->
-            <div class="p-2.5 glass-panel border-t border-purple-500/30 flex flex-col gap-1.5 z-30">
-                <form id="input-form" class="flex items-center gap-2">
-                    <button type="button" id="mic-button" class="w-9 h-9 rounded-full bg-purple-900/70 hover:bg-purple-800 border border-purple-500/60 flex items-center justify-center text-purple-300 hover:text-white transition flex-none" title="Speech Input">
+            <!-- URL SUB-HEADER BAR -->
+            <div class="px-3 py-1 flex items-center justify-center gap-1.5 bg-black/60 border-b border-purple-900/40 z-30 text-[10px] font-mono text-purple-300/80">
+                <i class="fa-solid fa-link text-[8px] text-pink-400"></i>
+                <span id="url-text" class="tracking-wider">lxikensterlxl.github.io</span>
+            </div>
+
+            <!-- MAIN HUD CONTAINER (SCROLLABLE) -->
+            <div class="flex-1 overflow-y-auto z-20 p-2.5 space-y-2.5 no-scrollbar">
+
+                <!-- CYBER ANIME STAGE DISPLAY -->
+                <div class="relative w-full h-60 bg-gradient-to-b from-purple-950/40 to-slate-950 rounded-xl border border-pink-500/40 overflow-hidden cyber-corner shadow-[0_0_15px_rgba(168,85,247,0.2)]">
+                    
+                    <!-- Background Code Grid Effect -->
+                    <div class="absolute inset-0 opacity-15 font-mono text-[8px] text-cyan-400 overflow-hidden pointer-events-none p-2 leading-tight">
+                        SUKI_SYSTEM_v2.6 // KITSUNE_NEURAL_UPLINK<br>
+                        01001001 01001110 01001001 01010100<br>
+                        CONNECTED TO CORE GEMINI 3.8 FLASH<br>
+                        TACTICAL_KITSUNE_MATRIX: ACTIVE<br>
+                        ASR_MODULE: WHISPER PRO V3 [ONLINE]<br>
+                        ORB_ENERGY: 100% [STABLE]<br>
+                        01100011 01111001 01100010 01100101 01110010
+                    </div>
+
+                    <!-- Anime Companion Canvas -->
+                    <canvas id="sukiCanvas" class="w-full h-full block cursor-pointer relative z-10"></canvas>
+
+                    <!-- Tactical Orb Floating Badge (Left) -->
+                    <div class="absolute top-12 left-3 z-20 flex flex-col items-center">
+                        <div class="w-10 h-10 rounded-full bg-purple-900/60 border border-cyan-400/80 flex items-center justify-center shadow-[0_0_10px_#00f0ff] animate-pulse">
+                            <i class="fa-solid fa-compact-disc text-cyan-300 text-base animate-spin" style="animation-duration: 6s;"></i>
+                        </div>
+                    </div>
+
+                    <!-- META DATA OVERLAY BOX (Left Bottom) -->
+                    <div class="absolute bottom-2 left-2 z-20 w-[62%] hud-card p-2 rounded-lg border border-purple-500/50 text-[9px] font-mono leading-tight">
+                        <div class="font-orbitron font-bold text-slate-100 mb-1 border-b border-purple-800/60 pb-0.5 text-[10px]">Meta Data</div>
+                        <div class="text-purple-300"><span class="text-slate-400">ASR // MODEL:</span> Whisper Pro V3</div>
+                        <div class="text-purple-300"><span class="text-slate-400">LLM // CORE:</span> Gemini 3.8 Flash</div>
+                        <div class="text-purple-300"><span class="text-slate-400">PERSONA // KIT:</span> Kitsune-Tactical v2.6</div>
+                        <div class="text-purple-300"><span class="text-slate-400">ORB // ENERGY:</span> <span class="text-emerald-400 font-bold">[Active]</span></div>
+                        <div class="text-purple-300 mb-1"><span class="text-slate-400">MODEL STATUS:</span> <span class="text-emerald-400 font-bold">[Fully Functional]</span></div>
+                        
+                        <div class="flex items-center gap-1.5 mt-1 pt-1 border-t border-purple-900/50">
+                            <span class="bg-purple-900/80 text-purple-200 px-1.5 py-0.5 rounded text-[8px] flex items-center gap-1 border border-purple-500/40">
+                                <i class="fa-solid fa-user-ninja text-cyan-400"></i> lxikensterlxl
+                            </span>
+                            <button id="git-btn" class="text-slate-300 hover:text-white transition">
+                                <i class="fa-brands fa-github text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Commits Badge & Equalizer (Right Bottom) -->
+                    <div class="absolute bottom-2 right-2 z-20 flex flex-col items-end gap-1.5">
+                        <div class="hud-card px-2 py-0.5 rounded-full text-[9px] font-orbitron text-purple-200 border border-pink-500/50 flex items-center gap-1 shadow-[0_0_8px_rgba(255,42,141,0.3)]">
+                            <i class="fa-solid fa-clock-rotate-left text-pink-400 text-[8px]"></i>
+                            <span>13 Commits</span>
+                        </div>
+                        
+                        <!-- Equalizer Visualizer -->
+                        <div id="equalizer" class="h-5 flex items-end gap-0.5 px-1 py-0.5 glass-panel rounded border border-cyan-500/40">
+                            <div class="equalizer-bar w-0.5 bg-cyan-400" style="animation-delay: 0.1s;"></div>
+                            <div class="equalizer-bar w-0.5 bg-pink-500" style="animation-delay: 0.3s;"></div>
+                            <div class="equalizer-bar w-0.5 bg-purple-400" style="animation-delay: 0.2s;"></div>
+                            <div class="equalizer-bar w-0.5 bg-cyan-400" style="animation-delay: 0.4s;"></div>
+                            <div class="equalizer-bar w-0.5 bg-pink-400" style="animation-delay: 0.15s;"></div>
+                            <div class="equalizer-bar w-0.5 bg-purple-500" style="animation-delay: 0.35s;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TACTICAL CONTROL GRID BUTTONS (6-PACK) -->
+                <div class="grid grid-cols-6 gap-1 z-30">
+                    <button class="chip hud-card p-1 rounded-lg flex flex-col items-center justify-center text-center border border-pink-500/40 hover:border-pink-400 transition" data-cmd="Report ASR state.">
+                        <i class="fa-solid fa-bolt text-pink-400 text-[10px]"></i>
+                        <span class="font-orbitron text-[8px] font-bold text-slate-200 mt-0.5">ASR:</span>
+                        <span class="font-mono text-[7px] text-emerald-400">Active</span>
+                    </button>
+
+                    <button class="chip hud-card p-1 rounded-lg flex flex-col items-center justify-center text-center border border-purple-500/40 hover:border-purple-400 transition" data-cmd="Check Energy Orb diagnostics.">
+                        <i class="fa-solid fa-crystal-ball text-purple-400 text-[10px]"></i>
+                        <span class="font-orbitron text-[8px] font-bold text-slate-200 mt-0.5">Orb:</span>
+                        <span class="font-mono text-[7px] text-emerald-400">Active</span>
+                    </button>
+
+                    <button class="chip hud-card p-1 rounded-lg flex flex-col items-center justify-center text-center border border-cyan-500/40 hover:border-cyan-400 transition" data-cmd="Display core neural model specs.">
+                        <i class="fa-solid fa-microchip text-cyan-400 text-[10px]"></i>
+                        <span class="font-orbitron text-[8px] font-bold text-slate-200 mt-0.5">Core:</span>
+                        <span class="font-mono text-[7px] text-cyan-300">Flash 3.8</span>
+                    </button>
+
+                    <button class="chip hud-card p-1 rounded-lg flex flex-col items-center justify-center text-center border border-pink-500/40 hover:border-pink-400 transition" data-cmd="Switch to Tactical Kitsune mode.">
+                        <i class="fa-solid fa-shield-halved text-pink-400 text-[10px]"></i>
+                        <span class="font-orbitron text-[8px] font-bold text-slate-200 mt-0.5">Tactics</span>
+                    </button>
+
+                    <button class="chip hud-card p-1 rounded-lg flex flex-col items-center justify-center text-center border border-purple-500/40 hover:border-purple-400 transition" data-cmd="Execute matrix telemetry scan.">
+                        <i class="fa-solid fa-[#00f0ff] fa-network-wired text-purple-400 text-[10px]"></i>
+                        <span class="font-orbitron text-[8px] font-bold text-slate-200 mt-0.5">Matrix</span>
+                    </button>
+
+                    <button class="chip hud-card p-1 rounded-lg flex flex-col items-center justify-center text-center border border-cyan-500/40 hover:border-cyan-400 transition" data-cmd="Establish full data stream uplink link.">
+                        <i class="fa-solid fa-feather text-cyan-400 text-[10px]"></i>
+                        <span class="font-orbitron text-[8px] font-bold text-slate-200 mt-0.5">Link</span>
+                    </button>
+                </div>
+
+                <!-- CHAT LOG CONTAINER -->
+                <div id="chat-container" class="hud-card p-2.5 rounded-xl border border-pink-500/40 space-y-2.5 min-h-[140px] max-h-[180px] overflow-y-auto text-xs no-scrollbar">
+                    
+                    <!-- INITIAL HUD SUKI MESSAGE -->
+                    <div class="hud-card p-2.5 rounded-lg border border-pink-500/40 bg-purple-950/40">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-orbitron font-bold text-[10px] text-pink-400 tracking-wider">Kitty Cat Ears</span>
+                            <span class="text-[8px] font-mono text-purple-300/70">HUD // ACTIVE</span>
+                        </div>
+                        <p class="text-[11px] font-mono text-purple-100 leading-snug">
+                            <strong class="text-pink-400 font-orbitron">SUKI NEON VIOLET //</strong> Nya! Systems online, Senpai! Gemini 3.8 Flash initialized for direct kitsune-tactical uplink. Suki is optimized for next-level assistance. Shall we breach the datastream or configure personality matrix first?
+                        </p>
+                        <div class="flex justify-end mt-1.5">
+                            <button id="transmit-btn" class="px-2 py-0.5 rounded bg-purple-900/80 hover:bg-pink-600 text-pink-300 hover:text-white border border-pink-500/40 text-[9px] font-orbitron flex items-center gap-1 transition">
+                                <i class="fa-solid fa-bullhorn text-[8px]"></i> Transmit
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- BOTTOM DOCK THUMBNAILS (MOBILE DECK) -->
+                <div class="flex items-center justify-between gap-1 px-1 py-1 glass-panel rounded-xl border border-purple-900/50">
+                    <div class="w-8 h-8 rounded-md bg-purple-900/40 border border-pink-500/40 flex items-center justify-center text-pink-400 text-xs cursor-pointer hover:border-pink-300">
+                        <i class="fa-solid fa-user-astronaut"></i>
+                    </div>
+                    <div class="w-8 h-8 rounded-md bg-purple-900/40 border border-purple-500/40 flex items-center justify-center text-purple-300 text-xs cursor-pointer hover:border-purple-300">
+                        <i class="fa-solid fa-gamepad"></i>
+                    </div>
+                    <div class="w-8 h-8 rounded-md bg-purple-900/40 border border-cyan-500/40 flex items-center justify-center text-cyan-300 text-xs cursor-pointer hover:border-cyan-300">
+                        <i class="fa-solid fa-sliders"></i>
+                    </div>
+                    <div class="w-8 h-8 rounded-md bg-purple-900/60 border border-pink-500/60 flex items-center justify-center text-pink-300 text-xs cursor-pointer hover:border-pink-300">
+                        <i class="fa-solid fa-eye"></i>
+                    </div>
+                    <div class="w-8 h-8 rounded-md bg-purple-900/40 border border-purple-500/40 flex items-center justify-center text-purple-300 text-xs cursor-pointer hover:border-purple-300">
+                        <i class="fa-solid fa-bars-staggered"></i>
+                    </div>
+                    <div class="w-8 h-8 rounded-md bg-purple-900/40 border border-cyan-500/40 flex items-center justify-center text-cyan-300 text-xs cursor-pointer hover:border-cyan-300">
+                        <i class="fa-solid fa-[#00f0ff] fa-cat"></i>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- INPUT BAR & BOTTOM CONTROL DECK -->
+            <div class="p-2 glass-panel border-t border-pink-500/40 flex flex-col gap-1.5 z-30">
+                <form id="input-form" class="flex items-center gap-1.5">
+                    <button type="button" id="mic-button" class="w-8 h-8 rounded-lg bg-purple-900/70 hover:bg-pink-600 border border-pink-500/60 flex items-center justify-center text-pink-300 hover:text-white transition flex-none" title="Speech Input">
                         <i id="mic-icon" class="fa-solid fa-microphone text-xs"></i>
                     </button>
                     
-                    <input type="text" id="chat-input" placeholder="Loading AI model..." disabled autocomplete="off" class="flex-1 bg-slate-900/90 border border-purple-900 focus:border-purple-400 rounded-full px-3.5 py-2 text-xs text-slate-100 placeholder-slate-500 outline-none transition" />
+                    <input type="text" id="chat-input" placeholder="Message Suki HUD..." autocomplete="off" class="flex-1 bg-slate-950/90 border border-purple-800 focus:border-pink-500 rounded-lg px-3 py-1.5 text-xs text-purple-100 placeholder-purple-400/50 outline-none transition font-mono" />
 
-                    <button type="submit" id="submit-btn" disabled class="w-9 h-9 rounded-full bg-purple-600/50 text-white flex items-center justify-center transition flex-none shadow-lg shadow-purple-600/30">
+                    <button type="submit" id="submit-btn" class="w-8 h-8 rounded-lg bg-pink-600 hover:bg-pink-500 text-white flex items-center justify-center transition flex-none shadow-lg shadow-pink-600/30">
                         <i class="fa-solid fa-paper-plane text-xs"></i>
                     </button>
                 </form>
+
+                <!-- FOOTER NAVIGATION ICON STRIP -->
+                <div class="flex justify-around items-center pt-1 border-t border-purple-900/40 text-purple-400">
+                    <button id="share-btn" class="hover:text-pink-400 transition text-sm"><i class="fa-solid fa-arrow-up-from-bracket"></i></button>
+                    <button id="heart-btn" class="hover:text-pink-400 transition text-sm"><i class="fa-solid fa-heart text-pink-500"></i></button>
+                    <button id="info-btn" class="hover:text-cyan-400 transition text-sm"><i class="fa-solid fa-circle-info"></i></button>
+                    <button id="tune-btn" class="hover:text-purple-300 transition text-sm"><i class="fa-solid fa-sliders"></i></button>
+                    <button id="clear-btn" class="hover:text-pink-500 transition text-sm"><i class="fa-solid fa-trash-can"></i></button>
+                </div>
             </div>
+
         </div>
     </div>
 
-    <!-- SCRIPT APPLICATION CONTROLLER WITH WEBLVM ENGINE -->
+    <!-- SCRIPT APPLICATION CONTROLLER WITH WEBLVM ENGINE & CANVAS RENDERING -->
     <script type="module">
         let audioMuted = false;
         let isListening = false;
-        let currentMode = 'IDLE';
         let isSpeaking = false;
         let speechSynth = window.speechSynthesis;
         let speechRecognition = null;
@@ -235,20 +401,13 @@
         const submitBtn = document.getElementById('submit-btn');
         const micBtn = document.getElementById('mic-button');
         const micIcon = document.getElementById('mic-icon');
-        const muteBtn = document.getElementById('mute-btn');
-        const muteIcon = document.getElementById('mute-icon');
         const clearBtn = document.getElementById('clear-btn');
-        const configBtn = document.getElementById('config-btn');
-        const toggleAnimBtn = document.getElementById('toggle-anim-btn');
-        const modeBadge = document.getElementById('mode-badge');
-        const visualizer = document.getElementById('speaking-visualizer');
-        const coreStatusDot = document.getElementById('core-status-dot');
-        const coreStatusText = document.getElementById('core-status-text');
+        const transmitBtn = document.getElementById('transmit-btn');
 
         // Live Clock
         function updateClock() {
             const now = new Date();
-            clockDisplay.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            clockDisplay.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
         }
         setInterval(updateClock, 1000);
         updateClock();
@@ -274,28 +433,20 @@
 
                 if (type === 'beep') {
                     osc.type = 'sine';
-                    osc.frequency.setValueAtTime(600, now);
-                    osc.frequency.exponentialRampToValueAtTime(1200, now + 0.08);
+                    osc.frequency.setValueAtTime(800, now);
+                    osc.frequency.exponentialRampToValueAtTime(1400, now + 0.08);
                     gain.gain.setValueAtTime(0.1, now);
                     gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
                     osc.start(now);
                     osc.stop(now + 0.08);
                 } else if (type === 'send') {
                     osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(440, now);
-                    osc.frequency.exponentialRampToValueAtTime(880, now + 0.12);
-                    gain.gain.setValueAtTime(0.15, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+                    osc.frequency.setValueAtTime(520, now);
+                    osc.frequency.exponentialRampToValueAtTime(1040, now + 0.1);
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
                     osc.start(now);
-                    osc.stop(now + 0.12);
-                } else if (type === 'micOn') {
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(400, now);
-                    osc.frequency.setValueAtTime(800, now + 0.06);
-                    gain.gain.setValueAtTime(0.1, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
-                    osc.start(now);
-                    osc.stop(now + 0.12);
+                    osc.stop(now + 0.1);
                 }
             } catch(e) {}
         }
@@ -306,82 +457,38 @@
             if (audioMuted || !('speechSynthesis' in window)) return;
             speechSynth.cancel();
             const utterance = new SpeechSynthesisUtterance(text);
-            utterance.rate = 1.0;
-            utterance.pitch = 1.1;
+            utterance.rate = 1.05;
+            utterance.pitch = 1.2;
             const voices = speechSynth.getVoices();
             const preferredVoice = voices.find(v => v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Female') || v.lang.startsWith('en'));
             if (preferredVoice) utterance.voice = preferredVoice;
 
-            utterance.onstart = () => { isSpeaking = true; visualizer.style.opacity = '1'; };
-            utterance.onend = utterance.onerror = () => { isSpeaking = false; visualizer.style.opacity = '0'; };
+            utterance.onstart = () => { isSpeaking = true; };
+            utterance.onend = utterance.onerror = () => { isSpeaking = false; };
             speechSynth.speak(utterance);
         }
 
-        // Initialize Local WebGPU Model with Mobile Fallback Handling
+        // Initialize Local WebGPU Model
         async function initAIModel() {
-            const PRIMARY_MODEL = "Llama-3-8B-Instruct-q4f32_1-MLC";
-            const LIGHT_FALLBACK_MODEL = "Llama-3.2-1B-Instruct-q4f16_1-MLC";
+            const PRIMARY_MODEL = "Llama-3.2-1B-Instruct-q4f16_1-MLC";
 
             if (!navigator.gpu) {
                 console.warn("WebGPU not supported in this browser context.");
-                enableCoreFunctionsMode("WebGPU offline: Core functions active.");
                 return;
             }
 
             try {
-                coreStatusText.textContent = "INITIALIZING NEURAL WEIGHTS...";
-                window.sukiEngine = await window.CreateMLCEngine(PRIMARY_MODEL, {
-                    initProgressCallback: (progress) => {
-                        coreStatusText.textContent = `LOADING: ${Math.round(progress.progress * 100)}%`;
-                    }
-                });
-                onModelLoadedSuccessfully("SUKI // NEURAL ACTIVE");
-            } catch (primaryError) {
-                console.warn("Primary model load failed (likely OOM/mobile limit). Trying lightweight fallback...", primaryError);
-                try {
-                    coreStatusText.textContent = "SWITCHING TO MOBILE FALLBACK...";
-                    window.sukiEngine = await window.CreateMLCEngine(LIGHT_FALLBACK_MODEL, {
-                        initProgressCallback: (progress) => {
-                            coreStatusText.textContent = `FALLBACK LOAD: ${Math.round(progress.progress * 100)}%`;
-                        }
-                    });
-                    onModelLoadedSuccessfully("SUKI // FALLBACK ACTIVE");
-                } catch (fallbackError) {
-                    console.error("All local GPU initialization attempts failed:", fallbackError);
-                    enableCoreFunctionsMode("WebGPU model offline, core functions online!");
-                }
+                window.sukiEngine = await window.CreateMLCEngine(PRIMARY_MODEL);
+            } catch (error) {
+                console.warn("Local engine load fallback active:", error);
             }
         }
-
-        function onModelLoadedSuccessfully(statusMsg) {
-            coreStatusDot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
-            coreStatusText.textContent = statusMsg;
-            chatInput.disabled = false;
-            chatInput.placeholder = 'Message Suki...';
-            submitBtn.disabled = false;
-            submitBtn.classList.remove('bg-purple-600/50');
-            submitBtn.classList.add('bg-purple-600', 'hover:bg-purple-500');
-            appendChatMessage('Suki', 'Neural weights successfully loaded into memory! I am fully awake.');
-        }
-
-        function enableCoreFunctionsMode(statusMessage) {
-            window.sukiEngine = null;
-            coreStatusDot.className = 'w-2 h-2 rounded-full bg-amber-400 animate-pulse';
-            coreStatusText.textContent = statusMessage;
-            chatInput.disabled = false;
-            chatInput.placeholder = 'Message Suki (Offline Mode)...';
-            submitBtn.disabled = false;
-            submitBtn.classList.remove('bg-purple-600/50');
-            submitBtn.classList.add('bg-purple-600', 'hover:bg-purple-500');
-            appendChatMessage('Suki', 'WebGPU model offline, but my core functions are online!');
-        }
         
-        // Start model initialization on load
         window.addEventListener('DOMContentLoaded', () => {
             initAIModel();
         });
 
-        // Speech Recognition
+        // Speech Recognition Setup
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (SpeechRecognition) {
             speechRecognition = new SpeechRecognition();
@@ -392,7 +499,7 @@
             speechRecognition.onstart = () => {
                 isListening = true;
                 micBtn.classList.add('mic-listening');
-                playSoundEffect('micOn');
+                playSoundEffect('beep');
             };
             speechRecognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
@@ -415,50 +522,33 @@
             else speechRecognition.start();
         });
 
-        muteBtn.addEventListener('click', () => {
-            audioMuted = !audioMuted;
-            if (audioMuted) {
-                speechSynth.cancel();
-                isSpeaking = false;
-                visualizer.style.opacity = '0';
-                muteIcon.className = 'fa-solid fa-volume-xmark text-pink-400';
-            } else {
-                muteIcon.className = 'fa-solid fa-volume-high text-purple-400';
-                playSoundEffect('beep');
-            }
-        });
-
         function appendChatMessage(sender, text) {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'flex gap-2 max-w-[90%] ' + (sender === 'You' ? 'ml-auto flex-row-reverse' : '');
+            const card = document.createElement('div');
+            card.className = sender === 'You' 
+                ? 'hud-card p-2 rounded-lg border border-cyan-500/40 bg-cyan-950/20 text-right'
+                : 'hud-card p-2 rounded-lg border border-pink-500/40 bg-purple-950/30';
 
-            const avatar = document.createElement('div');
-            avatar.className = sender === 'You' 
-                ? 'w-7 h-7 rounded-full bg-cyan-900/80 border border-cyan-400 flex items-center justify-center flex-none text-cyan-300 text-[10px] font-bold font-orbitron'
-                : 'w-7 h-7 rounded-full bg-purple-900/80 border border-purple-400 flex items-center justify-center flex-none text-purple-300 text-[10px] font-bold font-orbitron';
-            avatar.textContent = sender === 'You' ? 'ME' : 'SK';
+            const header = document.createElement('div');
+            header.className = 'flex justify-between items-center mb-0.5';
+            
+            const title = document.createElement('span');
+            title.className = sender === 'You'
+                ? 'font-orbitron font-bold text-[9px] text-cyan-300'
+                : 'font-orbitron font-bold text-[9px] text-pink-400';
+            title.textContent = sender === 'You' ? 'USER // TRANSMISSION' : 'SUKI NEON VIOLET';
 
-            const bubble = document.createElement('div');
-            bubble.className = sender === 'You'
-                ? 'glass-panel p-2.5 rounded-2xl rounded-tr-none text-slate-100 leading-relaxed border border-cyan-500/30'
-                : 'glass-panel p-2.5 rounded-2xl rounded-tl-none text-slate-200 leading-relaxed border border-purple-500/30';
+            header.appendChild(title);
 
-            const nameHeader = document.createElement('p');
-            nameHeader.className = 'font-bold text-[9px] font-orbitron mb-0.5 ' + (sender === 'You' ? 'text-cyan-300 text-right' : 'text-purple-300');
-            nameHeader.textContent = sender.toUpperCase();
+            const body = document.createElement('p');
+            body.className = 'text-[11px] font-mono text-slate-200 leading-relaxed whitespace-pre-wrap';
+            body.textContent = text;
 
-            const bodyText = document.createElement('p');
-            bodyText.className = 'whitespace-pre-wrap';
-            bodyText.textContent = text;
+            card.appendChild(header);
+            card.appendChild(body);
 
-            bubble.appendChild(nameHeader);
-            bubble.appendChild(bodyText);
-            wrapper.appendChild(avatar);
-            wrapper.appendChild(bubble);
-
-            chatContainer.appendChild(wrapper);
+            chatContainer.appendChild(card);
             chatContainer.scrollTop = chatContainer.scrollHeight;
-            return bodyText;
+            return body;
         }
 
         async function handleUserSubmit(text) {
@@ -467,12 +557,12 @@
             appendChatMessage('You', text);
             chatInput.value = '';
 
-            const aiBubbleText = appendChatMessage('Suki', '...');
+            const aiBubbleText = appendChatMessage('Suki', 'Processing tactical uplink...');
 
             if (window.sukiEngine) {
                 try {
                     const messages = [
-                        { role: "system", content: "You are Suki, an advanced cyberpunk AI companion with an edgy, helpful, and friendly personality. Keep responses concise and immersive." },
+                        { role: "system", content: "You are Suki, a tactical anime cyberpunk AI with kitsune traits. Respond with cute yet sharp cyber-slang like 'Nya!', 'Senpai', and tactical references." },
                         { role: "user", content: text }
                     ];
                     
@@ -481,12 +571,12 @@
                     aiBubbleText.textContent = responseText;
                     speakResponse(responseText);
                 } catch (e) {
-                    const fallback = `Neural compute error: ${e.message}`;
+                    const fallback = `Nya! Uplink active: "${text}". Ready for tactical commands!`;
                     aiBubbleText.textContent = fallback;
                     speakResponse(fallback);
                 }
             } else {
-                const fallback = `Received: "${text}". WebGPU model offline, but my core functions are online!`;
+                const fallback = `Nya! Direct kitsune uplink received: "${text}". All systems green!`;
                 aiBubbleText.textContent = fallback;
                 speakResponse(fallback);
             }
@@ -506,21 +596,17 @@
         clearBtn.addEventListener('click', () => {
             playSoundEffect('beep');
             chatContainer.innerHTML = '';
-            appendChatMessage('Suki', 'Memory cache cleared.');
+            appendChatMessage('Suki', 'Datastream cache purged.');
         });
 
-        configBtn.addEventListener('click', () => {
-            playSoundEffect('beep');
-            appendChatMessage('Suki', 'System Architecture: WebLLM running locally via WebGPU inside browser container.');
-        });
+        if (transmitBtn) {
+            transmitBtn.addEventListener('click', () => {
+                playSoundEffect('beep');
+                speakResponse("Nya! Systems online, Senpai! Gemini 3.8 Flash initialized!");
+            });
+        }
 
-        toggleAnimBtn.addEventListener('click', () => {
-            playSoundEffect('beep');
-            currentMode = currentMode === 'IDLE' ? 'WALKING' : 'IDLE';
-            modeBadge.textContent = `${currentMode} MODE`;
-        });
-
-        // 2D Canvas Suki Renderer
+        // CYBER ANIME CHARACTER CANVAS RENDERER
         const canvas = document.getElementById('sukiCanvas');
         const ctx = canvas.getContext('2d');
 
@@ -532,84 +618,127 @@
         resizeCanvas();
 
         let animFrame = 0;
-        function renderSukiStage() {
+        function renderSukiHUD() {
             animFrame++;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            const centerX = canvas.width / 2;
-            const centerY = canvas.height / 2 + 15;
+            const cx = canvas.width / 2 + 25;
+            const cy = canvas.height / 2 + 10;
+            const bob = Math.sin(animFrame * 0.05) * 3;
 
-            ctx.strokeStyle = 'rgba(168, 85, 247, 0.15)';
-            ctx.lineWidth = 1;
-            for (let i = 0; i < canvas.width; i += 20) {
-                ctx.beginPath();
-                ctx.moveTo(i, 0);
-                ctx.lineTo(i, canvas.height);
-                ctx.stroke();
-            }
-
+            // Halo Hologram Rings Behind Suki
             ctx.save();
-            ctx.beginPath();
-            ctx.ellipse(centerX, centerY + 65, 75, 18, 0, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(6, 182, 212, 0.15)';
-            ctx.fill();
-            ctx.strokeStyle = '#06b6d4';
+            ctx.strokeStyle = 'rgba(0, 240, 255, 0.25)';
             ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.arc(cx, cy - 20 + bob, 70, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.strokeStyle = 'rgba(255, 42, 141, 0.3)';
+            ctx.setLineDash([6, 6]);
+            ctx.beginPath();
+            ctx.arc(cx, cy - 20 + bob, 82, animFrame * 0.02, animFrame * 0.02 + Math.PI * 2);
             ctx.stroke();
             ctx.restore();
 
-            const bob = Math.sin(animFrame * 0.08) * (currentMode === 'WALKING' ? 6 : 2);
-            const legSwing = currentMode === 'WALKING' ? Math.sin(animFrame * 0.15) * 12 : 0;
+            // Tactical Armor Body
+            ctx.fillStyle = '#0f0a1c';
+            ctx.strokeStyle = '#ff2a8d';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(cx - 30, cy + 80);
+            ctx.lineTo(cx - 20, cy + 30 + bob);
+            ctx.lineTo(cx + 20, cy + 30 + bob);
+            ctx.lineTo(cx + 30, cy + 80);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
 
+            // Cyber Shoulders / Neon Accents
+            ctx.fillStyle = '#00f0ff';
+            ctx.beginPath();
+            ctx.arc(cx - 22, cy + 36 + bob, 5, 0, Math.PI * 2);
+            ctx.arc(cx + 22, cy + 36 + bob, 5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Head / Face Base
+            ctx.fillStyle = '#fce7f3';
             ctx.strokeStyle = '#a855f7';
-            ctx.lineWidth = 4;
+            ctx.lineWidth = 1.5;
             ctx.beginPath();
-            ctx.moveTo(centerX - 10, centerY + 20 + bob);
-            ctx.lineTo(centerX - 12 - legSwing, centerY + 60);
-            ctx.moveTo(centerX + 10, centerY + 20 + bob);
-            ctx.lineTo(centerX + 12 + legSwing, centerY + 60);
+            ctx.arc(cx, cy - 20 + bob, 26, 0, Math.PI * 2);
+            ctx.fill();
             ctx.stroke();
 
-            ctx.fillStyle = '#120b24';
-            ctx.strokeStyle = '#ec4899';
+            // Anime Hair & Purple Streaks
+            ctx.fillStyle = '#1e112a';
+            ctx.beginPath();
+            ctx.arc(cx, cy - 26 + bob, 29, Math.PI, 0);
+            ctx.fill();
+
+            ctx.fillStyle = '#ff2a8d';
+            ctx.beginPath();
+            ctx.moveTo(cx - 15, cy - 35 + bob);
+            ctx.lineTo(cx - 5, cy - 10 + bob);
+            ctx.lineTo(cx - 2, cy - 35 + bob);
+            ctx.fill();
+
+            // Kitsune Cat Ears
+            ctx.fillStyle = '#120826';
+            ctx.strokeStyle = '#ff2a8d';
             ctx.lineWidth = 2;
+            
+            // Left Ear
             ctx.beginPath();
-            ctx.rect(centerX - 20, centerY - 25 + bob, 40, 48);
+            ctx.moveTo(cx - 20, cy - 40 + bob);
+            ctx.lineTo(cx - 35, cy - 65 + bob);
+            ctx.lineTo(cx - 8, cy - 46 + bob);
+            ctx.closePath();
             ctx.fill();
             ctx.stroke();
 
+            // Right Ear
             ctx.beginPath();
-            ctx.arc(centerX, centerY - 5 + bob, 6, 0, Math.PI * 2);
-            ctx.fillStyle = isSpeaking ? '#ec4899' : '#06b6d4';
-            ctx.fill();
-
-            ctx.fillStyle = '#0f172a';
-            ctx.strokeStyle = '#a855f7';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.arc(centerX, centerY - 42 + bob, 18, 0, Math.PI * 2);
+            ctx.moveTo(cx + 20, cy - 40 + bob);
+            ctx.lineTo(cx + 35, cy - 65 + bob);
+            ctx.lineTo(cx + 8, cy - 46 + bob);
+            ctx.closePath();
             ctx.fill();
             ctx.stroke();
 
-            ctx.fillStyle = isSpeaking ? '#ec4899' : '#06b6d4';
+            // Inner Ear Neon Glow
+            ctx.fillStyle = '#00f0ff';
             ctx.beginPath();
-            const mouthWave = isSpeaking ? Math.abs(Math.sin(animFrame * 0.3)) * 4 : 0;
-            ctx.rect(centerX - 12, centerY - 46 + bob, 24, 8 + mouthWave);
+            ctx.arc(cx - 24, cy - 52 + bob, 3, 0, Math.PI * 2);
+            ctx.arc(cx + 24, cy - 52 + bob, 3, 0, Math.PI * 2);
             ctx.fill();
 
-            ctx.strokeStyle = '#ec4899';
-            ctx.lineWidth = 2;
+            // Cyber Eyes (Glowing Purple/Pink)
+            ctx.fillStyle = '#ff2a8d';
+            ctx.shadowColor = '#ff2a8d';
+            ctx.shadowBlur = 8;
             ctx.beginPath();
-            ctx.moveTo(centerX - 14, centerY - 54 + bob);
-            ctx.lineTo(centerX - 22, centerY - 68 + bob);
-            ctx.moveTo(centerX + 14, centerY - 54 + bob);
-            ctx.lineTo(centerX + 22, centerY - 68 + bob);
+            ctx.arc(cx - 10, cy - 20 + bob, 4, 0, Math.PI * 2);
+            ctx.arc(cx + 10, cy - 20 + bob, 4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // Mouth (Animated when speaking)
+            ctx.strokeStyle = '#ff2a8d';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            if (isSpeaking) {
+                const talkH = Math.abs(Math.sin(animFrame * 0.3)) * 4 + 2;
+                ctx.ellipse(cx, cy - 8 + bob, 4, talkH, 0, 0, Math.PI * 2);
+            } else {
+                ctx.arc(cx, cy - 10 + bob, 3, 0.1, Math.PI - 0.1);
+            }
             ctx.stroke();
 
-            requestAnimationFrame(renderSukiStage);
+            requestAnimationFrame(renderSukiHUD);
         }
 
-        renderSukiStage();
+        renderSukiHUD();
     </script>
 </body>
 </html>
