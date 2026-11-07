@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>SukiBot // CYBER HUD & ANIME AVATAR ENGINE</title>
     
     <!-- Tailwind CSS CDN -->
@@ -56,6 +58,7 @@
             font-family: 'Rajdhani', sans-serif;
             user-select: none;
             overflow-x: hidden;
+            touch-action: manipulation;
         }
 
         ::-webkit-scrollbar {
@@ -155,12 +158,19 @@
             0% { height: 15%; }
             100% { height: 100%; }
         }
+
+        /* iOS Safari Input Zoom Fix */
+        @media screen and (max-width: 768px) {
+            input, select, textarea {
+                font-size: 16px !important;
+            }
+        }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-0 sm:p-4 bg-slate-950">
 
-    <!-- iPhone Screen Frame Container -->
-    <div class="relative w-full max-w-[420px] h-[100vh] sm:h-[890px] bg-black sm:rounded-[48px] p-2 sm:p-3 shadow-[0_0_60px_rgba(255,42,141,0.3)] border-0 sm:border-4 border-slate-900 flex flex-col overflow-hidden">
+    <!-- Screen Frame Container -->
+    <div class="relative w-full max-w-[420px] h-[100dvh] sm:h-[890px] bg-black sm:rounded-[48px] p-2 sm:p-3 shadow-[0_0_60px_rgba(255,42,141,0.3)] border-0 sm:border-4 border-slate-900 flex flex-col overflow-hidden">
         
         <!-- Dynamic Island / Top Notch -->
         <div class="absolute top-3 left-1/2 -translate-x-1/2 w-28 sm:w-32 h-5 sm:h-6 bg-black rounded-full z-50 flex items-center justify-between px-3 border border-slate-800">
@@ -238,7 +248,7 @@
                     
                     <!-- Background Code Grid Effect -->
                     <div class="absolute inset-0 opacity-15 font-mono text-[8px] text-cyan-400 overflow-hidden pointer-events-none p-2 leading-tight">
-                        SUKI_SYSTEM_v3.5 // FULL_BODY_WALK_ENGINE<br>
+                        SUKI_SYSTEM_v3.5 // IOS_OPTIMIZED_ENGINE<br>
                         01001001 01001110 01001001 01010100<br>
                         CONNECTED TO LIVE SPEECH ENGINE & WEBGPU<br>
                         TACTICAL_KITSUNE_AVATAR: FULL_BODY_ACTIVE<br>
@@ -277,7 +287,7 @@
                             </div>
                         </div>
                         <div id="dialogue-box" class="text-xs font-rajdhani text-slate-200 tracking-wide min-h-[32px] max-h-[48px] overflow-y-auto">
-                            Initializing neural connection... Welcome back, Operator. Ready for tactical input.
+                            Initializing neural connection... Tap anywhere to unlock web audio. Ready for input.
                         </div>
                     </div>
                 </div>
@@ -304,7 +314,7 @@
                         <span class="font-mono text-pink-500 font-bold">&gt;</span>
                         <div class="text-slate-300 font-rajdhani leading-relaxed">
                             <span class="text-cyan-400 font-mono text-[10px] block">SYSTEM // 00:00:00</span>
-                            SukiBot fully loaded. Speak or type your request below.
+                            SukiBot fully initialized for iOS Webkit. Speak or type your command below.
                         </div>
                     </div>
                 </div>
@@ -312,7 +322,7 @@
             </div>
 
             <!-- INTERACTIVE INPUT FOOTER -->
-            <div class="p-2.5 bg-black/90 border-t border-pink-500/40 z-30 flex flex-col gap-2">
+            <div class="p-2.5 bg-black/90 border-t border-pink-500/40 z-30 flex flex-col gap-2 pb-safe">
                 <div class="flex items-center gap-2">
                     <button id="mic-btn" title="Toggle Voice Recognition" class="w-10 h-10 rounded-xl bg-purple-950/80 border border-pink-500/50 flex items-center justify-center text-pink-400 hover:bg-pink-600/20 transition-all">
                         <i class="fa-solid fa-microphone text-sm"></i>
@@ -374,7 +384,23 @@
             document.getElementById('settings-modal').classList.add('hidden');
         }
 
-        // Canvas Avatar & Animation Loop
+        // Web Audio / iOS Gesture Unlock
+        let audioCtx;
+        function unlockAudioContext() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) {
+                    audioCtx = new AudioContext();
+                }
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+        window.addEventListener('touchstart', unlockAudioContext, { once: true });
+        window.addEventListener('click', unlockAudioContext, { once: true });
+
+        // Canvas Avatar & Retina Scaling
         const canvas = document.getElementById('avatar-canvas');
         const ctx = canvas.getContext('2d');
         let frameCount = 0;
@@ -382,17 +408,25 @@
         let isSpeaking = false;
 
         function resizeCanvas() {
-            canvas.width = canvas.parentElement.clientWidth;
-            canvas.height = canvas.parentElement.clientHeight;
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvas.parentElement.getBoundingClientRect();
+            
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr);
         }
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
         function drawAvatar() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const rect = canvas.parentElement.getBoundingClientRect();
+            const width = rect.width;
+            const height = rect.height;
+
+            ctx.clearRect(0, 0, width, height);
             
-            const cx = canvas.width / 2;
-            const cy = canvas.height / 2;
+            const cx = width / 2;
+            const cy = height / 2;
             const time = Date.now() * 0.003;
 
             // Cybernetic Glow Ring
@@ -454,6 +488,25 @@
             isSpeaking = true;
             document.getElementById('equalizer-container').classList.add('speaking-active');
             
+            // Web Speech Synthesis (iOS Safari compatible)
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                const speed = parseFloat(document.getElementById('speech-speed').value) || 1.0;
+                utterance.rate = speed;
+                utterance.pitch = 1.2;
+                utterance.onend = () => {
+                    isSpeaking = false;
+                    document.getElementById('equalizer-container').classList.remove('speaking-active');
+                };
+                window.speechSynthesis.speak(utterance);
+            } else {
+                setTimeout(() => {
+                    isSpeaking = false;
+                    document.getElementById('equalizer-container').classList.remove('speaking-active');
+                }, 3500);
+            }
+
             // Add to chat feed
             const feed = document.getElementById('chat-feed');
             feed.innerHTML += `
@@ -466,11 +519,6 @@
                 </div>
             `;
             feed.scrollTop = feed.scrollHeight;
-
-            setTimeout(() => {
-                isSpeaking = false;
-                document.getElementById('equalizer-container').classList.remove('speaking-active');
-            }, 3500);
         }
 
         // Event Listeners for input
