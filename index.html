@@ -45,7 +45,7 @@
             -webkit-tap-highlight-color: transparent;
             box-sizing: border-box;
         }
-        body {
+        html, body {
             background-color: #030207;
             color: #e2e8f0;
             font-family: 'Rajdhani', sans-serif;
@@ -56,6 +56,7 @@
             padding: 0;
             width: 100vw;
             height: 100dvh;
+            position: fixed; /* Fixes mobile rubber-banding / scrolling bugs on iOS */
         }
 
         ::-webkit-scrollbar {
@@ -163,13 +164,13 @@
         }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-0 sm:p-4 bg-slate-950">
+<body class="flex items-center justify-center p-0 sm:p-4 bg-slate-950">
 
     <!-- Screen Frame Container -->
     <div class="relative w-full max-w-[440px] h-[100dvh] sm:h-[900px] bg-black sm:rounded-[48px] p-2 sm:p-3 shadow-[0_0_60px_rgba(255,42,141,0.3)] border-0 sm:border-4 border-slate-900 flex flex-col overflow-hidden">
         
         <!-- Dynamic Island / Top Notch -->
-        <div class="absolute top-3 left-1/2 -translate-x-1/2 w-28 sm:w-32 h-5 sm:h-6 bg-black rounded-full z-50 flex items-center justify-between px-3 border border-slate-800">
+        <div class="absolute top-3 left-1/2 -translate-x-1/2 w-28 sm:w-32 h-5 sm:h-6 bg-black rounded-full z-50 flex items-center justify-between px-3 border border-slate-800 pointer-events-none">
             <div class="w-2.5 h-2.5 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center">
                 <div id="notch-dot" class="w-1 h-1 rounded-full bg-pink-500/80"></div>
             </div>
@@ -244,7 +245,7 @@
                     
                     <!-- Background Code Grid Effect -->
                     <div class="absolute inset-0 opacity-15 font-mono text-[8px] text-purple-300 overflow-hidden pointer-events-none p-2 leading-tight">
-                        SUKI_SYSTEM_v4.6 // IPHONE_17_OPTIMIZED<br>
+                        SUKI_SYSTEM_v4.7 // FULLY_FIXED_AVATAR<br>
                         NEKO_EARS: ONLINE // TACTICAL_ARMOR: SYNCED<br>
                         PLASMA_KATANA: CHARGED // BRAIDED_PURPLE_HAIR: ACTIVE<br>
                         01100011 01111001 01100011 01100101 01110011 01110011
